@@ -10,3 +10,5 @@ filename1 = 'test.tif'
 dataset1 = gdal.Open(filename1)
 
 !gdalinfo filename1
+
+# Load data
