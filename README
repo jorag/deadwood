@@ -1,1 +1,3 @@
-A Python project for classification of forest structure using satellite remote sensing data.  
+A Python project for classification of forest structure using satellite remote sensing data. 
+
+The first data source is quad-polarimetric RADARSAT-2 scenes.
