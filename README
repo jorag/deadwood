@@ -1,3 +1,8 @@
 A Python project for classification of forest structure using satellite remote sensing data. 
 
 The first data source is quad-polarimetric RADARSAT-2 scenes.
+
+Dependencies:
+Python 3.4 (to be compatible with SNAPPY)
+numpy 
+GDAL 2.1.0
