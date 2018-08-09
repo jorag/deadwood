@@ -64,4 +64,5 @@ scanline = band.ReadRaster(xoff=0, yoff=0,
                            buf_xsize=band.XSize, buf_ysize=1,
                            buf_type=gdal.GDT_Float32)
 
+# Convert to floating point numbers
 tuple_of_floats = struct.unpack('f' * band.XSize, scanline)
