@@ -1,0 +1,18 @@
+# Simple .gitignore file, have only added things that I (mostly) understand what is for
+# Based on https://www.gitignore.io/api/python AND https://realpython.com/python-git-github-intro/#gitignore
+
+
+# My .gitignore list
+data/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+
+# Unit test / coverage reports
+.pytest_cache
+.coverage
+
+# Environments
+venv
+env

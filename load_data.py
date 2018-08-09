@@ -17,7 +17,7 @@ import struct # for converting scanline raster data to numeric
 # GUI for file selection
 root = tkinter.Tk()
 root.withdraw()
-file_path = tkinter.filedialog.askopenfilename()
+file_path = tkinter.filedialog.askopenfilename(title='Select input .tif file')
 #root.destroy() #is this needed?
 
 # Files could be loaded using SNAPPY import product, but for now assuming that the input is .tiff is ok
@@ -64,4 +64,4 @@ scanline = band.ReadRaster(xoff=0, yoff=0,
                            buf_xsize=band.XSize, buf_ysize=1,
                            buf_type=gdal.GDT_Float32)
 
-tuple_of_floats = struct.unpack('f' * b2.XSize, scanline)
+tuple_of_floats = struct.unpack('f' * band.XSize, scanline)
