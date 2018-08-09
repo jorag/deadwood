@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+@author: jorag
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import gdal
