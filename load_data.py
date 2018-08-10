@@ -66,3 +66,8 @@ scanline = band.ReadRaster(xoff=0, yoff=0,
 
 # Convert to floating point numbers
 tuple_of_floats = struct.unpack('f' * band.XSize, scanline)
+
+# From https://www.gis.usu.edu/~chrisg/python/2009/lectures/ospy_slides4.pdf
+xOffset = 0
+yOffset = 0
+data = band.ReadAsArray(xOffset, yOffset, 10, 10)
