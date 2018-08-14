@@ -72,5 +72,13 @@ xOffset = 0
 yOffset = 0
 data = band.ReadAsArray(xOffset, yOffset, 10, 10)
 
+# Point of Interest
+point_lat = 70.0
+point_lon = 27.0
+
+# Estimate pixel position
+point_pixpos_lat = (point_lat - ul_lat)/pixel_width_lat # Better way of ensuring correct sign? 
+point_pixpos_lon = (ul_lon - point_lon)/pixel_width_lon # Better way of ensuring correct sign?
+
 # Idea: Use the Geo-transform info to get a rough estimate of position, then look up "exact" position using LAT/LONG bands
 # Look at sign of band minus coordinate of interest
