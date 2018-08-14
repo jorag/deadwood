@@ -33,7 +33,14 @@ print("Size is {} x {} x {}".format(dataset.RasterXSize,
                                     dataset.RasterYSize,
                                     dataset.RasterCount))
 print("Projection is {}".format(dataset.GetProjection()))
+
+# Get georeference info
 geotransform = dataset.GetGeoTransform()
+ul_lat = geotransform[3] # lat or y??
+ul_lon = geotransform[0] # long or x??
+pixel_width_lat = geotransform[5] # lat or y??
+pixel_width_lon = geotransform[1] # long or x??
+
 if geotransform:
     print("Origin = ({}, {})".format(geotransform[0], geotransform[3]))
     print("Pixel Size = ({}, {})".format(geotransform[1], geotransform[5]))
@@ -43,12 +50,12 @@ if geotransform:
 band = dataset.GetRasterBand(1)
 print("Band Type={}".format(gdal.GetDataTypeName(band.DataType)))
 
-# Get georeference info
-min = band.GetMinimum()
-max = band.GetMaximum()
-if not min or not max:
-    (min,max) = band.ComputeRasterMinMax(True)
-print("Min={:.3f}, Max={:.3f}".format(min,max))
+# Get pixel info
+pixel_min = band.GetMinimum()
+pixel_max = band.GetMaximum()
+if not pixel_min or not pixel_max:
+    (pixel_min,pixel_max) = band.ComputeRasterMinMax(True)
+print("Min={:.3f}, Max={:.3f}".format(pixel_min, pixel_max))
       
 if band.GetOverviewCount() > 0:
     print("Band, number of overviews:")
@@ -59,15 +66,7 @@ if band.GetRasterColorTable():
     print(band.GetRasterColorTable().GetCount())
 
 
-# Read raster data
-scanline = band.ReadRaster(xoff=0, yoff=0,
-                           xsize=band.XSize, ysize=1,
-                           buf_xsize=band.XSize, buf_ysize=1,
-                           buf_type=gdal.GDT_Float32)
-
-# Convert to floating point numbers
-tuple_of_floats = struct.unpack('f' * band.XSize, scanline)
-
+# Read raster data as array
 # From https://www.gis.usu.edu/~chrisg/python/2009/lectures/ospy_slides4.pdf
 xOffset = 0
 yOffset = 0
