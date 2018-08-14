@@ -6,3 +6,4 @@ Dependencies:
 Python 3.4 (to be compatible with SNAPPY)
 numpy 
 GDAL 2.1.0
+tk 8.5.18 (tkinter for file dialouge)
