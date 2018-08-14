@@ -42,7 +42,8 @@ if geotransform:
 # Load a band
 band = dataset.GetRasterBand(1)
 print("Band Type={}".format(gdal.GetDataTypeName(band.DataType)))
-      
+
+# Get georeference info
 min = band.GetMinimum()
 max = band.GetMaximum()
 if not min or not max:
@@ -71,3 +72,6 @@ tuple_of_floats = struct.unpack('f' * band.XSize, scanline)
 xOffset = 0
 yOffset = 0
 data = band.ReadAsArray(xOffset, yOffset, 10, 10)
+
+# Idea: Use the Geo-transform info to get a rough estimate of position, then look up "exact" position using LAT/LONG bands
+# Look at sign of band minus coordinate of interest
