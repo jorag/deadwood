@@ -87,5 +87,12 @@ point_pixpos_lon = (ul_lon - point_lon)/pixel_width_lon # Better way of ensuring
 lat_band_i = 5
 lat_band = dataset.GetRasterBand(lat_band_i)
 print("Band Type={}".format(gdal.GetDataTypeName(lat_band.DataType)))
-data = lat_band.ReadAsArray(int(point_pixpos_lon), int(point_pixpos_lat), 5, 5)
+
+# Offset in pixels from estimated position so that the estimated position is at the centre
+pix_offset_x = 3
+pix_offset_y = 3
+# This assumes direction
+
+# Read geoposition band for fine search of position
+data = lat_band.ReadAsArray(int(point_pixpos_lon) - pix_offset_x, int(point_pixpos_lat) - pix_offset_y, pix_offset_x*2-1, pix_offset_y*2-1)
 print(data)
