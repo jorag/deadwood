@@ -68,8 +68,8 @@ if band.GetRasterColorTable():
 
 # Read raster data as array
 # From https://www.gis.usu.edu/~chrisg/python/2009/lectures/ospy_slides4.pdf
-xOffset = 0
-yOffset = 0
+xOffset = 1000
+yOffset = 1000
 data = band.ReadAsArray(xOffset, yOffset, 10, 10)
 
 # Point of Interest
@@ -82,3 +82,10 @@ point_pixpos_lon = (ul_lon - point_lon)/pixel_width_lon # Better way of ensuring
 
 # Idea: Use the Geo-transform info to get a rough estimate of position, then look up "exact" position using LAT/LONG bands
 # Look at sign of band minus coordinate of interest
+# Use mean(abs(diff)) as sanity check, shuld be much smaller than 1 if correct (lat/long) band
+
+lat_band_i = 5
+lat_band = dataset.GetRasterBand(lat_band_i)
+print("Band Type={}".format(gdal.GetDataTypeName(lat_band.DataType)))
+data = lat_band.ReadAsArray(int(point_pixpos_lon), int(point_pixpos_lat), 5, 5)
+print(data)
