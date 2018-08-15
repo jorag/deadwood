@@ -46,7 +46,7 @@ if geotransform:
     print("Pixel Size = ({}, {})".format(geotransform[1], geotransform[5]))
 
     
-# Load a band
+# Load a band, 1 based
 band = dataset.GetRasterBand(1)
 print("Band Type={}".format(gdal.GetDataTypeName(band.DataType)))
 
@@ -77,8 +77,10 @@ point_lat = 70.0
 point_lon = 27.0
 
 # Estimate pixel position
-point_pixpos_lat = (point_lat - ul_lat)/pixel_width_lat # Better way of ensuring correct sign? 
-point_pixpos_lon = (ul_lon - point_lon)/pixel_width_lon # Better way of ensuring correct sign?
+exact_pixpos_lat = (point_lat - ul_lat)/pixel_width_lat # Better way of ensuring correct sign? 
+exact_pixpos_lon = (ul_lon - point_lon)/pixel_width_lon # Better way of ensuring correct sign?
+pixpos_lat = int(round(exact_pixpos_lat))
+pixpos_lon = int(round(exact_pixpos_lon))
 
 # Idea: Use the Geo-transform info to get a rough estimate of position, then look up "exact" position using LAT/LONG bands
 # Look at sign of band minus coordinate of interest
@@ -89,10 +91,19 @@ lat_band = dataset.GetRasterBand(lat_band_i)
 print("Band Type={}".format(gdal.GetDataTypeName(lat_band.DataType)))
 
 # Offset in pixels from estimated position so that the estimated position is at the centre
-pix_offset_x = 3
-pix_offset_y = 3
-# This assumes direction
+# Read this many extra pixels in each direction
+pix_offset_x = 2
+pix_offset_y = 2
 
 # Read geoposition band for fine search of position
-data = lat_band.ReadAsArray(int(point_pixpos_lon) - pix_offset_x, int(point_pixpos_lat) - pix_offset_y, pix_offset_x*2-1, pix_offset_y*2-1)
+data = lat_band.ReadAsArray(pixpos_lon - pix_offset_x, pixpos_lat - pix_offset_y, pix_offset_x*2+1, pix_offset_y*2+1)
+#data = lat_band.ReadAsArray(int(exact_pixpos_lon), int(exact_pixpos_lat), 3, 3)
 print(data)
+
+diff_data = data-point_lat
+abs_diff = abs(diff_data)
+print(diff_data)
+a = np.where(abs_diff == np.min(abs_diff))
+b = np.argmin(abs_diff)
+
+print(data[a]) # Does not work for b
