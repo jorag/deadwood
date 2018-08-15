@@ -106,4 +106,10 @@ print(diff_data)
 a = np.where(abs_diff == np.min(abs_diff))
 b = np.argmin(abs_diff)
 
-print(data[a]) # Does not work for b
+# In the original example, there point of interests latitude is equal distance between 69.99997 lat and 70.00003 lat
+# In this case, there should be no refinement to the original estimate
+# Or should perhaps both be considered?
+
+print(data[a]) 
+# Does not work for b - this is because of how armin works in Python:
+# In case of multiple occurrences of the minimum values, the indices corresponding to the first occurrence are returned.
