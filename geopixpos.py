@@ -4,9 +4,9 @@
 @author: jorag
 """
 
-import numpy as np
+#import numpy as np
 
-def pos2pix(geotransform, **keywords):
+def pos2pix(geotransform, lat='default', lon='default', **keywords):
     """Docstring for function.
     
     Fill in.
@@ -22,9 +22,11 @@ def pos2pix(geotransform, **keywords):
                                   
     
     # Point of Interest
-    point_lat = 70.0
-    point_lon = 27.0
-
+    point_lat = lat
+    point_lon = lon
+    
+    print('\n lat =', point_lat, '\n lon =', point_lon)
+    
     # Estimate pixel position
     exact_pixpos_lat = (point_lat - ul_lat)/pixel_width_lat # Better way of ensuring correct sign? 
     exact_pixpos_lon = (ul_lon - point_lon)/pixel_width_lon # Better way of ensuring correct sign?

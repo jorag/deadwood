@@ -13,6 +13,7 @@ import math
 import tkinter
 from tkinter import filedialog
 import struct # for converting scanline raster data to numeric
+from geopixpos import *
 
 
 # Global options
@@ -87,6 +88,10 @@ exact_pixpos_lat = (point_lat - ul_lat)/pixel_width_lat # Better way of ensuring
 exact_pixpos_lon = (ul_lon - point_lon)/pixel_width_lon # Better way of ensuring correct sign?
 pixpos_lat = int(round(exact_pixpos_lat))
 pixpos_lon = int(round(exact_pixpos_lon))
+
+# Try using the pos2pix function from my geopixpos module
+pix_lat, pix_long = pos2pix(geotransform, lon=27.0, lat=70.0)
+
 
 # Idea: Use the Geo-transform info to get a rough estimate of position, then look up "exact" position using LAT/LONG bands
 # Look at sign of band minus coordinate of interest
