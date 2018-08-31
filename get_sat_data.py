@@ -43,14 +43,6 @@ print("Projection is {}".format(dataset.GetProjection()))
 
 # Get georeference info
 geotransform = dataset.GetGeoTransform()
-ul_lat = geotransform[3] # lat or y??
-ul_lon = geotransform[0] # long or x??
-pixel_width_lat = geotransform[5] # lat or y??
-pixel_width_lon = geotransform[1] # long or x??
-
-if geotransform:
-    print("Origin = ({}, {})".format(geotransform[0], geotransform[3]))
-    print("Pixel Size = ({}, {})".format(geotransform[1], geotransform[5]))
 
     
 # Load a band, 1 based
@@ -83,14 +75,8 @@ data = band.ReadAsArray(xOffset, yOffset, 10, 10)
 point_lat = 70.0
 point_lon = 27.0
 
-# Estimate pixel position
-exact_pixpos_lat = (point_lat - ul_lat)/pixel_width_lat # Better way of ensuring correct sign? 
-exact_pixpos_lon = (ul_lon - point_lon)/pixel_width_lon # Better way of ensuring correct sign?
-pixpos_lat = int(round(exact_pixpos_lat))
-pixpos_lon = int(round(exact_pixpos_lon))
-
 # Try using the pos2pix function from my geopixpos module
-pix_lat, pix_long = pos2pix(geotransform, lon=27.0, lat=70.0)
+pix_lat, pix_long = pos2pix(geotransform, lon=point_lon, lat=point_lat)
 
 
 # Idea: Use the Geo-transform info to get a rough estimate of position, then look up "exact" position using LAT/LONG bands
