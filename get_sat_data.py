@@ -8,8 +8,9 @@ import numpy as np
 import gdal
 #from gdalconst import *
 import tkinter
-#from tkinter import filedialog
+from tkinter import filedialog
 from geopixpos import *
+import matplotlib.pyplot as plt
 
 # Classify LIVE FOREST vs. DEAD FOREST vs. OTHER
 # This function: Return data array? 
@@ -73,3 +74,20 @@ point_lon = 27.0
 
 # Try using the pos2pix function from my geopixpos module
 pix_lat, pix_long = pos2pix(geotransform, lon=point_lon, lat=point_lat)
+
+
+# Read multiple bands
+all_data = dataset.ReadAsArray()
+
+# Extract pixels around image
+n_pixel_x = 500
+n_pixel_y = 500
+
+# Extract pixels from area
+im_generate = all_data[0:3, int(pix_lat-n_pixel_x/2):int(pix_lat+n_pixel_x/2), int(pix_long-n_pixel_y/2):int(pix_long+n_pixel_y/2)]
+
+# Rearrage dimensions to x,y,RGB format
+im_generate = np.transpose(im_generate, (1,2,0))
+plt.figure()
+plt.imshow(im_generate) 
+plt.show()  # display it
