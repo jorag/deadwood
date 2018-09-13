@@ -14,15 +14,15 @@ def length(x):
     
     Mimics MATLAB's length function.
     """
-	if isinstance(x,(int,float,complex)):
-		return 1
-	elif isinstance(x,np.ndarray):
-		return max(x.shape)
-	try:
-		return len(x)
-	except TypeError as e:
-		print('In length, add handling for type ' + str(type(x)))
-		raise e
+    if isinstance(x, (int, float, complex)):
+        return 1
+    elif isinstance(x,np.ndarray):
+        return max(x.shape)
+    try:
+        return len(x)
+    except TypeError as e:
+        print('In length, add handling for type ' + str(type(x)))
+        raise e
         
         
 def mynormal(x, params):

@@ -4,7 +4,9 @@
 @author: jorag
 """
 
-def pos2pix(geotransform, lat='default', lon='default', verbose=False):
+from mytools import *
+
+def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', verbose=False):
     """Find pixel position bt geotranform-info from GDAL.
     
     Input: geotranform, lat = , lon = , verbose = False 
@@ -23,13 +25,20 @@ def pos2pix(geotransform, lat='default', lon='default', verbose=False):
     point_lat = lat
     point_lon = lon
     if verbose:
-        print('\n lat =', point_lat, '\n lon =', point_lon)
+        logit('\n lat =' + str(point_lat) + '\n lon =' + str(point_lon))
     
     # Estimate pixel position
     exact_pixpos_lat = (point_lat - ul_lat)/pixel_width_lat # Better way of ensuring correct sign? 
     exact_pixpos_lon = (ul_lon - point_lon)/pixel_width_lon # Better way of ensuring correct sign?
-    pixpos_lat = int(round(exact_pixpos_lat))
-    pixpos_lon = int(round(exact_pixpos_lon))
+    
+    # Return pixel position of closest the pixel or the four closest pixels  
+    if pixels_out == 'single':
+        pixpos_lat = int(round(exact_pixpos_lat))
+        pixpos_lon = int(round(exact_pixpos_lon))
+    elif pixels_out == 'quad':
+        pixpos_lat = [int(np.floor(exact_pixpos_lat)), int(np.ceil(exact_pixpos_lat))]
+        pixpos_lon = [int(np.floor(exact_pixpos_lon)), int(np.ceil(exact_pixpos_lon))]
+        logit(str(pixpos_lat) + ' ' + str(pixpos_lon))
         
     # Return pixel position
     return pixpos_lat, pixpos_lon

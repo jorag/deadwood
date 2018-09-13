@@ -11,6 +11,7 @@ import tkinter
 from tkinter import filedialog
 from geopixpos import *
 import matplotlib.pyplot as plt
+from mytools import *
 
 # Classify LIVE FOREST vs. DEAD FOREST vs. OTHER
 # This function: Return data array? 
@@ -73,7 +74,7 @@ point_lat = 70.0
 point_lon = 27.0
 
 # Try using the pos2pix function from my geopixpos module
-pix_lat, pix_long = pos2pix(geotransform, lon=point_lon, lat=point_lat)
+pix_lat, pix_long = pos2pix(geotransform, lon=point_lon, lat=point_lat, pixels_out = 'single', verbose=True)
 
 
 # Read multiple bands
