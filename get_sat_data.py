@@ -9,9 +9,11 @@ import gdal
 #from gdalconst import *
 import tkinter
 from tkinter import filedialog
-from geopixpos import *
-import matplotlib.pyplot as plt
+import pandas as pd
+# My moduels
 from mytools import *
+from geopixpos import *
+
 
 # Classify LIVE FOREST vs. DEAD FOREST vs. OTHER
 # This function: Return data array? 
@@ -62,6 +64,12 @@ if band.GetRasterColorTable():
     print("Band, number of colour table with entries:")
     print(band.GetRasterColorTable().GetCount())
 
+
+# Read Excel file with coordinates
+terrain_class_file = tkinter.filedialog.askopenfilename(title='Select input .tif file')
+#df = pd.read_excel(terrain_class_file)
+xls = pd.ExcelFile(terrain_class_file)
+df1 = pd.read_excel(xls, '1')
 
 # Read raster data as array
 # From https://www.gis.usu.edu/~chrisg/python/2009/lectures/ospy_slides4.pdf
