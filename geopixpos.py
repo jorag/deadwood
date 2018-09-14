@@ -11,6 +11,7 @@ def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', v
     
     Input: geotranform, lat = , lon = , verbose = False 
     """
+    func_log_id = "In pos2pix: "
     # Get upper left corner and pixel width
     ul_lat = geotransform[3] # lat or y??
     ul_lon = geotransform[0] # long or x??
@@ -36,9 +37,23 @@ def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', v
         pixpos_lat = int(round(exact_pixpos_lat))
         pixpos_lon = int(round(exact_pixpos_lon))
     elif pixels_out == 'quad':
-        pixpos_lat = [int(np.floor(exact_pixpos_lat)), int(np.ceil(exact_pixpos_lat))]
-        pixpos_lon = [int(np.floor(exact_pixpos_lon)), int(np.ceil(exact_pixpos_lon))]
-        logit(str(pixpos_lat) + ' ' + str(pixpos_lon))
+        # LAT: Check that the pixel indice are different
+        lat_floor = int(np.floor(exact_pixpos_lat))
+        lat_ceil = int(np.ceil(exact_pixpos_lat))
+        if lat_floor != lat_ceil:
+            pixpos_lat = [lat_floor, lat_ceil]
+        else:
+            pixpos_lat = lat_floor
+            logit(func_log_id + 'pixels_out = ' + str(pixels_out) + ' found exact match (1 pixel) for lat = ' + str(lat))
+            
+        # LONG: Check that the pixel indice are different
+        lon_floor = int(np.floor(exact_pixpos_lon))
+        lon_ceil = int(np.ceil(exact_pixpos_lon))
+        if lon_floor != lon_ceil:
+            pixpos_lon = [lon_floor, lon_ceil]
+        else:
+            pixpos_lon = lon_floor
+            logit(func_log_id + 'pixels_out = ' + str(pixels_out) + ' found exact match (1 pixel) for long = ' + str(lon))
         
     # Return pixel position
     return pixpos_lat, pixpos_lon
