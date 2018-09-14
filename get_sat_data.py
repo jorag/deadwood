@@ -19,6 +19,7 @@ from geopixpos import *
 # This function: Return data array? 
 # Files could be loaded using SNAPPY import product, but for now assuming that the input is .tiff is ok
 
+
 # Global options
 refine_pixpos = False # using lat/long bands 
 lat_band_i = 5
