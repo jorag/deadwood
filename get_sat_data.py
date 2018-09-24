@@ -13,7 +13,11 @@ import pandas as pd
 # My moduels
 from mytools import *
 from geopixpos import *
+#import sys # Necessary for relative paths
+import os # Necessary for relative paths
+#sys.path.append(os.path.realpath('..'))
 
+dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Classify LIVE FOREST vs. DEAD FOREST vs. OTHER
 # This function: Return data array? 
@@ -24,11 +28,18 @@ from geopixpos import *
 refine_pixpos = False # using lat/long bands 
 lat_band_i = 5
 
+# Define class numbers
+
 # GUI for file selection
 root = tkinter.Tk()
 root.withdraw()
 file_path = tkinter.filedialog.askopenfilename(title='Select input .tif file')
 #root.destroy() #is this needed?
+
+with open(os.path.join(dirname, "data", "sat-data-path")) as infile:
+    print(infile.readline())
+    #for line in infile:
+    #    print(line)
 
 # Load data
 dataset = gdal.Open(file_path)
