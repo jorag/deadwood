@@ -49,5 +49,8 @@ def logit(txt_in, log_type='print'):
     """
     if log_type == 'print':
         print(txt_in)
+    elif log_type == 'default':
+        # TODO: Implement this (read default state)
+        print(txt_in)
         
     return

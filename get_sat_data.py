@@ -13,7 +13,7 @@ import pandas as pd
 # My moduels
 from mytools import *
 from geopixpos import *
-#import sys # Necessary for relative paths
+import sys # Append paths
 import os # Necessary for relative paths
 #sys.path.append(os.path.realpath('..'))
 
@@ -33,16 +33,25 @@ lat_band_i = 5
 # GUI for file selection
 root = tkinter.Tk()
 root.withdraw()
-file_path = tkinter.filedialog.askopenfilename(title='Select input .tif file')
+#file_path = tkinter.filedialog.askopenfilename(title='Select input .tif file')
 #root.destroy() #is this needed?
 
+# Append paths to data directories
+with open(os.path.join(dirname, "data", "data-paths")) as infile:
+    for line in infile:
+        print(line)
+        logit('Add data path: ' + line.strip(), log_type = 'default')
+        sys.path.append(line.strip())
+
 with open(os.path.join(dirname, "data", "sat-data-path")) as infile:
-    print(infile.readline())
+    sat_file = infile.readline()
+    logit('Read file: ' + sat_file.strip(), log_type = 'default')
+    # Load data
+    dataset = gdal.Open(sat_file.strip())
     #for line in infile:
     #    print(line)
 
-# Load data
-dataset = gdal.Open(file_path)
+
 
 
 # Print information - can also use command line: !gdalinfo file_path 
