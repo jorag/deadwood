@@ -29,7 +29,7 @@ refine_pixpos = False # using lat/long bands
 # Define class numbers
 
 
-
+# Read satellite data
 try:
     # Read predefined file
     with open(os.path.join(dirname, "data", "sat-data-path")) as infile:
@@ -77,9 +77,23 @@ if band.GetRasterColorTable():
 
 
 # Read Excel file with coordinates
-terrain_class_file = tkinter.filedialog.askopenfilename(title='Select input .csv/.xls(x) file')
-#df = pd.read_excel(terrain_class_file)
-xls = pd.ExcelFile(terrain_class_file)
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, "data", "vegetation-data-path")) as infile:
+        veg_file = infile.readline().strip()
+        logit('Read file: ' + veg_file, log_type = 'default')
+    
+    # Load data
+    xls = pd.ExcelFile(veg_file)
+except:      
+    logit('Error, promt user for file.', log_type = 'default')
+    # Predefined file failed for some reason, promt user
+    root = tkinter.Tk() # GUI for file selection
+    root.withdraw()
+    veg_file = tkinter.filedialog.askopenfilename(title='Select input .csv/.xls(x) file')
+    #df = pd.read_excel(terrain_class_file)
+    xls = pd.ExcelFile(veg_file)
+    
 df1 = pd.read_excel(xls, '1')
 
 # Read raster data as array
