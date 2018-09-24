@@ -13,9 +13,8 @@ import pandas as pd
 # My moduels
 from mytools import *
 from geopixpos import *
-import sys # Append paths
+#import sys # Append paths
 import os # Necessary for relative paths
-#sys.path.append(os.path.realpath('..'))
 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
@@ -23,44 +22,35 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # This function: Return data array? 
 # Files could be loaded using SNAPPY import product, but for now assuming that the input is .tiff is ok
 
-
 # Global options
 refine_pixpos = False # using lat/long bands 
-lat_band_i = 5
+#lat_band_i = 5
 
 # Define class numbers
 
-# GUI for file selection
-root = tkinter.Tk()
-root.withdraw()
-#file_path = tkinter.filedialog.askopenfilename(title='Select input .tif file')
-#root.destroy() #is this needed?
 
-# Append paths to data directories
-with open(os.path.join(dirname, "data", "data-paths")) as infile:
-    for line in infile:
-        print(line)
-        logit('Add data path: ' + line.strip(), log_type = 'default')
-        sys.path.append(line.strip())
 
-with open(os.path.join(dirname, "data", "sat-data-path")) as infile:
-    sat_file = infile.readline()
-    logit('Read file: ' + sat_file.strip(), log_type = 'default')
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, "data", "sat-data-path")) as infile:
+        sat_file = infile.readline().strip()
+        logit('Read file: ' + sat_file, log_type = 'default')
+    
     # Load data
-    dataset = gdal.Open(sat_file.strip())
-    #for line in infile:
-    #    print(line)
+    dataset = gdal.Open(sat_file)
+    gdalinfo_log(dataset, log_type='default')
+except:
+    logit('Error, promt user for file.', log_type = 'default')
+    # Predefined file failed for some reason, promt user
+    root = tkinter.Tk() # GUI for file selection
+    root.withdraw()
+    sat_file = tkinter.filedialog.askopenfilename(title='Select input .tif file')
+    #root.destroy() #is this needed?
+    # Load data
+    dataset = gdal.Open(sat_file)
+    gdalinfo_log(dataset, log_type='default')
+            
 
-
-
-
-# Print information - can also use command line: !gdalinfo file_path 
-print("Driver: {}/{}".format(dataset.GetDriver().ShortName,
-                             dataset.GetDriver().LongName))
-print("Size is {} x {} x {}".format(dataset.RasterXSize,
-                                    dataset.RasterYSize,
-                                    dataset.RasterCount))
-print("Projection is {}".format(dataset.GetProjection()))
 
 # Get georeference info
 geotransform = dataset.GetGeoTransform()
@@ -87,7 +77,7 @@ if band.GetRasterColorTable():
 
 
 # Read Excel file with coordinates
-terrain_class_file = tkinter.filedialog.askopenfilename(title='Select input .tif file')
+terrain_class_file = tkinter.filedialog.askopenfilename(title='Select input .csv/.xls(x) file')
 #df = pd.read_excel(terrain_class_file)
 xls = pd.ExcelFile(terrain_class_file)
 df1 = pd.read_excel(xls, '1')

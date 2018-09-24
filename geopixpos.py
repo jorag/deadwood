@@ -7,7 +7,7 @@
 from mytools import *
 
 def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', verbose=False):
-    """Find pixel position bt geotranform-info from GDAL.
+    """Find pixel position by geotranform-info from GDAL.
     
     Input: geotranform, lat = , lon = , verbose = False 
     """
@@ -96,3 +96,17 @@ def refinepos(a):
     print(data[a]) 
     # Does not work for b - this is because of how armin works in Python:
     # In case of multiple occurrences of the minimum values, the indices corresponding to the first occurrence are returned.
+    
+    
+def gdalinfo_log(dataset, log_type='default'):
+    """Log dataset info from GDAL.
+    
+    Input: dataset, log_type='default'
+    """
+    # Print information - can also use command line: !gdalinfo file_path 
+    logit("Driver: {}/{}".format(dataset.GetDriver().ShortName,
+                                 dataset.GetDriver().LongName), log_type)
+    logit("Size is {} x {} x {}".format(dataset.RasterXSize,
+                                        dataset.RasterYSize,
+                                        dataset.RasterCount), log_type)
+    logit("Projection is {}".format(dataset.GetProjection()), log_type)
