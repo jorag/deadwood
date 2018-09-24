@@ -15,6 +15,7 @@ from mytools import *
 from geopixpos import *
 #import sys # Append paths
 import os # Necessary for relative paths
+import xml.etree.ElementTree as ET
 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
@@ -125,3 +126,21 @@ im_generate = np.transpose(im_generate, (1,2,0))
 plt.figure()
 plt.imshow(im_generate) 
 plt.show()  # display it
+
+# Read Excel file with coordinates
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, "data", "gps-data-path")) as infile:
+        gps_file = infile.readline().strip()
+        logit('Read file: ' + gps_file, log_type = 'default')
+    
+    # Load data
+    tree = ET.parse(gps_file)
+    for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
+        print(elem, elem.attrib['lon'], elem.attrib['lat'])
+except:      
+    logit('Error, promt user for file.', log_type = 'default')
+    # Predefined file failed for some reason, promt user
+    root = tkinter.Tk() # GUI for file selection
+    root.withdraw()
+    gps_file = tkinter.filedialog.askopenfilename(title='Select input .gpx file')
