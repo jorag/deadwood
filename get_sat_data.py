@@ -136,11 +136,18 @@ try:
     
     # Load data
     tree = ET.parse(gps_file)
+    # Get lat and long
+    pos_array = []
     for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
         print(elem, elem.attrib['lon'], elem.attrib['lat'])
+        lon, lat = elem.attrib['lon'], elem.attrib['lat']
+        pos_array.append([float(lat), float(lon)])
 except:      
     logit('Error, promt user for file.', log_type = 'default')
     # Predefined file failed for some reason, promt user
     root = tkinter.Tk() # GUI for file selection
     root.withdraw()
     gps_file = tkinter.filedialog.askopenfilename(title='Select input .gpx file')
+
+# Convert to numpy array
+pos_array2 = np.asarray(pos_array)
