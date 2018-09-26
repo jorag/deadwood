@@ -10,12 +10,13 @@ import gdal
 import tkinter
 from tkinter import filedialog
 import pandas as pd
+import os # Necessary for relative paths
+import xml.etree.ElementTree as ET
+#import sys # To append paths
 # My moduels
 from mytools import *
 from geopixpos import *
-#import sys # Append paths
-import os # Necessary for relative paths
-import xml.etree.ElementTree as ET
+
 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
@@ -25,7 +26,6 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Global options
 refine_pixpos = False # using lat/long bands 
-#lat_band_i = 5
 
 # Define class numbers
 
@@ -55,7 +55,6 @@ except:
 
 # Get georeference info
 geotransform = dataset.GetGeoTransform()
-
     
 # Load a band, 1 based
 band = dataset.GetRasterBand(1)
@@ -148,6 +147,14 @@ except:
     root = tkinter.Tk() # GUI for file selection
     root.withdraw()
     gps_file = tkinter.filedialog.askopenfilename(title='Select input .gpx file')
+    # Load data
+    tree = ET.parse(gps_file)
+    # Get lat and long
+    pos_array = []
+    for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
+        print(elem, elem.attrib['lon'], elem.attrib['lat'])
+        lon, lat = elem.attrib['lon'], elem.attrib['lat']
+        pos_array.append([float(lat), float(lon)])
 
 # Convert to numpy array
 pos_array2 = np.asarray(pos_array)
