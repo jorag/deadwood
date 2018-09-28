@@ -76,7 +76,7 @@ if band.GetRasterColorTable():
     print(band.GetRasterColorTable().GetCount())
 
 
-# Read Excel file with coordinates
+# Read Excel file with vegetation types
 try:
     # Read predefined file
     with open(os.path.join(dirname, "data", "vegetation-data-path")) as infile:
@@ -95,6 +95,7 @@ except:
     xls = pd.ExcelFile(veg_file)
     
 df1 = pd.read_excel(xls, '1')
+point_id = df1['GPSwaypoint']
 
 # Read raster data as array
 # From https://www.gis.usu.edu/~chrisg/python/2009/lectures/ospy_slides4.pdf
@@ -126,7 +127,7 @@ plt.figure()
 plt.imshow(im_generate) 
 plt.show()  # display it
 
-# Read Excel file with coordinates
+# Read .gpx file with coordinates of transect points
 try:
     # Read predefined file
     with open(os.path.join(dirname, "data", "gps-data-path")) as infile:
@@ -141,6 +142,11 @@ try:
         print(elem, elem.attrib['lon'], elem.attrib['lat'])
         lon, lat = elem.attrib['lon'], elem.attrib['lat']
         pos_array.append([float(lat), float(lon)])
+        
+    for elem in tree.findall("{http://www.topografix.com/GPX/1/1}name"):
+        print(elem, elem.attrib['name'])
+        gps_id = elem.attrib['name']
+
 except:      
     logit('Error, promt user for file.', log_type = 'default')
     # Predefined file failed for some reason, promt user
@@ -157,4 +163,8 @@ except:
         pos_array.append([float(lat), float(lon)])
 
 # Convert to numpy array
-pos_array2 = np.asarray(pos_array)
+pos_array = np.asarray(pos_array)
+
+## Go through the list of points
+#for id in point_id:
+#    print(id)
