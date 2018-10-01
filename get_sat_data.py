@@ -12,6 +12,7 @@ from tkinter import filedialog
 import pandas as pd
 import os # Necessary for relative paths
 import xml.etree.ElementTree as ET
+#from lxml import etree
 #import sys # To append paths
 # My moduels
 from mytools import *
@@ -143,9 +144,13 @@ try:
         lon, lat = elem.attrib['lon'], elem.attrib['lat']
         pos_array.append([float(lat), float(lon)])
         
-    for elem in tree.findall("{http://www.topografix.com/GPX/1/1}name"):
-        print(elem, elem.attrib['name'])
-        gps_id = elem.attrib['name']
+    for elem in tree.findall("//{http://www.topografix.com/GPX/1/1}name"):
+        print(elem, elem.text)
+        gps_id = elem.text
+#    NSMAP = {"gpx": "http://www.topografix.com/GPX/1/1"}
+#    tree = etree.parse(gps_file)
+#    for elem in tree.findall("gpx:wpt", namespaces=NSMAP):
+#        print(elem.attrib['lon'], elem.attrib['lat'])
 
 except:      
     logit('Error, promt user for file.', log_type = 'default')
@@ -168,3 +173,9 @@ pos_array = np.asarray(pos_array)
 ## Go through the list of points
 #for id in point_id:
 #    print(id)
+
+import xml.etree.ElementTree as etree
+tree = etree.parse(gps_file)
+root = tree.getroot()
+for child in root:
+    print(child)
