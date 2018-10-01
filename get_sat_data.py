@@ -94,9 +94,6 @@ except:
     #df = pd.read_excel(terrain_class_file)
     xls = pd.ExcelFile(veg_file)
     
-df1 = pd.read_excel(xls, '1')
-point_id = df1['GPSwaypoint']
-
 # Read raster data as array
 # From https://www.gis.usu.edu/~chrisg/python/2009/lectures/ospy_slides4.pdf
 xOffset = 1000
@@ -159,11 +156,17 @@ for elem in tree.findall("//{http://www.topografix.com/GPX/1/1}name"):
 # Merge names and positions
 gps_points = list(zip(gps_id, pos_array))
 # Convert to numpy array
-pos_array2 = np.asarray(pos_array)
+#pos_array2 = np.asarray(pos_array)
+pos_array2 = np.asarray([item[1] for item in gps_points])
+gps_id2 = [item[0] for item in gps_points]
 
-## Go through the list of points
-#for id in point_id:
-#    print(id)
+# Get pandas dataframe
+df1 = pd.read_excel(xls, '1')
+point_id = df1['GPSwaypoint']
+# Go through the list of points
+for id in point_id:
+    #print(id)
+    print(gps_id.index(id))
 
 # USE THIS SYNTAX AS BACKUP IN CASE {http://www.topografix.com/GPX/1/1} fails??
 #tree = ET.parse(gps_file)
