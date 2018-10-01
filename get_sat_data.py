@@ -136,17 +136,6 @@ try:
     
     # Load data
     tree = ET.parse(gps_file)
-    # Get lat and long
-    pos_array = []
-    for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
-        lon, lat = elem.attrib['lon'], elem.attrib['lat']
-        pos_array.append([float(lat), float(lon)])
-    # Get name of waypoints
-    gps_id = []
-    for elem in tree.findall("//{http://www.topografix.com/GPX/1/1}name"):
-        gps_id.append(elem.text)
-#    NSMAP = {"gpx": "http://www.topografix.com/GPX/1/1"}
-
 except:      
     logit('Error, promt user for file.', log_type = 'default')
     # Predefined file failed for some reason, promt user
@@ -155,24 +144,29 @@ except:
     gps_file = tkinter.filedialog.askopenfilename(title='Select input .gpx file')
     # Load data
     tree = ET.parse(gps_file)
-    # Get lat and long
-    pos_array = []
-    for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
-        lon, lat = elem.attrib['lon'], elem.attrib['lat']
-        pos_array.append([float(lat), float(lon)])
-    # Get name of waypoints
-    gps_id = []
-    for elem in tree.findall("//{http://www.topografix.com/GPX/1/1}name"):
-        gps_id.append(elem.text)
 
+# Get lat and long
+pos_array = []
+for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
+    lon, lat = elem.attrib['lon'], elem.attrib['lat']
+    pos_array.append([float(lat), float(lon)])
+# Get name of waypoints
+gps_id = []
+for elem in tree.findall("//{http://www.topografix.com/GPX/1/1}name"):
+    gps_id.append(elem.text)
+#    NSMAP = {"gpx": "http://www.topografix.com/GPX/1/1"}
+
+# Merge names and positions
+gps_points = list(zip(gps_id, pos_array))
 # Convert to numpy array
-pos_array = np.asarray(pos_array)
+pos_array2 = np.asarray(pos_array)
 
 ## Go through the list of points
 #for id in point_id:
 #    print(id)
 
-tree = ET.parse(gps_file)
-root = tree.getroot()
-for child in root:
-    print(child, child.attrib)
+# USE THIS SYNTAX AS BACKUP IN CASE {http://www.topografix.com/GPX/1/1} fails??
+#tree = ET.parse(gps_file)
+#root = tree.getroot()
+#for child in root:
+#    print(child, child.attrib)
