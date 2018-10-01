@@ -12,7 +12,6 @@ from tkinter import filedialog
 import pandas as pd
 import os # Necessary for relative paths
 import xml.etree.ElementTree as ET
-#from lxml import etree
 #import sys # To append paths
 # My moduels
 from mytools import *
@@ -140,17 +139,13 @@ try:
     # Get lat and long
     pos_array = []
     for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
-        print(elem, elem.attrib['lon'], elem.attrib['lat'])
         lon, lat = elem.attrib['lon'], elem.attrib['lat']
         pos_array.append([float(lat), float(lon)])
-        
+    # Get name of waypoints
+    gps_id = []
     for elem in tree.findall("//{http://www.topografix.com/GPX/1/1}name"):
-        print(elem, elem.text)
-        gps_id = elem.text
+        gps_id.append(elem.text)
 #    NSMAP = {"gpx": "http://www.topografix.com/GPX/1/1"}
-#    tree = etree.parse(gps_file)
-#    for elem in tree.findall("gpx:wpt", namespaces=NSMAP):
-#        print(elem.attrib['lon'], elem.attrib['lat'])
 
 except:      
     logit('Error, promt user for file.', log_type = 'default')
@@ -163,9 +158,12 @@ except:
     # Get lat and long
     pos_array = []
     for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
-        print(elem, elem.attrib['lon'], elem.attrib['lat'])
         lon, lat = elem.attrib['lon'], elem.attrib['lat']
         pos_array.append([float(lat), float(lon)])
+    # Get name of waypoints
+    gps_id = []
+    for elem in tree.findall("//{http://www.topografix.com/GPX/1/1}name"):
+        gps_id.append(elem.text)
 
 # Convert to numpy array
 pos_array = np.asarray(pos_array)
@@ -174,8 +172,7 @@ pos_array = np.asarray(pos_array)
 #for id in point_id:
 #    print(id)
 
-import xml.etree.ElementTree as etree
-tree = etree.parse(gps_file)
+tree = ET.parse(gps_file)
 root = tree.getroot()
 for child in root:
-    print(child)
+    print(child, child.attrib)
