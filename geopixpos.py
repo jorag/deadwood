@@ -36,6 +36,11 @@ def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', v
     if pixels_out == 'single':
         pixpos_lat = int(round(exact_pixpos_lat))
         pixpos_lon = int(round(exact_pixpos_lon))
+    elif pixels_out == 'npsingle':
+        pixpos_lat = np.round(exact_pixpos_lat)
+        pixpos_lat = pixpos_lat.astype(int)
+        pixpos_lon = np.round(exact_pixpos_lon)
+        pixpos_lon = pixpos_lon.astype(int)
     elif pixels_out == 'quad':
         # LAT: Check that the pixel indice are different
         lat_floor = int(np.floor(exact_pixpos_lat))

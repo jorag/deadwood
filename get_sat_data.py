@@ -172,8 +172,12 @@ for i_sheet in range(1,7):
     for id in point_id:
         #print(id)
         print(gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)])
-    
+   
 # Categorize points
+
+
+# Get pixel positions
+pix_lat, pix_long = pos2pix(geotransform, lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle', verbose=True)
 
 # USE THIS SYNTAX AS BACKUP IN CASE {http://www.topografix.com/GPX/1/1} fails??
 #tree = ET.parse(gps_file)
