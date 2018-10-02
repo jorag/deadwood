@@ -75,24 +75,6 @@ if band.GetRasterColorTable():
     print("Band, number of colour table with entries:")
     print(band.GetRasterColorTable().GetCount())
 
-
-# Read Excel file with vegetation types
-try:
-    # Read predefined file
-    with open(os.path.join(dirname, "data", "vegetation-data-path")) as infile:
-        veg_file = infile.readline().strip()
-        logit('Read file: ' + veg_file, log_type = 'default')
-    
-    # Load data
-    xls = pd.ExcelFile(veg_file)
-except:      
-    logit('Error, promt user for file.', log_type = 'default')
-    # Predefined file failed for some reason, promt user
-    root = tkinter.Tk() # GUI for file selection
-    root.withdraw()
-    veg_file = tkinter.filedialog.askopenfilename(title='Select input .csv/.xls(x) file')
-    #df = pd.read_excel(terrain_class_file)
-    xls = pd.ExcelFile(veg_file)
     
 # Read raster data as array
 # From https://www.gis.usu.edu/~chrisg/python/2009/lectures/ospy_slides4.pdf
@@ -104,7 +86,7 @@ data = band.ReadAsArray(xOffset, yOffset, 10, 10)
 point_lat = 70.0
 point_lon = 27.0
 
-# Try using the pos2pix function from my geopixpos module
+# Use the pos2pix function from my geopixpos module to find pixel indice
 pix_lat, pix_long = pos2pix(geotransform, lon=point_lon, lat=point_lat, pixels_out = 'single', verbose=True)
 
 
@@ -160,13 +142,38 @@ gps_points = list(zip(gps_id, pos_array))
 pos_array2 = np.asarray([item[1] for item in gps_points])
 gps_id2 = [item[0] for item in gps_points]
 
-# Get pandas dataframe
-df1 = pd.read_excel(xls, '1')
-point_id = df1['GPSwaypoint']
-# Go through the list of points
-for id in point_id:
-    #print(id)
-    print(gps_id.index(id))
+
+# Read Excel file with vegetation types
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, "data", "vegetation-data-path")) as infile:
+        veg_file = infile.readline().strip()
+        logit('Read file: ' + veg_file, log_type = 'default')
+    
+    # Load data
+    xls = pd.ExcelFile(veg_file)
+except:      
+    logit('Error, promt user for file.', log_type = 'default')
+    # Predefined file failed for some reason, promt user
+    root = tkinter.Tk() # GUI for file selection
+    root.withdraw()
+    veg_file = tkinter.filedialog.askopenfilename(title='Select input .csv/.xls(x) file')
+    xls = pd.ExcelFile(veg_file)
+
+# Go through all sheets in Excel sheet
+# TODO: Consider replacing range(1.7) with: 
+# https://stackoverflow.com/questions/44549110/python-loop-through-excel-sheets-place-into-one-df
+for i_sheet in range(1,7):
+    print(i_sheet)
+    # Get pandas dataframe
+    df = pd.read_excel(xls, str(i_sheet))
+    point_id = list(df['GPSwaypoint'])
+    # Go through the list of points
+    for id in point_id:
+        #print(id)
+        print(gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)])
+    
+# Categorize points
 
 # USE THIS SYNTAX AS BACKUP IN CASE {http://www.topografix.com/GPX/1/1} fails??
 #tree = ET.parse(gps_file)
