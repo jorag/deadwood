@@ -46,7 +46,6 @@ except:
     root = tkinter.Tk() # GUI for file selection
     root.withdraw()
     sat_file = tkinter.filedialog.askopenfilename(title='Select input .tif file')
-    #root.destroy() #is this needed?
     # Load data
     dataset = gdal.Open(sat_file)
     gdalinfo_log(dataset, log_type='default')
@@ -133,7 +132,6 @@ for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
 gps_id = []
 for elem in tree.findall("//{http://www.topografix.com/GPX/1/1}name"):
     gps_id.append(elem.text)
-#    NSMAP = {"gpx": "http://www.topografix.com/GPX/1/1"}
 
 # Merge names and positions
 gps_points = list(zip(gps_id, pos_array))
@@ -161,8 +159,6 @@ except:
     xls = pd.ExcelFile(veg_file)
 
 # Go through all sheets in Excel sheet
-# TODO: Consider replacing range(1.7) with: 
-# https://stackoverflow.com/questions/44549110/python-loop-through-excel-sheets-place-into-one-df
 for i_sheet in range(1,7):
     print(i_sheet)
     # Get pandas dataframe
@@ -178,9 +174,3 @@ for i_sheet in range(1,7):
 
 # Get pixel positions
 pix_lat, pix_long = pos2pix(geotransform, lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle', verbose=True)
-
-# USE THIS SYNTAX AS BACKUP IN CASE {http://www.topografix.com/GPX/1/1} fails??
-#tree = ET.parse(gps_file)
-#root = tree.getroot()
-#for child in root:
-#    print(child, child.attrib)
