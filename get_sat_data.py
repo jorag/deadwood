@@ -25,8 +25,6 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # This function: Return data array? 
 # Files could be loaded using SNAPPY import product, but for now assuming that the input is .tiff is ok
 
-# Global options
-refine_pixpos = False # using lat/long bands 
 
 # Define class numbers
 
@@ -58,39 +56,18 @@ geotransform = dataset.GetGeoTransform()
     
 # Load a band, 1 based
 band = dataset.GetRasterBand(1)
-print("Band Type={}".format(gdal.GetDataTypeName(band.DataType)))
-
-# Get pixel info
-pixel_min = band.GetMinimum()
-pixel_max = band.GetMaximum()
-if not pixel_min or not pixel_max:
-    (pixel_min,pixel_max) = band.ComputeRasterMinMax(True)
-print("Min={:.3f}, Max={:.3f}".format(pixel_min, pixel_max))
-      
-if band.GetOverviewCount() > 0:
-    print("Band, number of overviews:")
-    print(band.GetOverviewCount())
-      
-if band.GetRasterColorTable():
-    print("Band, number of colour table with entries:")
-    print(band.GetRasterColorTable().GetCount())
-
-    
-# Read raster data as array
-# From https://www.gis.usu.edu/~chrisg/python/2009/lectures/ospy_slides4.pdf
-xOffset = 1000
-yOffset = 1000
-data = band.ReadAsArray(xOffset, yOffset, 10, 10)
-
-# Point of Interest
-point_lat = 70.0
-point_lon = 27.0
-
+bandinfo_log(band, log_type='default')
 
 # Read multiple bands
 all_data = dataset.ReadAsArray()
-   
-plotpoint(all_data, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
+
+# Show point of Interest
+point_lat = 70.0
+point_lon = 27.0
+showimpoint(all_data, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
+
+# Show entire image
+showimage(all_data, bands=[0,1,2])
     
 # Read .gpx file with coordinates of transect points
 try:

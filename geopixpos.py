@@ -115,3 +115,28 @@ def gdalinfo_log(dataset, log_type='default'):
                                         dataset.RasterYSize,
                                         dataset.RasterCount), log_type)
     logit("Projection is {}".format(dataset.GetProjection()), log_type)
+    
+    
+def bandinfo_log(band, log_type='default'):
+    """Log band info from GDAL.
+    
+    Input: band, log_type='default'
+    """
+    # To avoid importing GDAL in this module...
+    logit("Band Type={}".format(band.DataType), log_type)
+    #logit("Band Type={}".format(gdal.GetDataTypeName(band.DataType)), log_type)
+
+    # Get pixel info
+    pixel_min = band.GetMinimum()
+    pixel_max = band.GetMaximum()
+    if not pixel_min or not pixel_max:
+        (pixel_min,pixel_max) = band.ComputeRasterMinMax(True)
+    logit("Min={:.3f}, Max={:.3f}".format(pixel_min, pixel_max), log_type)
+          
+    if band.GetOverviewCount() > 0:
+        logit("Band, number of overviews:", log_type)
+        logit(band.GetOverviewCount(), log_type)
+          
+    if band.GetRasterColorTable():
+        logit("Band, number of colour table with entries:", log_type)
+        logit(band.GetRasterColorTable().GetCount(), log_type)
