@@ -16,6 +16,7 @@ import xml.etree.ElementTree as ET
 # My moduels
 from mytools import *
 from geopixpos import *
+from visandtest import *
 
 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -85,26 +86,12 @@ data = band.ReadAsArray(xOffset, yOffset, 10, 10)
 point_lat = 70.0
 point_lon = 27.0
 
-# Use the pos2pix function from my geopixpos module to find pixel indice
-pix_lat, pix_long = pos2pix(geotransform, lon=point_lon, lat=point_lat, pixels_out = 'single', verbose=True)
-
 
 # Read multiple bands
 all_data = dataset.ReadAsArray()
-
-# Extract pixels around image
-n_pixel_x = 500
-n_pixel_y = 500
-
-# Extract pixels from area
-im_generate = all_data[0:3, int(pix_lat-n_pixel_x/2):int(pix_lat+n_pixel_x/2), int(pix_long-n_pixel_y/2):int(pix_long+n_pixel_y/2)]
-
-# Rearrage dimensions to x,y,RGB format
-im_generate = np.transpose(im_generate, (1,2,0))
-plt.figure()
-plt.imshow(im_generate) 
-plt.show()  # display it
-
+   
+plotpoint(all_data, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
+    
 # Read .gpx file with coordinates of transect points
 try:
     # Read predefined file
@@ -172,5 +159,9 @@ for i_sheet in range(1,7):
 # Categorize points
 
 
-# Get pixel positions
+# Get pixel positions from my geopixpos module
 pix_lat, pix_long = pos2pix(geotransform, lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle', verbose=True)
+
+
+# Extract pixels from area
+data_out = all_data[0:3, pix_lat, pix_long]
