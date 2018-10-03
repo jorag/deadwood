@@ -59,15 +59,15 @@ band = dataset.GetRasterBand(1)
 bandinfo_log(band, log_type='default')
 
 # Read multiple bands
-all_data = dataset.ReadAsArray()
+all_sat_bands = dataset.ReadAsArray()
 
 # Show point of Interest
 point_lat = 70.0
 point_lon = 27.0
-showimpoint(all_data, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
+showimpoint(all_sat_bands, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
 
 # Show entire image
-showimage(all_data, bands=[0,1,2])
+showimage(all_sat_bands, bands=[0,1,2])
     
 # Read .gpx file with coordinates of transect points
 try:
@@ -123,6 +123,7 @@ except:
     xls = pd.ExcelFile(veg_file)
 
 # Go through all sheets in Excel sheet
+point_info = []
 for i_sheet in range(1,7):
     print(i_sheet)
     # Get pandas dataframe
@@ -131,7 +132,8 @@ for i_sheet in range(1,7):
     # Go through the list of points
     for id in point_id:
         #print(id)
-        print(gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)])
+        #print(gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)])
+        point_info.append([gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)]])
    
 # Categorize points
 
@@ -139,6 +141,5 @@ for i_sheet in range(1,7):
 # Get pixel positions from my geopixpos module
 pix_lat, pix_long = pos2pix(geotransform, lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle', verbose=True)
 
-
 # Extract pixels from area
-data_out = all_data[0:3, pix_lat, pix_long]
+data_out = all_sat_bands[0:3, pix_lat, pix_long]
