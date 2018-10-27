@@ -21,7 +21,7 @@ from dataclass import *
 
 
 # Intialize data object
-all_data = DataModalities('Polmak')
+all_data = DataModalities('Polmak', 'dataID-placeholder')
 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
@@ -29,9 +29,7 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # This function: Return data array? 
 # Files could be loaded using SNAPPY import product, but for now assuming that the input is .tiff is ok
 
-
 # Define class numbers
-
 
 # Read satellite data
 try:
