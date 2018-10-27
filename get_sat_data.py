@@ -17,7 +17,11 @@ import xml.etree.ElementTree as ET
 from mytools import *
 from geopixpos import *
 from visandtest import *
+from dataclass import *
 
+
+# Intialize data object
+all_data = DataModalities('Polmak')
 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
@@ -122,18 +126,7 @@ except:
     veg_file = tkinter.filedialog.askopenfilename(title='Select input .csv/.xls(x) file')
     xls = pd.ExcelFile(veg_file)
 
-# Go through all sheets in Excel sheet
-point_info = []
-for i_sheet in range(1,7):
-    print(i_sheet)
-    # Get pandas dataframe
-    df = pd.read_excel(xls, str(i_sheet))
-    point_id = list(df['GPSwaypoint'])
-    # Go through the list of points
-    for id in point_id:
-        #print(id)
-        #print(gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)])
-        point_info.append([gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)]])
+
    
 # Categorize points
 
@@ -143,3 +136,16 @@ pix_lat, pix_long = pos2pix(geotransform, lon=pos_array2[:,1], lat=pos_array2[:,
 
 # Extract pixels from area
 data_out = all_sat_bands[0:3, pix_lat, pix_long]
+
+# Go through all sheets in Excel sheet
+point_info = []
+for i_sheet in range(1,7):
+    print(i_sheet)
+    # Get pandas dataframe
+    df = pd.read_excel(xls, str(i_sheet))
+    point_id = list(df['GPSwaypoint'])
+    # Go through the list of points
+    for id in point_id:
+        print(id)
+        #print(gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)])
+        point_info.append([gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)]])
