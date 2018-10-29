@@ -24,7 +24,7 @@ class DataModalities:
         self.modality_missing_value = np.NaN
         
         # List of points useful for internal referencing
-        self.last_idx = -1
+        self.last_idx = -1 # TODO: Make private??
         self.idx_list = []
         # Lists of points useful for sorting
         self.point_name = []
@@ -59,6 +59,13 @@ class DataModalities:
         # Check that lengths match
         if numel(point_name) != numel(point_meta):
             raise AssertionError('DataModalities: Lenght of point names and point metadata do not match!', length(point_name), length(point_meta))
+        # Check if it is more than one element, if not, make sure it is wrapped in a list
+        if numel(point_name) == 1:
+            if not isinstance(point_name, list):
+                point_name = make_list(point_name)
+            if not isinstance(point_meta, list):
+                point_meta = make_list(point_meta)
+            
         # Make sure there are points
         if self.last_idx < 0:
             print('Warning! Object contains no data points!')
@@ -69,7 +76,7 @@ class DataModalities:
         
         # Loop over all points in object and add metadata fields to ALL points,
         # regardless of a value is given or not (omitted points get None as value)
-        for i_point in range(self.last_idx):
+        for i_point in range(self.last_idx + 1):
             # Check if point should be updated
             if self.point_name[i_point] in point_name:
                 # Get value for update ((.index crashes if value is not in list))
