@@ -152,4 +152,8 @@ all_data = DataModalities('Polmak')
 # Add points
 all_data.add_points(gps_id, gps_id2)
 
+# Add meta values to some points
+all_data.add_meta(['N_6_155', 'N_6_156'], 'testmeta', [99, '35732475793245 b3480534'])
+#all_data.add_meta('N_6_154', 'testmeta', 1000001)
+
 all_data.print_points()

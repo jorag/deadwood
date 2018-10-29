@@ -18,8 +18,10 @@ class DataModalities:
         set_log_type(log_type) - set log type for mytools.logit function 
     """
     def __init__(self, name):
-        # Initialize variables
+        # Class settings
         self.name = name
+        self.meta_missing_value = None
+        self.modality_missing_value = np.NaN
         
         # List of points useful for internal referencing
         self.last_idx = -1
@@ -35,7 +37,7 @@ class DataModalities:
         
     def add_points(self, point_name, point_class):
         # Check that lengths match
-        if length(point_name) != length(point_class):
+        if numel(point_name) != numel(point_class):
             raise AssertionError('DataModalities: Lenght of point names and point classes do not match!', length(point_name), length(point_class))
         
         # Add data points to DataModalities list
@@ -51,15 +53,34 @@ class DataModalities:
             # And add class:
             self.data_points[self.last_idx].update(point_class = point_class[i_point])
             
-    def add_meta(self, point_name, point_meta):
+    def add_meta(self, point_name, meta_type, point_meta):
+        # TODO: Check that meta_type is string??
+        # TODO: Check if only one input (use length??), and wrap in list if True??
         # Check that lengths match
-        if length(point_name) != length(point_meta):
-            raise AssertionError('DataModalities: Lenght of point names and point metadata do not match!', length(point_name), length(point_class))
-            
-        # Add data points to DataModalities list
-        for point in point_name:
-            # 
-            self.data_points[self.point_name.index(point)].print_point()
+        if numel(point_name) != numel(point_meta):
+            raise AssertionError('DataModalities: Lenght of point names and point metadata do not match!', length(point_name), length(point_meta))
+        # Make sure there are points
+        if self.last_idx < 0:
+            print('Warning! Object contains no data points!')
+            return
+        
+        # Default (missing update)
+        kw_update_missing = dict([[meta_type, self.meta_missing_value]])
+        
+        # Loop over all points in object and add metadata fields to ALL points,
+        # regardless of a value is given or not (omitted points get None as value)
+        for i_point in range(self.last_idx):
+            # Check if point should be updated
+            if self.point_name[i_point] in point_name:
+                # Get value for update ((.index crashes if value is not in list))
+                meta_val = point_meta[point_name.index(self.point_name[i_point])]
+                # For passing keyworargs
+                kw_update = dict([[meta_type, meta_val]])
+                self.data_points[i_point].update(**kw_update)
+            else:
+                # Set default missing value
+                self.data_points[i_point].soft_update(**kw_update_missing)
+
 
         
     def add_modality(self, modality_name, modality_data):
@@ -105,10 +126,7 @@ class DataPoint:
     """Data point.
     
     Functions:
-        save() - save DataModalities object 
-        load() - load DataModalities object
-        add_modality() - add new modality
-        read_data_array() - read dataset as array
+        update(**kwargs) - set variables to input given in keywordargs
      """
     def __init__(self, id, **kwargs):
         # Initialize variables
@@ -117,12 +135,27 @@ class DataPoint:
         
     def update(self, **kwargs):
         # Initialize variables
+        # TODO: DO NOT UPDATE MISSING VALUES (WRITING NONE/NAN)
         for key, value in kwargs.items():
             setattr(self, key, value)
-            self.keys.append(key)
+            if not key in self.keys:
+                self.keys.append(key)
+                
+    def soft_update(self, **kwargs):
+        # Initialize variables
+        # TODO: Get different missing update values (np.nan)
+        for key, value in kwargs.items():
+            if key in self.keys:
+                # Check if default missing value
+                if value != None and np.isnan(value) == False:
+                    setattr(self, key, value)
+            else:
+                self.keys.append(key)
+                setattr(self, key, value)
             
     def print_point(self):
         # Print
+        print('Point id: ', self.id)
         for key in self.keys:
             print(key, ' : ', getattr(self, key))
 
