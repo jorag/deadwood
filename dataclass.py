@@ -33,10 +33,10 @@ class DataModalities:
         # Misc settings
         self.log_type = 'default'
         
-    def add_points(self, point_name, point_class, data_modalities=None):
-        # Add data points
-        if length(data_id) != length(data_class):
-            raise AssertionError('DataModalities: Lenght of data ID and data class do not match!', length(data_id), length(data_class))
+    def add_points(self, point_name, point_class):
+        # Check that lengths match
+        if length(point_name) != length(point_class):
+            raise AssertionError('DataModalities: Lenght of point names and point classes do not match!', length(point_name), length(point_class))
         
         # Add data points to DataModalities list
         for i_point in range(length(point_name)):
@@ -51,11 +51,6 @@ class DataModalities:
 
         
     def add_modality(self, modality_name, modality_data):
-        # 
-        self.last_index
-        class_name
-        class_number
-        class_data
         # Add data modality
         logit('Implement ADD_MODALITY function in DataModalities!', self.log_type)
         
@@ -66,6 +61,17 @@ class DataModalities:
         logit('Implement READ_DATA_ARRAY function in DataModalities!', self.log_type)
         return data_array
         
+    def print_points(self, point_name = None):
+        # Check if all points or a subset should be printed
+        if point_name == None:
+            point_name = self.point_name
+            
+        # Add data points to DataModalities list
+        for point in point_name:
+            # Read from DataPoint class by keeping list of attributes of all points and loop over using getattrb
+            print(point)
+            print(self.point_class[self.point_name == point])
+            
     def save(self, filename):
         # Save
         logit('Implement SAVE function in DataModalities!', self.log_type)
