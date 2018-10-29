@@ -42,7 +42,7 @@ class DataModalities:
         for i_point in range(length(point_name)):
             # Internal id (index)
             self.last_idx += 1
-            self.idx_list.append(self.last_id)
+            self.idx_list.append(self.last_idx)
             # Add data points to DataModalities list
             self.point_name.append(point_name[i_point])
             self.point_class.append(point_class[i_point])
@@ -70,7 +70,8 @@ class DataModalities:
         for point in point_name:
             # Read from DataPoint class by keeping list of attributes of all points and loop over using getattrb
             print(point)
-            print(self.point_class[self.point_name == point])
+            print(self.point_class[self.point_name.index(point)])
+            #print(np.where(self.point_name == point))
             
     def save(self, filename):
         # Save

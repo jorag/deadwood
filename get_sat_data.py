@@ -20,9 +20,6 @@ from visandtest import *
 from dataclass import *
 
 
-# Intialize data object
-all_data = DataModalities('Polmak', 'dataID-placeholder')
-
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Classify LIVE FOREST vs. DEAD FOREST vs. OTHER
@@ -147,3 +144,12 @@ for i_sheet in range(1,7):
         print(id)
         #print(gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)])
         point_info.append([gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)]])
+        
+        
+        
+# Intialize data object
+all_data = DataModalities('Polmak')
+# Add points
+all_data.add_points(gps_id, gps_id2)
+
+all_data.print_points()
