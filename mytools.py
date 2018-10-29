@@ -16,7 +16,7 @@ def length(x):
     """
     if isinstance(x, (int, float, complex)):
         return 1
-    elif isinstance(x,np.ndarray):
+    elif isinstance(x, np.ndarray):
         return max(x.shape)
     try:
         return len(x)
@@ -31,8 +31,28 @@ def numel(x):
     """
     if isinstance(x, str):
         return 1
+    elif isinstance(x, tuple):
+        return 1
     else:
         return length(x)
+    
+def make_list(x):
+    """Make the input into a list.
+    
+    Currently only for inputs with one element.
+    """
+    if numel(x) == 1:
+        if isinstance(x, (int, float, complex, str)):
+            return [x]
+        elif isinstance(x, np.ndarray):
+            raise NotImplementedError('Implement support for numpy arrays in mytools.makelist(x)!')
+        elif isinstance(x, tuple):
+            # TODO: Should each tuple element be a list element?
+            return [x]
+        else:
+            raise NotImplementedError('Implement support for data type in mytools.makelist(x)!')
+    else:
+        raise NotImplementedError('Implement support for data with numel(x) > 1 in mytools.makelist(x)!')
 
         
         
