@@ -24,7 +24,7 @@ class DataModalities:
         self.modality_missing_value = np.NaN
         
         # List of points useful for internal referencing
-        self.last_idx = -1 # TODO: Make private??
+        self.__last_idx = -1 
         self.idx_list = []
         # Lists of points useful for sorting
         self.point_name = []
@@ -43,19 +43,18 @@ class DataModalities:
         # Add data points to DataModalities list
         for i_point in range(length(point_name)):
             # Internal id (index)
-            self.last_idx += 1
-            self.idx_list.append(self.last_idx)
+            self.__last_idx += 1
+            self.idx_list.append(self.__last_idx)
             # Add data points to DataModalities list
             self.point_name.append(point_name[i_point])
             self.point_class.append(point_class[i_point])
             # Create point
-            self.data_points.append(DataPoint(self.last_idx))
+            self.data_points.append(DataPoint(self.__last_idx))
             # And add class:
-            self.data_points[self.last_idx].update(point_class = point_class[i_point])
+            self.data_points[self.__last_idx].update(point_class = point_class[i_point])
             
     def add_meta(self, point_name, meta_type, point_meta):
         # TODO: Check that meta_type is string??
-        # TODO: Check if only one input (use length??), and wrap in list if True??
         # Check that lengths match
         if numel(point_name) != numel(point_meta):
             raise AssertionError('DataModalities: Lenght of point names and point metadata do not match!', length(point_name), length(point_meta))
@@ -67,7 +66,7 @@ class DataModalities:
                 point_meta = make_list(point_meta)
             
         # Make sure there are points
-        if self.last_idx < 0:
+        if self.__last_idx < 0:
             print('Warning! Object contains no data points!')
             return
         
@@ -76,7 +75,7 @@ class DataModalities:
         
         # Loop over all points in object and add metadata fields to ALL points,
         # regardless of a value is given or not (omitted points get None as value)
-        for i_point in range(self.last_idx + 1):
+        for i_point in range(self.__last_idx + 1):
             # Check if point should be updated
             if self.point_name[i_point] in point_name:
                 # Get value for update ((.index crashes if value is not in list))
