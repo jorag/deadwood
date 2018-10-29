@@ -24,6 +24,17 @@ def length(x):
         print('In length, add handling for type ' + str(type(x)))
         raise e
         
+def numel(x):
+    """Returns the number of elements in the input.
+    
+    Mimics MATLAB's numel function.
+    """
+    if isinstance(x, str):
+        return 1
+    else:
+        return length(x)
+
+        
         
 def mynormal(x, params):
     """Univariate normal probability density function.
