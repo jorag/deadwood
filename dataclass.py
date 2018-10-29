@@ -48,6 +48,18 @@ class DataModalities:
             self.point_class.append(point_class[i_point])
             # Create point
             self.data_points.append(DataPoint(self.last_idx))
+            # And add class:
+            self.data_points[self.last_idx].update(point_class = point_class[i_point])
+            
+    def add_meta(self, point_name, point_meta):
+        # Check that lengths match
+        if length(point_name) != length(point_meta):
+            raise AssertionError('DataModalities: Lenght of point names and point metadata do not match!', length(point_name), length(point_class))
+            
+        # Add data points to DataModalities list
+        for point in point_name:
+            # 
+            self.data_points[self.point_name.index(point)].print_point()
 
         
     def add_modality(self, modality_name, modality_data):
@@ -69,8 +81,11 @@ class DataModalities:
         # Add data points to DataModalities list
         for point in point_name:
             # Read from DataPoint class by keeping list of attributes of all points and loop over using getattrb
-            print(point)
-            print(self.point_class[self.point_name.index(point)])
+            #print(point)
+            #print(self.point_class[self.point_name.index(point)])
+            self.data_points[self.point_name.index(point)].print_point()
+            #curr_point = self.point_class[self.point_name.index(point)]
+            #curr_point.print_point()
             #print(np.where(self.point_name == point))
             
     def save(self, filename):
@@ -98,12 +113,19 @@ class DataPoint:
     def __init__(self, id, **kwargs):
         # Initialize variables
         self.id = id
+        self.keys = []
         
-     
     def update(self, **kwargs):
         # Initialize variables
         for key, value in kwargs.items():
             setattr(self, key, value)
+            self.keys.append(key)
+            
+    def print_point(self):
+        # Print
+        for key in self.keys:
+            print(key, ' : ', getattr(self, key))
+
         
         
         
