@@ -60,13 +60,12 @@ bandinfo_log(band, log_type='default')
 # Read multiple bands
 all_sat_bands = dataset.ReadAsArray()
 
-# Show point of Interest
-point_lat = 70.0
-point_lon = 27.0
-showimpoint(all_sat_bands, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
-
-# Show entire image
-showimage(all_sat_bands, bands=[0,1,2])
+## Show point of Interest
+#point_lat = 70.0 
+#point_lon = 27.0
+#showimpoint(all_sat_bands, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
+## Show entire image
+#showimage(all_sat_bands, bands=[0,1,2])
     
 
 # Read Excel file with vegetation types
@@ -127,7 +126,7 @@ except:
 pos_array = []
 for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
     lon, lat = elem.attrib['lon'], elem.attrib['lat']
-    pos_array.append([float(lat), float(lon)])
+    pos_array.append((float(lat), float(lon)))
 # Get name of waypoints
 gps_id = []
 for elem in tree.findall("//{http://www.topografix.com/GPX/1/1}name"):
@@ -144,17 +143,23 @@ gps_id2 = [item[0] for item in gps_points]
 
 
 # Get pixel positions from my geopixpos module
+# TODO: Change so that coordinates can be input as tuples
 pix_lat, pix_long = pos2pix(geotransform, lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle', verbose=True)
 
 # Extract pixels from area
 data_out = all_sat_bands[0:3, pix_lat, pix_long]
+# Transpose so that rows correspond to observations
+if data_out.shape[0] != length(pix_lat) and data_out.shape[1] == length(pix_lat):
+    data_out = data_out.T
         
 # Intialize data object
 all_data = DataModalities('Polmak')
 # Add points
 all_data.add_points(name_init, class_init)
 # Add GPS points
-all_data.add_meta(gps_id, 'gps_coordinates', pos_array2)
+all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
+# Add modality
+all_data.add_modality(gps_id, 'quad_pol', data_out.tolist())
 
 # Add meta values to some points
 #all_data.add_meta(['N_6_155', 'N_6_156'], 'testmeta', [99999, '35732475793245 b3480534'])
