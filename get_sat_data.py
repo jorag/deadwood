@@ -134,6 +134,8 @@ data_out = all_sat_bands[0:3, pix_lat, pix_long]
 
 # Go through all sheets in Excel sheet
 point_info = []
+class_init = []
+name_init = []
 for i_sheet in range(1,7):
     print(i_sheet)
     # Get pandas dataframe
@@ -141,21 +143,24 @@ for i_sheet in range(1,7):
     point_id = list(df['GPSwaypoint'])
     # Go through the list of points
     for id in point_id:
-        print(id)
+        #print(id)
         #print(gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)])
         point_info.append([gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)]])
+        name_init.append(id)
+        class_init.append(df['LCT1_2017'][point_id.index(id)])
+
         
         
         
 # Intialize data object
 all_data = DataModalities('Polmak')
 # Add points
-all_data.add_points(gps_id, gps_id2)
+all_data.add_points(name_init, class_init)
 
 # Add meta values to some points
-all_data.add_meta(['N_6_155', 'N_6_156'], 'testmeta', [99999, '35732475793245 b3480534'])
-all_data.add_meta('N_6_153', 'testmeta', 1000001)
-all_data.add_meta(['N_6_154'], 'testmeta', [2000002])
-all_data.add_meta('N_6_163', 'DUMMYmeta', 1000001)
+#all_data.add_meta(['N_6_155', 'N_6_156'], 'testmeta', [99999, '35732475793245 b3480534'])
+#all_data.add_meta('N_6_153', 'testmeta', 1000001)
+#all_data.add_meta(['N_6_154'], 'testmeta', [2000002])
+#all_data.add_meta('N_6_163', 'DUMMYmeta', 1000001)
 
 all_data.print_points()
