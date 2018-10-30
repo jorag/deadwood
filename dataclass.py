@@ -17,11 +17,13 @@ class DataModalities:
         read_data_array() - read dataset as array
         set_log_type(log_type) - set log type for mytools.logit function 
     """
-    def __init__(self, name):
+    def __init__(self, name, **kwargs):
         # Class settings
         self.name = name
         self.meta_missing_value = None
+        self.meta_prefix = 'meta_'
         self.modality_missing_value = np.NaN
+        self.modality_prefix = 'modality_'
         
         # List of points useful for internal referencing
         self.__last_idx = -1 
@@ -34,6 +36,11 @@ class DataModalities:
         
         # Misc settings
         self.log_type = 'default'
+        
+        # Add option to specify  parameter with keywordargs (overwirte default values)
+        # May be useful for loading object
+        for key, value in kwargs.items():
+            setattr(self, key, value)
         
     def add_points(self, point_name, point_class):
         # Check that lengths match
@@ -49,7 +56,7 @@ class DataModalities:
             self.point_name.append(point_name[i_point])
             self.point_class.append(point_class[i_point])
             # Create point
-            self.data_points.append(DataPoint(self.__last_idx))
+            self.data_points.append(DataPoint(self.__last_idx, self))
             # And add class:
             self.data_points[self.__last_idx].update(point_class = point_class[i_point])
             
@@ -134,10 +141,25 @@ class DataPoint:
     Functions:
         update(**kwargs) - set variables to input given in keywordargs
      """
-    def __init__(self, id, **kwargs):
+    def __init__(self, id, parent, **kwargs):
         # Initialize variables
         self.id = id
-        self.keys = []
+        self.meta_missing_value = parent.meta_missing_value
+        self.meta_prefix = parent.meta_prefix
+        self.modality_missing_value = parent.modality_missing_value
+        self.modality_prefix = parent.modality_prefix
+        
+        # List of keys
+        self.all_keys = []
+        self.meta_keys = []
+        self.modality_keys = []
+        #setattr(self, self.meta_prefix + 'keys', [])
+        #setattr(self, self.modality_prefix + 'keys', [])
+        
+        # Add option to specify  parameter with keywordargs (overwirte default values)
+        # May be useful for loading object
+        for key, value in kwargs.items():
+            setattr(self, key, value)
         
     def update(self, **kwargs):
         # Initialize variables
