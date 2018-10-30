@@ -21,9 +21,9 @@ class DataModalities:
         # Class settings
         self.name = name
         self.meta_missing_value = None
-        self.meta_prefix = 'meta_'
+        self.meta_types = 'meta'
         self.modality_missing_value = np.NaN
-        self.modality_prefix = 'modality_'
+        self.modality_types = 'modality'
         
         # List of points useful for internal referencing
         self.__last_idx = -1 
@@ -58,19 +58,19 @@ class DataModalities:
             # Create point
             self.data_points.append(DataPoint(self.__last_idx, self))
             # And add class:
-            self.data_points[self.__last_idx].update(point_class = point_class[i_point])
+            self.data_points[self.__last_idx].update('meta', point_class = point_class[i_point])
             
-    def add_meta(self, point_name, meta_type, point_meta):
-        # TODO: Check that meta_type is string??
+    def add_to_point(self, point_name, update_key, update_value, update_type):
+        # TODO: Check that update_key is string??
         # Check that lengths match
-        if numel(point_name) != numel(point_meta):
-            raise AssertionError('DataModalities: Lenght of point names and point metadata do not match!', length(point_name), length(point_meta))
+        if numel(point_name) != numel(update_value):
+            raise AssertionError('DataModalities: Lenght of point names and point metadata do not match!', length(point_name), length(update_value))
         # Check if it is more than one element, if not, make sure it is wrapped in a list
         if numel(point_name) == 1:
             if not isinstance(point_name, list):
                 point_name = make_list(point_name)
-            if not isinstance(point_meta, list):
-                point_meta = make_list(point_meta)
+            if not isinstance(update_value, list):
+                update_value = make_list(update_value)
             
         # Make sure there are points
         if self.__last_idx < 0:
@@ -78,7 +78,12 @@ class DataModalities:
             return
         
         # Default (missing update)
-        kw_update_missing = dict([[meta_type, self.meta_missing_value]])
+        if update_type in self.meta_types:
+            kw_update_missing = dict([[update_key, self.meta_missing_value]])
+        elif update_type in self.modality_types:
+            kw_update_missing = dict([[update_key, self.modality_missing_value]])
+        else:
+            raise ValueError('Unkown update_type in DataModalities add_to_point')
         
         # Loop over all points in object and add metadata fields to ALL points,
         # regardless of a value is given or not (omitted points get None as value)
@@ -86,19 +91,23 @@ class DataModalities:
             # Check if point should be updated
             if self.point_name[i_point] in point_name:
                 # Get value for update ((.index crashes if value is not in list))
-                meta_val = point_meta[point_name.index(self.point_name[i_point])]
+                current_val = update_value[point_name.index(self.point_name[i_point])]
                 # For passing keyworargs
-                kw_update = dict([[meta_type, meta_val]])
-                self.data_points[i_point].update(**kw_update)
+                kw_update = dict([[update_key, current_val]])
+                self.data_points[i_point].update(update_type, **kw_update)
             else:
                 # Set default missing value
-                self.data_points[i_point].soft_update(**kw_update_missing)
-
-
+                self.data_points[i_point].soft_update(update_type, **kw_update_missing)
+         
+            
+            
+    def add_meta(self, point_name, meta_type, point_meta):
+        # Wrapper for add_to_point
+        self.add_to_point(point_name, meta_type, point_meta, 'meta')
         
-    def add_modality(self, modality_name, modality_data):
-        # Add data modality
-        logit('Implement ADD_MODALITY function in DataModalities!', self.log_type)
+    def add_modality(self, point_name, modality_type, modality_data):
+        # Wrapper for add_to_point
+        self.add_to_point(point_name, modality_type, modality_data, 'modality')
         
     def read_data_array(self):
         # Read out dataset as array
@@ -145,46 +154,54 @@ class DataPoint:
         # Initialize variables
         self.id = id
         self.meta_missing_value = parent.meta_missing_value
-        self.meta_prefix = parent.meta_prefix
+        self.meta_types = parent.meta_types
         self.modality_missing_value = parent.modality_missing_value
-        self.modality_prefix = parent.modality_prefix
+        self.modality_types = parent.modality_types
         
         # List of keys
         self.all_keys = []
         self.meta_keys = []
         self.modality_keys = []
-        #setattr(self, self.meta_prefix + 'keys', [])
-        #setattr(self, self.modality_prefix + 'keys', [])
+        #setattr(self, self.meta_types + 'keys', [])
+        #setattr(self, self.modality_types + 'keys', [])
         
         # Add option to specify  parameter with keywordargs (overwirte default values)
         # May be useful for loading object
         for key, value in kwargs.items():
             setattr(self, key, value)
         
-    def update(self, **kwargs):
-        # Initialize variables
-        # TODO: DO NOT UPDATE MISSING VALUES (WRITING NONE/NAN)
+    def update(self, input_type, **kwargs):
+        # Update all values, potentially overwriting real data with null values
         for key, value in kwargs.items():
-            setattr(self, key, value)
-            if not key in self.keys:
-                self.keys.append(key)
+            setattr(self, key, value) # Move into if test for adding prefix/type to name...
+            if not key in self.all_keys:
+                self.all_keys.append(key)
+                if input_type in self.meta_types:
+                    self.meta_keys.append(key)
+                if input_type in self.modality_types:
+                    self.modality_keys.append(key)
                 
-    def soft_update(self, **kwargs):
-        # Initialize variables
-        # TODO: Get different missing update values (np.nan)
+    def soft_update(self, input_type, **kwargs):
+        # Only update values with values different from missing values
         for key, value in kwargs.items():
-            if key in self.keys:
+            if key in self.all_keys:
                 # Check if default missing value
-                if value != None and np.isnan(value) == False:
+                if input_type in self.meta_types and value != self.meta_missing_value and np.isnan(value) == False:
+                    setattr(self, key, value)
+                if input_type in self.modality_types and value != self.modality_missing_value and np.isnan(value) == False:
                     setattr(self, key, value)
             else:
-                self.keys.append(key)
+                self.all_keys.append(key)
                 setattr(self, key, value)
+                if input_type in self.meta_types:
+                    self.meta_keys.append(key)
+                if input_type in self.modality_types:
+                    self.modality_keys.append(key)
             
     def print_point(self):
         # Print
         print('Point id: ', self.id)
-        for key in self.keys:
+        for key in self.all_keys:
             print(key, ' : ', getattr(self, key))
 
         
