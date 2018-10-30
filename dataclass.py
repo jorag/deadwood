@@ -17,30 +17,62 @@ class DataModalities:
         read_data_array() - read dataset as array
         set_log_type(log_type) - set log type for mytools.logit function 
     """
-    def __init__(self, name, **kwargs):
-        # Class settings
+    def __init__(self, name, parent = None, **kwargs):
         self.name = name
-        self.meta_missing_value = None
-        self.meta_types = 'meta'
-        self.modality_missing_value = np.NaN
-        self.modality_types = 'modality'
-        
+        # Set default values, optionally inherited from parent object
+        if parent is None:
+            # Class settings
+            self.meta_missing_value = None
+            self.meta_types = 'meta'
+            self.modality_missing_value = np.NaN
+            self.modality_types = 'modality'
+            # Misc settings
+            self.log_type = 'default'
+        else:
+            # Class settings
+            self.meta_missing_value = parent.meta_missing_value
+            self.meta_types = parent.meta_types
+            self.modality_missing_value = parent.modality_missing_value
+            self.modality_types = parent.modality_types
+            # Misc settings
+            self.log_type = parent.log_type
+            
         # List of points useful for internal referencing
         self.__last_idx = -1 
         self.idx_list = []
         # Lists of points useful for sorting
         self.point_name = []
         self.point_class = []
+        self.point_class_i = [] # Numeric class indicator
         # List of point objects
         self.data_points = []
-        
-        # Misc settings
-        self.log_type = 'default'
         
         # Add option to specify  parameter with keywordargs (overwirte default values)
         # May be useful for loading object
         for key, value in kwargs.items():
             setattr(self, key, value)
+
+            
+    def split(self, split_type = 'random', train_pct = 0.8, test_pct = 0.2, val_pct = 0, **kwargs):
+        # Split in training, validation, and test sets
+        n_points = self.__last_idx + 1
+        if n_points < 2:
+            print('No data to split!')
+            return
+        # TODO: Input check of split fractions??
+        if split_type in ['random', 'rnd']:
+            #
+            n_train = np.ceil(train_pct*n_points)
+            n_val = np.floor(val_pct*n_points)
+            # Ensure that number in each set sums to the number of points
+            n_test = n_points - n_train - n_val
+            
+            # Make split
+            # Add keywords and value to dict ala in add_to_point
+            # Call DataModalities with updated name, self, and keyword dict as arguments
+            # Check if validation set is empty
+            # Return object (to user/top level function)
+        
         
     def add_points(self, point_name, point_class):
         # Check that lengths match
