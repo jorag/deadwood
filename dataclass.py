@@ -44,8 +44,15 @@ class DataModalities:
         
     def add_points(self, point_name, point_class):
         # Check that lengths match
+        # TODO: Consider changing so that point_class is not added at creation
         if numel(point_name) != numel(point_class):
             raise AssertionError('DataModalities: Lenght of point names and point classes do not match!', length(point_name), length(point_class))
+        # Check if it is more than one element, if not, make sure it is wrapped in a list
+        if numel(point_name) == 1:
+            if not isinstance(point_name, list):
+                point_name = make_list(point_name)
+            if not isinstance(point_class, list):
+                point_class = make_list(point_class)
         
         # Add data points to DataModalities list
         for i_point in range(length(point_name)):
@@ -58,7 +65,7 @@ class DataModalities:
             # Create point
             self.data_points.append(DataPoint(self.__last_idx, self))
             # And add class:
-            self.data_points[self.__last_idx].update('meta', point_class = point_class[i_point])
+            self.data_points[self.__last_idx].update('meta', point_name = point_name[i_point], point_class = point_class[i_point])
             
     def add_to_point(self, point_name, update_key, update_value, update_type):
         # TODO: Check that update_key is string??
