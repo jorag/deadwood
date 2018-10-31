@@ -17,25 +17,16 @@ class DataModalities:
         read_data_array() - read dataset as array
         set_log_type(log_type) - set log type for mytools.logit function 
     """
-    def __init__(self, name, parent = None, **kwargs):
+    def __init__(self, name, **kwargs):
         self.name = name
-        # Set default values, optionally inherited from parent object
-        if parent is None:
-            # Class settings
-            self.meta_missing_value = None
-            self.meta_types = 'meta'
-            self.modality_missing_value = np.NaN
-            self.modality_types = 'modality'
-            # Misc settings
-            self.log_type = 'default'
-        else:
-            # Class settings
-            self.meta_missing_value = parent.meta_missing_value
-            self.meta_types = parent.meta_types
-            self.modality_missing_value = parent.modality_missing_value
-            self.modality_types = parent.modality_types
-            # Misc settings
-            self.log_type = parent.log_type
+        # Set default values
+        # Class settings
+        self.meta_missing_value = None
+        self.meta_types = 'meta'
+        self.modality_missing_value = np.NaN
+        self.modality_types = 'modality'
+        # Misc settings
+        self.log_type = 'default'
             
         # List of points useful for internal referencing
         self.__last_idx = -1 
@@ -72,11 +63,6 @@ class DataModalities:
                 self.data_points[i_point].set = 'train'
                 # Check if point should be updated
             
-            # Make split
-            # Add keywords and value to dict ala in add_to_point
-            # Call DataModalities with updated name, self, and keyword dict as arguments
-            # Check if validation set is empty
-            # Return object (to user/top level function)
         
         
     def add_points(self, point_name, point_class):
