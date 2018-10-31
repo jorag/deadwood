@@ -88,7 +88,6 @@ class DataModalities:
             print('Validation: ', self.set_val, '\n')
             
         
-        
     def add_points(self, point_name, point_class):
         # Check that lengths match
         # TODO: Consider changing so that point_class is not added at creation
@@ -167,8 +166,20 @@ class DataModalities:
         # Read out different arrays by which data is available?
         # I.E. Read out SAR only area or SAR+OPT area
         
-        # Initialize numpy output array
+        # Check which set we should use
+        if set_type is None:
+            set_use = self.idx_list
+        elif set_type.lower() in ['all', 'tradata']:
+            set_use = self.idx_list
+        elif set_type.lower() in ['train', 'training']:
+            set_use = self.set_train
+        elif set_type.lower() in ['test', 'testing']:
+            set_use = self.set_train
+        elif set_type.lower() in ['val', 'validation']:
+            set_use = self.set_val
 
+        # Initialize numpy output array - or read as list?
+        
         logit('Implement READ_DATA_ARRAY function in DataModalities!', self.log_type)
         return data_array
         
