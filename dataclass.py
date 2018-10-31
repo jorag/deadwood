@@ -67,6 +67,11 @@ class DataModalities:
             # Ensure that number in each set sums to the number of points
             n_test = n_points - n_train - n_val
             
+            # Loop over all points 
+            for i_point in set_train:
+                self.data_points[i_point].set = 'train'
+                # Check if point should be updated
+            
             # Make split
             # Add keywords and value to dict ala in add_to_point
             # Call DataModalities with updated name, self, and keyword dict as arguments
@@ -201,8 +206,9 @@ class DataPoint:
         self.all_keys = []
         self.meta_keys = []
         self.modality_keys = []
-        #setattr(self, self.meta_types + 'keys', [])
-        #setattr(self, self.modality_types + 'keys', [])
+        
+        # Set assignment (training, validation, test)
+        self.set = None
         
         # Add option to specify  parameter with keywordargs (overwirte default values)
         # May be useful for loading object
