@@ -52,11 +52,11 @@ class DataModalities:
             return
         # TODO: Input check of split fractions??
         if split_type in ['random', 'rnd']:
-            #
-            n_train = np.ceil(train_pct*n_points)
-            n_val = np.floor(val_pct*n_points)
+            # Cast as int due to np.random.choices FutureWarning
+            n_train = int(np.ceil(train_pct*n_points))
+            n_val = int(np.floor(val_pct*n_points))
             # Ensure that number in each set sums to the number of points
-            n_test = n_points - n_train - n_val
+            n_test = int(n_points - n_train - n_val)
             
             # Draw training set
             self.set_train = np.random.choice(self.idx_list, size=n_train, replace=False, p=None)
@@ -73,7 +73,7 @@ class DataModalities:
                 self.set_test.tolist()
                 self.set_val = list(set(remaining_points) - set(self.set_test))
             
-            # Loop over all points 
+            # Loop over points in each set, and update set membership
             for i_point in self.set_train:
                 self.data_points[i_point].set = 'train'
             
@@ -89,8 +89,8 @@ class DataModalities:
             
         
     def add_points(self, point_name, point_class):
-        # Check that lengths match
         # TODO: Consider changing so that point_class is not added at creation
+        # Check that lengths match
         if numel(point_name) != numel(point_class):
             raise AssertionError('DataModalities: Lenght of point names and point classes do not match!', length(point_name), length(point_class))
         # Check if it is more than one element, if not, make sure it is wrapped in a list
@@ -157,32 +157,44 @@ class DataModalities:
         # Wrapper for add_to_point
         self.add_to_point(point_name, meta_type, point_meta, 'meta')
         
+        
     def add_modality(self, point_name, modality_type, modality_data):
         # Wrapper for add_to_point
         self.add_to_point(point_name, modality_type, modality_data, 'modality')
         
-    def read_data_array(self, set_type):
+        
+    def read_data_array(self, modalities, set_type):
         # Read out dataset as array
         # Read out different arrays by which data is available?
         # I.E. Read out SAR only area or SAR+OPT area
         
+        # Ensure that modalities appear as a list
+        if numel(modalities) == 1:
+            if not isinstance(modalities, list):
+                modalities = make_list(modalities)
+        
         # Check which set we should use
         if set_type is None:
             set_use = self.idx_list
-        elif set_type.lower() in ['all', 'tradata']:
+        elif set_type.lower() in ['all', 'data']:
             set_use = self.idx_list
         elif set_type.lower() in ['train', 'training']:
             set_use = self.set_train
         elif set_type.lower() in ['test', 'testing']:
-            set_use = self.set_train
+            set_use = self.set_test
         elif set_type.lower() in ['val', 'validation']:
             set_use = self.set_val
 
         # Initialize numpy output array - or read as list?
+        data_array = []
+        # Loop over points in each set, and update set membership
+        for i_point in set_use:
+            data_array.append(self.data_points[i_point].read_data(modalities)) 
         
-        logit('Implement READ_DATA_ARRAY function in DataModalities!', self.log_type)
-        return data_array
+        # TODO: Change implementation for casting as numpy array to avoid singelton dimensions
+        return np.asarray(data_array)
         
+    
     def print_points(self, point_name = None):
         # Check if all points or a subset should be printed
         if point_name == None:
@@ -191,20 +203,18 @@ class DataModalities:
         # Add data points to DataModalities list
         for point in point_name:
             # Read from DataPoint class by keeping list of attributes of all points and loop over using getattrb
-            #print(point)
-            #print(self.point_class[self.point_name.index(point)])
             self.data_points[self.point_name.index(point)].print_point()
-            #curr_point = self.point_class[self.point_name.index(point)]
-            #curr_point.print_point()
-            #print(np.where(self.point_name == point))
+         
             
     def save(self, filename):
         # Save
         logit('Implement SAVE function in DataModalities!', self.log_type)
         
+        
     def load(self, filename):
         # Load
         logit('Implement LOAD function in DataModalities!', self.log_type)
+        
         
     def set_log_type(self, log_type):
         # Change log type
@@ -238,16 +248,18 @@ class DataPoint:
         for key, value in kwargs.items():
             setattr(self, key, value)
         
+        
     def update(self, input_type, **kwargs):
         # Update all values, potentially overwriting real data with null values
         for key, value in kwargs.items():
-            setattr(self, key, value) # Move into if test for adding prefix/type to name...
+            setattr(self, key, value) 
             if not key in self.all_keys:
                 self.all_keys.append(key)
                 if input_type in self.meta_types:
                     self.meta_keys.append(key)
                 if input_type in self.modality_types:
                     self.modality_keys.append(key)
+                
                 
     def soft_update(self, input_type, **kwargs):
         # Only update values with values different from missing values
@@ -265,6 +277,19 @@ class DataPoint:
                     self.meta_keys.append(key)
                 if input_type in self.modality_types:
                     self.modality_keys.append(key)
+                    
+                    
+    def read_data(self, modalities):
+        # Read data modalities
+        data_out = []
+        for key in modalities:
+            # Check that key is a valid data modality (else add enpty value??) 
+            if key in self.modality_keys:  # Use .lower() for improved ruggedness
+                data_out.append(getattr(self, key))
+                
+        # Return data
+        return data_out
+
             
     def print_point(self):
         # Print

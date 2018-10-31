@@ -173,3 +173,6 @@ all_data.print_points()
 all_data.split()
 
 length(all_data.set_test)/165
+
+arr_out = all_data.read_data_array('quad_pol', 'train')
+
