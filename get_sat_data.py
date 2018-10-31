@@ -171,3 +171,5 @@ all_data.print_points()
 
 # Try split
 all_data.split()
+
+length(all_data.set_test)/165

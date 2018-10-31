@@ -59,33 +59,33 @@ class DataModalities:
             n_test = n_points - n_train - n_val
             
             # Draw training set
-            set_train = np.random.choice(self.idx_list, size=n_train, replace=False, p=None)
-            set_train.tolist()
+            self.set_train = np.random.choice(self.idx_list, size=n_train, replace=False, p=None)
+            self.set_train.tolist()
             # Could use p to incorperate relative class probablities, 
             # In that case it should be normalized to 1 before drawing test set
             
-            remaining_points = list(set(self.idx_list) - set(set_train))
+            remaining_points = list(set(self.idx_list) - set(self.set_train))
             if n_val == 0:
-                set_test = remaining_points
-                set_val = []
+                self.set_test = remaining_points
+                self.set_val = []
             else:
-                set_test = np.random.choice(remaining_points, size=n_test, replace=False, p=None)
-                set_test.tolist()
-                set_val = list(set(remaining_points) - set(set_test))
+                self.set_test = np.random.choice(remaining_points, size=n_test, replace=False, p=None)
+                self.set_test.tolist()
+                self.set_val = list(set(remaining_points) - set(self.set_test))
             
             # Loop over all points 
-            for i_point in set_train:
+            for i_point in self.set_train:
                 self.data_points[i_point].set = 'train'
             
-            for i_point in set_test:
+            for i_point in self.set_test:
                 self.data_points[i_point].set = 'test'
                 
-            for i_point in set_val:
+            for i_point in self.set_val:
                 self.data_points[i_point].set = 'val'
                 
-            print('Training: ', set_train, '\n')
-            print('Testing: ', set_test, '\n')
-            print('Validation: ', set_val, '\n')
+            print('Training: ', self.set_train, '\n')
+            print('Testing: ', self.set_test, '\n')
+            print('Validation: ', self.set_val, '\n')
             
         
         
@@ -153,8 +153,7 @@ class DataModalities:
                 # Set default missing value
                 self.data_points[i_point].soft_update(update_type, **kw_update_missing)
          
-            
-            
+                       
     def add_meta(self, point_name, meta_type, point_meta):
         # Wrapper for add_to_point
         self.add_to_point(point_name, meta_type, point_meta, 'meta')
@@ -163,10 +162,13 @@ class DataModalities:
         # Wrapper for add_to_point
         self.add_to_point(point_name, modality_type, modality_data, 'modality')
         
-    def read_data_array(self):
+    def read_data_array(self, set_type):
         # Read out dataset as array
         # Read out different arrays by which data is available?
         # I.E. Read out SAR only area or SAR+OPT area
+        
+        # Initialize numpy output array
+
         logit('Implement READ_DATA_ARRAY function in DataModalities!', self.log_type)
         return data_array
         
