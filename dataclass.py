@@ -58,10 +58,34 @@ class DataModalities:
             # Ensure that number in each set sums to the number of points
             n_test = n_points - n_train - n_val
             
+            # Draw training set
+            set_train = np.random.choice(self.idx_list, size=n_train, replace=False, p=None)
+            set_train.tolist()
+            # Could use p to incorperate relative class probablities, 
+            # In that case it should be normalized to 1 before drawing test set
+            
+            remaining_points = list(set(self.idx_list) - set(set_train))
+            if n_val == 0:
+                set_test = remaining_points
+                set_val = []
+            else:
+                set_test = np.random.choice(remaining_points, size=n_test, replace=False, p=None)
+                set_test.tolist()
+                set_val = list(set(remaining_points) - set(set_test))
+            
             # Loop over all points 
             for i_point in set_train:
                 self.data_points[i_point].set = 'train'
-                # Check if point should be updated
+            
+            for i_point in set_test:
+                self.data_points[i_point].set = 'test'
+                
+            for i_point in set_val:
+                self.data_points[i_point].set = 'val'
+                
+            print('Training: ', set_train, '\n')
+            print('Testing: ', set_test, '\n')
+            print('Validation: ', set_val, '\n')
             
         
         

@@ -168,3 +168,6 @@ all_data.add_modality(gps_id, 'quad_pol', data_out.tolist())
 #all_data.add_meta('N_6_163', 'DUMMYmeta', 1000001)
 
 all_data.print_points()
+
+# Try split
+all_data.split()
