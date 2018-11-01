@@ -70,6 +70,7 @@ class DataModalities:
                 print(labels)
                 print(weights)
                 print(np.sum(weights))
+                print(np.unique(weights)/np.min(weights))
                 p_use = weights
             else:
                 p_use = None
@@ -98,8 +99,16 @@ class DataModalities:
                 
             for i_point in self.set_val:
                 self.data_points[i_point].set = 'val'
-                
+            
+            labels = self.read_data_labels(self.idx_list)
+
+            
             print('Training: ', self.set_train, '\n')
+            labels = np.asarray(labels)
+            train_labels = labels[self.set_train]
+            weights2 = get_label_weights(train_labels)
+            print(np.unique(weights2)/np.min(weights2))
+            print('Training labels: ',  train_labels, '\n')
             print('Testing: ', self.set_test, '\n')
             print('Validation: ', self.set_val, '\n')
             

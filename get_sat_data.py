@@ -175,6 +175,7 @@ labels = all_data.read_data_labels(all_data.idx_list)
 
 # Try split
 all_data.split(split_type = 'class_weight')
+labels_test = all_data.read_data_labels(all_data.idx_list)
 
 arr_out = all_data.read_data_array('quad_pol', 'train')
 
