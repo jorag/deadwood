@@ -63,7 +63,26 @@ class DataModalities:
             n_test = int(n_points - n_train - n_val)
           
             if split_type in ['class_weight']:
-                p_use = None
+                # Get labels for dataset
+                labels = self.read_data_labels(self.idx_list)
+                # Find the unique labels and counts
+                unique_labels, label_counts = np.unique(labels, return_counts=True)
+                # Number of points
+                n_points = np.sum(label_counts)
+                # Set the default weights
+                weights = np.ones((length(labels),)) / n_points
+                # Get relative weights of each class
+                #rel_weights = label_counts/n_points
+                for i_label in unique_labels:
+                    weights[np.where(labels==i_label)] = label_counts[i_label]/n_points
+                
+                # Normalize weights
+                weights = weights/np.sum(weights)
+                print(labels)
+                print(weights)
+                print(np.sum(weights))
+                print(n_points)
+                p_use = weights
             else:
                 p_use = None
                 
@@ -173,6 +192,7 @@ class DataModalities:
         
         
     def read_data_labels(self, point_list):
+        # Add dict as optional input?? Could be confusing...
         # Read at call time to incorperate potential changes
         # Labels must correspond to a dataset => move to read_data_array??
         labels_out = []

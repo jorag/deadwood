@@ -169,13 +169,13 @@ all_data.add_modality(gps_id, 'quad_pol', data_out.tolist())
 
 all_data.print_points()
 
-# Try split
-all_data.split()
-
-length(all_data.set_test)/165
-
-arr_out = all_data.read_data_array('quad_pol', 'train')
 
 all_data.class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
 labels = all_data.read_data_labels(all_data.idx_list)
 
+# Try split
+all_data.split(split_type = 'class_weight')
+
+arr_out = all_data.read_data_array('quad_pol', 'train')
+
+length(all_data.set_test)/165
