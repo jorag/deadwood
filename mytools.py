@@ -9,6 +9,7 @@ Created on Mon Sep 10 16:17:30 2018
 
 import numpy as np
 
+
 def length(x):
     """Returns length of input.
     
@@ -24,6 +25,7 @@ def length(x):
         print('In length, add handling for type ' + str(type(x)))
         raise e
         
+        
 def numel(x):
     """Returns the number of elements in the input.
     
@@ -35,6 +37,7 @@ def numel(x):
         return 1
     else:
         return length(x)
+    
     
 def make_list(x):
     """Make the input into a list.
@@ -54,7 +57,28 @@ def make_list(x):
     else:
         raise NotImplementedError('Implement support for data with numel(x) > 1 in mytools.makelist(x)!')
 
-        
+
+def get_label_weights(labels):
+    """Create a vector with weights for each label according to number of 
+    occurances of each label. 
+    
+    Moved from dataclass.py
+    """
+    # Find the unique labels and counts
+    unique_labels, label_counts = np.unique(labels, return_counts=True)
+    # Number of points
+    n_points = np.sum(label_counts)
+    # Set the default weights
+    weights = np.ones((length(labels),)) / n_points
+    # Get relative weights of each class
+    #rel_weights = label_counts/n_points
+    for i_label in unique_labels:
+        weights[np.where(labels==i_label)] = label_counts[i_label]/n_points 
+                
+    # Normalize weights and return
+    weights = weights/np.sum(weights)
+    return weights
+
         
 def mynormal(x, params):
     """Univariate normal probability density function.

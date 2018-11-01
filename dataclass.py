@@ -65,23 +65,11 @@ class DataModalities:
             if split_type in ['class_weight']:
                 # Get labels for dataset
                 labels = self.read_data_labels(self.idx_list)
-                # Find the unique labels and counts
-                unique_labels, label_counts = np.unique(labels, return_counts=True)
-                # Number of points
-                n_points = np.sum(label_counts)
-                # Set the default weights
-                weights = np.ones((length(labels),)) / n_points
-                # Get relative weights of each class
-                #rel_weights = label_counts/n_points
-                for i_label in unique_labels:
-                    weights[np.where(labels==i_label)] = label_counts[i_label]/n_points
-                
-                # Normalize weights
-                weights = weights/np.sum(weights)
+                # Get weight according to class occurance
+                weights = get_label_weights(labels)
                 print(labels)
                 print(weights)
                 print(np.sum(weights))
-                print(n_points)
                 p_use = weights
             else:
                 p_use = None
