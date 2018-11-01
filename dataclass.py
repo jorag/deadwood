@@ -25,6 +25,7 @@ class DataModalities:
         self.meta_types = 'meta'
         self.modality_missing_value = np.NaN
         self.modality_types = 'modality'
+        self.label_missing_value = -1 # For np.unique to count number of classes
         # Misc settings
         self.log_type = 'default'
             
@@ -54,15 +55,20 @@ class DataModalities:
             print('No data to split!')
             return
         # TODO: Input check of split fractions??
-        if split_type in ['random', 'rnd']:
+        if split_type in ['random', 'rnd', 'class_weight']:
             # Cast as int due to np.random.choices FutureWarning
             n_train = int(np.ceil(train_pct*n_points))
             n_val = int(np.floor(val_pct*n_points))
             # Ensure that number in each set sums to the number of points
             n_test = int(n_points - n_train - n_val)
-            
+          
+            if split_type in ['class_weight']:
+                p_use = None
+            else:
+                p_use = None
+                
             # Draw training set
-            self.set_train = np.random.choice(self.idx_list, size=n_train, replace=False, p=None)
+            self.set_train = np.random.choice(self.idx_list, size=n_train, replace=False, p=p_use)
             self.set_train.tolist()
             # Could use p to incorperate relative class probablities, 
             # In that case it should be normalized to 1 before drawing test set
@@ -166,18 +172,20 @@ class DataModalities:
         self.add_to_point(point_name, modality_type, modality_data, 'modality')
         
         
-    def read_data_labels(self, point_name, point_class):
+    def read_data_labels(self, point_list):
         # Read at call time to incorperate potential changes
         # Labels must correspond to a dataset => move to read_data_array??
         labels_out = []
         if length(self.class_dict) == 0:
             # No class dict specified, assign each named class its own number
+            # Create dictionary or throw error??
+            1+1
         else:
             # Assign each class in dict a unique number, others to 0 
             # Get value for other class (if any)
             other_val = self.class_dict.get('other')
-            for class_name in self.point_class:
-                val = self.class_dict.get(class_name)
+            for i_point in point_list:
+                val = self.class_dict.get(self.data_points[i_point].point_class)
                 if val is not None:
                     #
                     labels_out.append(val)
@@ -185,7 +193,10 @@ class DataModalities:
                     #
                     labels_out.append(other_val)
                 else:
-                    labels_out.append(self.modality_missing_value) # Change to class missing val?
+                    labels_out.append(self.label_missing_value) 
+                    
+        #
+        logit('Number of classes out = ' + str(length(np.unique(labels_out))), self.log_type)
                 
                 
         return labels_out
