@@ -38,6 +38,9 @@ class DataModalities:
         # List of point objects
         self.data_points = []
         
+        # Mapping of class names to class numbers as a dict
+        self.class_dict = dict([]) # Use 0 as 'other' class?
+        
         # Add option to specify  parameter with keywordargs (overwirte default values)
         # May be useful for loading object
         for key, value in kwargs.items():
@@ -162,6 +165,30 @@ class DataModalities:
         # Wrapper for add_to_point
         self.add_to_point(point_name, modality_type, modality_data, 'modality')
         
+        
+    def read_data_labels(self, point_name, point_class):
+        # Read at call time to incorperate potential changes
+        # Labels must correspond to a dataset => move to read_data_array??
+        labels_out = []
+        if length(self.class_dict) == 0:
+            # No class dict specified, assign each named class its own number
+        else:
+            # Assign each class in dict a unique number, others to 0 
+            # Get value for other class (if any)
+            other_val = self.class_dict.get('other')
+            for class_name in self.point_class:
+                val = self.class_dict.get(class_name)
+                if val is not None:
+                    #
+                    labels_out.append(val)
+                elif other_val is not None:
+                    #
+                    labels_out.append(other_val)
+                else:
+                    labels_out.append(self.modality_missing_value) # Change to class missing val?
+                
+                
+        return labels_out
         
     def read_data_array(self, modalities, set_type):
         # Read out dataset as array
