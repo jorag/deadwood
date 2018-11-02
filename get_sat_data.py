@@ -174,7 +174,7 @@ all_data.class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
 labels = all_data.read_data_labels(all_data.idx_list)
 
 # Try split
-all_data.split(split_type = 'class_weight')
+all_data.split(split_type = 'class_weight_random', train_pct = 0.6, test_pct = 0.2, val_pct = 0.2)
 labels_test = all_data.read_data_labels(all_data.idx_list)
 
 arr_out = all_data.read_data_array('quad_pol', 'train')

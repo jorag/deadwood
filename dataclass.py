@@ -55,37 +55,44 @@ class DataModalities:
             print('No data to split!')
             return
         # TODO: Input check of split fractions??
-        if split_type in ['random', 'rnd', 'class_weight']:
+        if split_type in ['weighted', 'class_weight']:
+            # Go though classes in order of least to most occurance 
+            # Ensure best possible balance in split for least likely class
+            1+1
+        elif split_type in ['random', 'rnd', 'class_weight_random']:
             # Cast as int due to np.random.choices FutureWarning
             n_train = int(np.ceil(train_pct*n_points))
             n_val = int(np.floor(val_pct*n_points))
             # Ensure that number in each set sums to the number of points
             n_test = int(n_points - n_train - n_val)
           
-            if split_type in ['class_weight']:
+            if split_type in ['class_weight_random']:
                 # Get labels for dataset
                 labels = self.read_data_labels(self.idx_list)
-                # Get weight according to class occurance
-                weights = get_label_weights(labels)
-                print(labels)
-                print(weights)
-                print(np.sum(weights))
-                print(np.unique(weights)/np.min(weights))
-                p_use = weights
+                # Get weight according to class occurance, 
+                # use to incorperate relative class probablities 
+                p_use = get_label_weights(labels)
             else:
                 p_use = None
                 
             # Draw training set
             self.set_train = np.random.choice(self.idx_list, size=n_train, replace=False, p=p_use)
             self.set_train.tolist()
-            # Could use p to incorperate relative class probablities, 
-            # In that case it should be normalized to 1 before drawing test set
             
+            # Remaining points
             remaining_points = list(set(self.idx_list) - set(self.set_train))
             if n_val == 0:
                 self.set_test = remaining_points
                 self.set_val = []
             else:
+                if split_type in ['class_weight_random']:
+                    # Get weight according to remaining class occurances 
+                    # use to incorperate relative class probablities 
+                    temp_labels = np.asarray(labels)
+                    p_use = get_label_weights(temp_labels[remaining_points])
+                else:
+                    p_use = None
+                    
                 self.set_test = np.random.choice(remaining_points, size=n_test, replace=False, p=None)
                 self.set_test.tolist()
                 self.set_val = list(set(remaining_points) - set(self.set_test))
@@ -111,6 +118,8 @@ class DataModalities:
             print('Training labels: ',  train_labels, '\n')
             print('Testing: ', self.set_test, '\n')
             print('Validation: ', self.set_val, '\n')
+            
+            return weights2
             
         
     def add_points(self, point_name, point_class):
