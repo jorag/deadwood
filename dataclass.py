@@ -72,8 +72,26 @@ class DataModalities:
         if split_type in ['weighted', 'class_weight']:
             # Go though classes in order of least to most occurance 
             # Ensure best possible balance in split for least likely class
-            1+1
-        elif split_type in ['random', 'rnd', 'class_weight_random']:
+            # Get labels for dataset
+            labels = self.read_data_labels(self.idx_list)
+            # Find the unique labels and counts
+            unique_labels, label_counts = np.unique(labels, return_counts=True)
+            
+            print(unique_labels, label_counts)
+            # Sort by counts
+            # https://stackoverflow.com/questions/6618515/sorting-list-based-on-values-from-another-list
+            sorted_labels = [x for _,x in sorted(zip(label_counts, unique_labels))]
+            
+            print(sorted_labels)
+            for i_label in sorted_labels:
+                # Get key for numeric labels (value)
+                # https://stackoverflow.com/questions/8023306/get-key-by-value-in-dictionary
+                key = list(self.class_dict.keys())[list(self.class_dict.values()).index(i_label)]
+                print(key)
+                current_points = self.data_points[self.point_class == key]
+                print(current_points)
+            
+        elif split_type in ['random', 'rnd', 'unsupervised', 'class_weight_random']:
             if split_type in ['class_weight_random']:
                 # Get labels for dataset
                 labels = self.read_data_labels(self.idx_list)
