@@ -54,18 +54,26 @@ class DataModalities:
         if n_points < 2:
             print('No data to split!')
             return
-        # TODO: Input check of split fractions??
+        
+        # Input check of split fractions
+        if train_pct + test_pct + val_pct != 1:
+            logit('Warning! Dataset split fractions /train/test/val) do not sum to 1!', self.log_type)
+            pct_sum = train_pct + test_pct + val_pct
+            train_pct /= pct_sum 
+            test_pct /= pct_sum 
+            val_pct /= pct_sum 
+            
+        # Cast as int due to np.random.choices FutureWarning
+        n_train = int(np.ceil(train_pct*n_points))
+        n_val = int(np.floor(val_pct*n_points))
+        # Ensure that number in each set sums to the number of points
+        n_test = int(n_points - n_train - n_val)
+          
         if split_type in ['weighted', 'class_weight']:
             # Go though classes in order of least to most occurance 
             # Ensure best possible balance in split for least likely class
             1+1
         elif split_type in ['random', 'rnd', 'class_weight_random']:
-            # Cast as int due to np.random.choices FutureWarning
-            n_train = int(np.ceil(train_pct*n_points))
-            n_val = int(np.floor(val_pct*n_points))
-            # Ensure that number in each set sums to the number of points
-            n_test = int(n_points - n_train - n_val)
-          
             if split_type in ['class_weight_random']:
                 # Get labels for dataset
                 labels = self.read_data_labels(self.idx_list)
@@ -106,20 +114,7 @@ class DataModalities:
                 
             for i_point in self.set_val:
                 self.data_points[i_point].set = 'val'
-            
-            labels = self.read_data_labels(self.idx_list)
 
-            
-            print('Training: ', self.set_train, '\n')
-            labels = np.asarray(labels)
-            train_labels = labels[self.set_train]
-            weights2 = get_label_weights(train_labels)
-            print(np.unique(weights2)/np.min(weights2))
-            print('Training labels: ',  train_labels, '\n')
-            print('Testing: ', self.set_test, '\n')
-            print('Validation: ', self.set_val, '\n')
-            
-            return weights2
             
         
     def add_points(self, point_name, point_class):
