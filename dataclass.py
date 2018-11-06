@@ -62,13 +62,9 @@ class DataModalities:
             train_pct /= pct_sum 
             test_pct /= pct_sum 
             val_pct /= pct_sum 
-            
-        # Cast as int due to np.random.choices FutureWarning
-        n_train = int(np.ceil(train_pct*n_points))
-        n_val = int(np.floor(val_pct*n_points))
-        # Ensure that number in each set sums to the number of points
-        n_test = int(n_points - n_train - n_val)
-          
+
+        # Switch between different split types
+        # Weighted
         if split_type in ['weighted', 'class_weight']:
             # Go though classes in order of least to most occurance 
             # Ensure best possible balance in split for least likely class
@@ -78,18 +74,43 @@ class DataModalities:
             print(unique_labels, label_counts)
             # Sort by counts
             sorted_labels = [x for _,x in sorted(zip(label_counts, unique_labels))]
-            
             print(sorted_labels)
+            # Initilaize sets
+            self.set_train = []
+            self.set_val = []
+            self.set_test = []
             for i_label in sorted_labels:
                 # Get key for numeric labels (value)
                 #key = list(self.class_dict.keys())[list(self.class_dict.values()).index(i_label)]
                 #print(key)
-                #print(np.where(self.point_class == key))
-                current_points = self.idx_list[np.where(self.point_label == i_label)]
+                print(self.point_label == i_label)
+                print(np.where(self.point_label == i_label))
+                idx_list = np.asarray(self.idx_list)
+                current_points = idx_list[self.point_label == i_label]
                 print(current_points)
-                for i_point in current_points:
-                    i_point.print()
-            
+                # Find split fraction for class
+                n_points_label = current_points.shape[0]
+                # Cast as int due to np.random.choices FutureWarning
+                n_train = int(np.floor(train_pct * n_points_label))
+                n_val = int(np.floor(val_pct * n_points_label))
+                # Ensure that number in each set sums to the number of points
+                n_test = int(n_points_label - n_train - n_val)
+                print(current_points.shape)
+                print(n_train, n_val, n_test)
+                
+                # Draw training set
+                set_train_labels = np.random.choice(self.idx_list, size=n_train, replace=False, p=None)
+                self.set_train.extend(set_train_labels.tolist())
+                # Remaining points
+                remaining_points = list(set(current_points) - set(set_train_labels))
+                # Draw test set, remaining points are validation set
+                set_test_labels = np.random.choice(remaining_points, size=n_test, replace=False, p=None)
+                self.set_test.extend(set_test_labels.tolist())
+                set_val_labels = list(set(remaining_points) - set(set_test_labels))
+                self.set_val.extend(set_val_labels)
+ 
+                    
+        # Random split types
         elif split_type in ['random', 'rnd', 'unsupervised', 'class_weight_random']:
             if split_type in ['class_weight_random']:
                 # Get labels for dataset
@@ -98,7 +119,13 @@ class DataModalities:
                 p_use = get_label_weights(labels)
             else:
                 p_use = None
-                
+                                
+            # Cast as int due to np.random.choices FutureWarning
+            n_train = int(np.ceil(train_pct*n_points))
+            n_val = int(np.floor(val_pct*n_points))
+            # Ensure that number in each set sums to the number of points
+            n_test = int(n_points - n_train - n_val)
+            
             # Draw training set
             self.set_train = np.random.choice(self.idx_list, size=n_train, replace=False, p=p_use)
             self.set_train.tolist()
@@ -116,8 +143,8 @@ class DataModalities:
                     p_use = get_label_weights(temp_labels[remaining_points])
                 else:
                     p_use = None
-                    
-                self.set_test = np.random.choice(remaining_points, size=n_test, replace=False, p=None)
+                # Draw test set, remaining points are validation set
+                self.set_test = np.random.choice(remaining_points, size=n_test, replace=False, p=p_use)
                 self.set_test.tolist()
                 self.set_val = list(set(remaining_points) - set(self.set_test))
             
@@ -210,7 +237,6 @@ class DataModalities:
         
     def assign_labels(self, class_dict = None):
         # Assign numeric labels to data points based on class_dict
-        labels_out = []
         if class_dict is None:
             # No class dict specified, assign each named class its own number
             unique_classes = np.unique(self.point_class)
@@ -240,7 +266,7 @@ class DataModalities:
                 self.point_label.append(self.label_missing_value) 
                     
         # Log and return result
-        logit('Number of classes out = ' + str(length(np.unique(labels_out))), self.log_type)
+        logit('Number of classes out = ' + str(length(np.unique(self.point_label))), self.log_type)
         return self.point_label
         
     

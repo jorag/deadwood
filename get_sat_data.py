@@ -177,7 +177,6 @@ labels = all_data.assign_labels(class_dict=class_dict)
 # Try split
 #all_data.split(split_type = 'class_weight_random', train_pct = 0.6, test_pct = 0.2, val_pct = 0.2)
 all_data.split(split_type = 'weighted')
-labels_test = all_data.read_data_labels(all_data.idx_list)
 
 arr_out = all_data.read_data_array('quad_pol', 'train')
 
