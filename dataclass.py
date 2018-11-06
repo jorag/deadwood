@@ -88,8 +88,11 @@ class DataModalities:
                 # https://stackoverflow.com/questions/8023306/get-key-by-value-in-dictionary
                 key = list(self.class_dict.keys())[list(self.class_dict.values()).index(i_label)]
                 print(key)
-                current_points = self.data_points[self.point_class == key]
+                print(np.where(self.point_class == key))
+                current_points = self.idx_list[self.point_class == key]
                 print(current_points)
+                for i_point in current_points:
+                    i_point.print()
             
         elif split_type in ['random', 'rnd', 'unsupervised', 'class_weight_random']:
             if split_type in ['class_weight_random']:
@@ -211,9 +214,10 @@ class DataModalities:
         
         
     def read_data_labels(self, point_list):
+        # Read numeric labels of data points based on self.class_dict
         # Add dict as optional input?? Could be confusing...
         # Read at call time to incorperate potential changes
-        # Labels must correspond to a dataset => move to read_data_array??
+        # Labels must correspond to a dataset => move to read_data_array?? Or read_data to do both
         labels_out = []
         if length(self.class_dict) == 0:
             # No class dict specified, assign each named class its own number
@@ -226,20 +230,20 @@ class DataModalities:
             for i_point in point_list:
                 val = self.class_dict.get(self.data_points[i_point].point_class)
                 if val is not None:
-                    #
+                    # Class name found in dict, assign to label given as value
                     labels_out.append(val)
                 elif other_val is not None:
-                    #
+                    # Class name NOT found in dict, assign to label given for 'other' class
                     labels_out.append(other_val)
                 else:
+                    # Class name NOT found in dict and no 'other' class
                     labels_out.append(self.label_missing_value) 
                     
-        #
+        # Log and return result
         logit('Number of classes out = ' + str(length(np.unique(labels_out))), self.log_type)
-                
-                
         return labels_out
         
+    
     def read_data_array(self, modalities, set_type):
         # Read out dataset as array
         # Read out different arrays by which data is available?
@@ -285,6 +289,7 @@ class DataModalities:
             
     def save(self, filename):
         # Save
+        # Pickle?
         logit('Implement SAVE function in DataModalities!', self.log_type)
         
         

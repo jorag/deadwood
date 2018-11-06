@@ -18,6 +18,7 @@ from mytools import *
 from geopixpos import *
 from visandtest import *
 from dataclass import *
+import sklearn
 
 
 dirname = os.path.realpath('.') # For parent directory use '..'
