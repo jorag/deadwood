@@ -171,8 +171,8 @@ all_data.add_modality(gps_id, 'quad_pol', data_out.tolist())
 all_data.print_points()
 
 
-all_data.class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
-labels = all_data.read_data_labels(all_data.idx_list)
+class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
+labels = all_data.assign_labels(class_dict=class_dict)
 
 # Try split
 #all_data.split(split_type = 'class_weight_random', train_pct = 0.6, test_pct = 0.2, val_pct = 0.2)

@@ -35,7 +35,7 @@ class DataModalities:
         # Lists of points useful for sorting
         self.point_name = []
         self.point_class = []
-        self.point_class_i = [] # Numeric class indicator
+        self.point_label = [] # Numeric class indicator
         # List of point objects
         self.data_points = []
         
@@ -72,24 +72,20 @@ class DataModalities:
         if split_type in ['weighted', 'class_weight']:
             # Go though classes in order of least to most occurance 
             # Ensure best possible balance in split for least likely class
-            # Get labels for dataset
-            labels = self.read_data_labels(self.idx_list)
             # Find the unique labels and counts
-            unique_labels, label_counts = np.unique(labels, return_counts=True)
+            unique_labels, label_counts = np.unique(self.point_label, return_counts=True)
             
             print(unique_labels, label_counts)
             # Sort by counts
-            # https://stackoverflow.com/questions/6618515/sorting-list-based-on-values-from-another-list
             sorted_labels = [x for _,x in sorted(zip(label_counts, unique_labels))]
             
             print(sorted_labels)
             for i_label in sorted_labels:
                 # Get key for numeric labels (value)
-                # https://stackoverflow.com/questions/8023306/get-key-by-value-in-dictionary
-                key = list(self.class_dict.keys())[list(self.class_dict.values()).index(i_label)]
-                print(key)
-                print(np.where(self.point_class == key))
-                current_points = self.idx_list[self.point_class == key]
+                #key = list(self.class_dict.keys())[list(self.class_dict.values()).index(i_label)]
+                #print(key)
+                #print(np.where(self.point_class == key))
+                current_points = self.idx_list[np.where(self.point_label == i_label)]
                 print(current_points)
                 for i_point in current_points:
                     i_point.print()
@@ -98,8 +94,7 @@ class DataModalities:
             if split_type in ['class_weight_random']:
                 # Get labels for dataset
                 labels = self.read_data_labels(self.idx_list)
-                # Get weight according to class occurance, 
-                # use to incorperate relative class probablities 
+                # Get weight according to class occurance to incorperate relative class probablities 
                 p_use = get_label_weights(labels)
             else:
                 p_use = None
@@ -137,7 +132,6 @@ class DataModalities:
                 self.data_points[i_point].set = 'val'
 
             
-        
     def add_points(self, point_name, point_class):
         # TODO: Consider changing so that point_class is not added at creation
         # Check that lengths match
@@ -162,6 +156,7 @@ class DataModalities:
             self.data_points.append(DataPoint(self.__last_idx, self))
             # And add class:
             self.data_points[self.__last_idx].update('meta', point_name = point_name[i_point], point_class = point_class[i_point])
+            
             
     def add_to_point(self, point_name, update_key, update_value, update_type):
         # TODO: Check that update_key is string??
@@ -213,35 +208,40 @@ class DataModalities:
         self.add_to_point(point_name, modality_type, modality_data, 'modality')
         
         
-    def read_data_labels(self, point_list):
-        # Read numeric labels of data points based on self.class_dict
-        # Add dict as optional input?? Could be confusing...
-        # Read at call time to incorperate potential changes
-        # Labels must correspond to a dataset => move to read_data_array?? Or read_data to do both
+    def assign_labels(self, class_dict = None):
+        # Assign numeric labels to data points based on class_dict
         labels_out = []
-        if length(self.class_dict) == 0:
+        if class_dict is None:
             # No class dict specified, assign each named class its own number
-            # Create dictionary or throw error??
-            1+1
-        else:
-            # Assign each class in dict a unique number, others to 0 
-            # Get value for other class (if any)
-            other_val = self.class_dict.get('other')
-            for i_point in point_list:
-                val = self.class_dict.get(self.data_points[i_point].point_class)
-                if val is not None:
-                    # Class name found in dict, assign to label given as value
-                    labels_out.append(val)
-                elif other_val is not None:
-                    # Class name NOT found in dict, assign to label given for 'other' class
-                    labels_out.append(other_val)
-                else:
-                    # Class name NOT found in dict and no 'other' class
-                    labels_out.append(self.label_missing_value) 
+            unique_classes = np.unique(self.point_class)
+            # Create dictionary
+            class_dict = []
+            for i_class in range(length(unique_classes)):
+                class_dict.append([unique_classes[i_class], i_class])
+                
+            self.class_dict = dict(class_dict)
+        elif isinstance(class_dict, dict):
+            # Set class dict to input (otherwise, ignore and use previously set class dict)
+            self.class_dict = class_dict
+
+        # Assign each class in dict a unique number, others to 0 
+        # Get value for other class (if any)
+        other_val = self.class_dict.get('other')
+        for i_point in self.idx_list:
+            val = self.class_dict.get(self.data_points[i_point].point_class)
+            if val is not None:
+                # Class name found in dict, assign to label given as value
+                self.point_label.append(val)
+            elif other_val is not None:
+                # Class name NOT found in dict, assign to label given for 'other' class
+                self.point_label.append(other_val)
+            else:
+                # Class name NOT found in dict and no 'other' class
+                self.point_label.append(self.label_missing_value) 
                     
         # Log and return result
         logit('Number of classes out = ' + str(length(np.unique(labels_out))), self.log_type)
-        return labels_out
+        return self.point_label
         
     
     def read_data_array(self, modalities, set_type):
