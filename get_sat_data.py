@@ -173,7 +173,7 @@ labels = all_data.assign_labels(class_dict=class_dict)
 # Split into training, validation, and test sets
 all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.2, val_pct = 0.1)
 
-arr_out = all_data.read_data_array('quad_pol', 'train')
+arr_out, label_array = all_data.read_data_array('quad_pol', 'train')
 
 length(all_data.set_test)/165
 

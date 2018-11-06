@@ -245,12 +245,15 @@ class DataModalities:
             if val is not None:
                 # Class name found in dict, assign to label given as value
                 self.point_label.append(val)
+                self.data_points[i_point].label = val
             elif other_val is not None:
                 # Class name NOT found in dict, assign to label given for 'other' class
                 self.point_label.append(other_val)
+                self.data_points[i_point].label = other_val
             else:
                 # Class name NOT found in dict and no 'other' class
                 self.point_label.append(self.label_missing_value) 
+                self.data_points[i_point].label = self.label_missing_value
                     
         # Log and return result
         logit('Number of classes out = ' + str(length(np.unique(self.point_label))), self.log_type)
@@ -281,12 +284,14 @@ class DataModalities:
 
         # Initialize numpy output array - or read as list?
         data_array = []
+        label_array = []
         # Loop over points in each set, and update set membership
         for i_point in set_use:
             data_array.append(self.data_points[i_point].read_data(modalities)) 
+            label_array.append(self.data_points[i_point].label)
         
-        # TODO: Change implementation for casting as numpy array to avoid singelton dimensions
-        return np.squeeze(np.asarray(data_array))
+        # Squeeze numpy array to avoid singelton dimensions
+        return np.squeeze(np.asarray(data_array)), label_array
         
     
     def print_points(self, point_name = None):
@@ -298,22 +303,6 @@ class DataModalities:
         for point in point_name:
             # Read from DataPoint class by keeping list of attributes of all points and loop over using getattrb
             self.data_points[self.point_name.index(point)].print_point()
-         
-            
-    def save(self, filename):
-        # Save
-        # Pickle?
-        logit('Implement SAVE function in DataModalities!', self.log_type)
-        
-        
-    def load(self, filename):
-        # Load
-        logit('Implement LOAD function in DataModalities!', self.log_type)
-        
-        
-    def set_log_type(self, log_type):
-        # Change log type
-        self.log_type = log_type
         
         
 class DataPoint:
@@ -329,6 +318,7 @@ class DataPoint:
         self.meta_types = parent.meta_types
         self.modality_missing_value = parent.modality_missing_value
         self.modality_types = parent.modality_types
+        self.label = None # Numeric label 
         
         # List of keys
         self.all_keys = []
