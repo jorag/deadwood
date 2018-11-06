@@ -18,7 +18,7 @@ from mytools import *
 from geopixpos import *
 from visandtest import *
 from dataclass import *
-import sklearn
+from sklearn.neighbors import KNeighborsClassifier
 import pickle
 
 
@@ -171,11 +171,8 @@ class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
 labels = all_data.assign_labels(class_dict=class_dict)
 
 # Split into training, validation, and test sets
-all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.2, val_pct = 0.1)
-
-arr_out, label_array = all_data.read_data_array('quad_pol', 'train')
-
-length(all_data.set_test)/165
+all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.3, val_pct = 0.0)
+print(length(all_data.set_train)/165, length(all_data.set_test)/165, length(all_data.set_val)/165)
 
 with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'wb') as output:
     pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
@@ -183,4 +180,12 @@ with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'wb') as output:
 # https://stackoverflow.com/questions/4529815/saving-an-object-data-persistence
 with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'rb') as input:
     company1 = pickle.load(input)
-    company1.print_points()
+
+# Create kNN classifier
+neigh = KNeighborsClassifier(n_neighbors=3)
+neigh = sklearn.neighbors.KNeighborsClassifier(n_neighbors=3)
+
+# Get training data
+# TODO: Implement an 'all' option for modalities
+data_train, labels_train = all_data.read_data_array('quad_pol', 'train') 
+neigh.fit(data_train, labels_train) 
