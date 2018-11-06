@@ -162,21 +162,15 @@ all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
 # Add modality
 all_data.add_modality(gps_id, 'quad_pol', data_out.tolist())
 
-# Add meta values to some points
-#all_data.add_meta(['N_6_155', 'N_6_156'], 'testmeta', [99999, '35732475793245 b3480534'])
-#all_data.add_meta('N_6_153', 'testmeta', 1000001)
-#all_data.add_meta(['N_6_154'], 'testmeta', [2000002])
-#all_data.add_meta('N_6_163', 'DUMMYmeta', 1000001)
-
-all_data.print_points()
+## Print points
+#all_data.print_points()
 
 
 class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
 labels = all_data.assign_labels(class_dict=class_dict)
 
-# Try split
-#all_data.split(split_type = 'class_weight_random', train_pct = 0.6, test_pct = 0.2, val_pct = 0.2)
-all_data.split(split_type = 'weighted')
+# Split into training, validation, and test sets
+all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.2, val_pct = 0.1)
 
 arr_out = all_data.read_data_array('quad_pol', 'train')
 

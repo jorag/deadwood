@@ -66,28 +66,18 @@ class DataModalities:
         # Switch between different split types
         # Weighted
         if split_type in ['weighted', 'class_weight']:
-            # Go though classes in order of least to most occurance 
-            # Ensure best possible balance in split for least likely class
             # Find the unique labels and counts
-            unique_labels, label_counts = np.unique(self.point_label, return_counts=True)
-            
-            print(unique_labels, label_counts)
-            # Sort by counts
-            sorted_labels = [x for _,x in sorted(zip(label_counts, unique_labels))]
-            print(sorted_labels)
+            unique_labels = np.unique(self.point_label)
+
             # Initilaize sets
             self.set_train = []
             self.set_val = []
             self.set_test = []
-            for i_label in sorted_labels:
-                # Get key for numeric labels (value)
-                #key = list(self.class_dict.keys())[list(self.class_dict.values()).index(i_label)]
-                #print(key)
-                print(self.point_label == i_label)
-                print(np.where(self.point_label == i_label))
+            # Go though classes and split according to fractions
+            for i_label in unique_labels:
+                # Get list of indice for points in class (as nparray for indexing)
                 idx_list = np.asarray(self.idx_list)
                 current_points = idx_list[self.point_label == i_label]
-                print(current_points)
                 # Find split fraction for class
                 n_points_label = current_points.shape[0]
                 # Cast as int due to np.random.choices FutureWarning
@@ -95,8 +85,6 @@ class DataModalities:
                 n_val = int(np.floor(val_pct * n_points_label))
                 # Ensure that number in each set sums to the number of points
                 n_test = int(n_points_label - n_train - n_val)
-                print(current_points.shape)
-                print(n_train, n_val, n_test)
                 
                 # Draw training set
                 set_train_labels = np.random.choice(self.idx_list, size=n_train, replace=False, p=None)
@@ -108,7 +96,6 @@ class DataModalities:
                 self.set_test.extend(set_test_labels.tolist())
                 set_val_labels = list(set(remaining_points) - set(set_test_labels))
                 self.set_val.extend(set_val_labels)
- 
                     
         # Random split types
         elif split_type in ['random', 'rnd', 'unsupervised', 'class_weight_random']:
