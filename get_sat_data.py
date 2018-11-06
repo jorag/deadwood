@@ -19,6 +19,7 @@ from geopixpos import *
 from visandtest import *
 from dataclass import *
 import sklearn
+import pickle
 
 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -175,3 +176,11 @@ all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.2, val_pct
 arr_out = all_data.read_data_array('quad_pol', 'train')
 
 length(all_data.set_test)/165
+
+with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'wb') as output:
+    pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
+
+# https://stackoverflow.com/questions/4529815/saving-an-object-data-persistence
+with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'rb') as input:
+    company1 = pickle.load(input)
+    company1.print_points()

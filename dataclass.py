@@ -286,7 +286,7 @@ class DataModalities:
             data_array.append(self.data_points[i_point].read_data(modalities)) 
         
         # TODO: Change implementation for casting as numpy array to avoid singelton dimensions
-        return np.asarray(data_array)
+        return np.squeeze(np.asarray(data_array))
         
     
     def print_points(self, point_name = None):
