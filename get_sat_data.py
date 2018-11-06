@@ -210,4 +210,12 @@ sat_im2 = np.reshape(sat_im, (n_rows*n_cols, n_channels))
 sat_im_result = neigh.predict(sat_im2)
 
 # Reshape back to image
+sat_im3 = np.reshape(sat_im2, (n_channels, n_rows, n_cols))
 
+print(np.max(np.abs(sat_im - sat_im3)))
+
+# Show entire image
+showimage(sat_im, bands=[0,1,2])
+
+# Show entire image
+showimage(sat_im3, bands=[0,1,2])
