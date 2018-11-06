@@ -187,4 +187,27 @@ neigh = KNeighborsClassifier(n_neighbors=3)
 # Get training data
 # TODO: Implement an 'all' option for modalities
 data_train, labels_train = all_data.read_data_array('quad_pol', 'train') 
+# Fit kNN
 neigh.fit(data_train, labels_train) 
+
+# Get test data
+# TODO: Implement an 'all' option for modalities
+data_test, labels_test = all_data.read_data_array('quad_pol', 'test') 
+# Score kNN
+print(neigh.score(data_test, labels_test)) 
+# Test kNN
+prediction_result = neigh.predict(data_test) 
+
+
+# Predict class for satellite image
+sat_im = all_sat_bands[0:3, :, :]
+n_channels = sat_im.shape[0]
+n_rows = sat_im.shape[1]
+n_cols = sat_im.shape[2]
+# Reshape to array 
+# TODO: Check that reshape is correct
+sat_im2 = np.reshape(sat_im, (n_rows*n_cols, n_channels))
+sat_im_result = neigh.predict(sat_im2)
+
+# Reshape back to image
+
