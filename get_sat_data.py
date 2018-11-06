@@ -183,7 +183,6 @@ with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'rb') as input:
 
 # Create kNN classifier
 neigh = KNeighborsClassifier(n_neighbors=3)
-neigh = sklearn.neighbors.KNeighborsClassifier(n_neighbors=3)
 
 # Get training data
 # TODO: Implement an 'all' option for modalities

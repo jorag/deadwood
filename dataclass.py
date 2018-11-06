@@ -87,7 +87,7 @@ class DataModalities:
                 n_test = int(n_points_label - n_train - n_val)
                 
                 # Draw training set
-                set_train_labels = np.random.choice(self.idx_list, size=n_train, replace=False, p=None)
+                set_train_labels = np.random.choice(current_points, size=n_train, replace=False, p=None)
                 self.set_train.extend(set_train_labels.tolist())
                 # Remaining points
                 remaining_points = list(set(current_points) - set(set_train_labels))
