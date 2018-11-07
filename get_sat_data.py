@@ -50,7 +50,6 @@ except:
     gdalinfo_log(dataset, log_type='default')
             
 
-
 # Get georeference info
 geotransform = dataset.GetGeoTransform()
     
@@ -61,9 +60,18 @@ bandinfo_log(band, log_type='default')
 # Read multiple bands
 all_sat_bands = dataset.ReadAsArray()
 
-## Show point of Interest
-#point_lat = 70.0 
-#point_lon = 27.0
+## Check geo2pixmethods for one point 
+point_lat = 70.0 
+point_lon = 27.0
+pix_lat, pix_long = pos2pix(geotransform, lat=point_lat, lon=point_lon, pixels_out = 'npsingle', verbose=True)
+
+lat_band = dataset.GetRasterBand(5)
+lon_band = dataset.GetRasterBand(6)
+print('LAT BAND: \n')
+bandinfo_log(lat_band, log_type='default')
+print('LONG BAND: \n')
+bandinfo_log(lon_band, log_type='default')
+geobands2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lat=point_lat, lon=point_lon)
 #showimpoint(all_sat_bands, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
     
 

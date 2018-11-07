@@ -6,6 +6,7 @@
 
 from mytools import *
 
+
 def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', verbose=False):
     """Find pixel position by geotranform-info from GDAL.
     
@@ -62,6 +63,28 @@ def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', v
         
     # Return pixel position
     return pixpos_lat, pixpos_lon
+
+
+def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False):
+    """Find pixel position by geotranform-info from GDAL.
+    
+    Input: geotranform, lat = , lon = , verbose = False 
+    """
+    
+    # Subtract position from band
+    lat_diff = np.abs(lat_band - lat)
+    lon_diff = np.abs(lon_band - lon)
+    
+    # Find minimum (zero crossing) in each direction for each band
+    lat_indice = np.where(lat_diff == np.min(lat_diff))
+    lon_indice = np.where(lon_diff == np.min(lon_diff))
+    
+    print(lat_indice)
+    print(np.min(lat_diff), np.min(lon_diff))
+    
+    # Return pixel position
+    return
+    #return pixpos_lat, pixpos_lon
 
 
 def refinepos(a):
