@@ -12,7 +12,6 @@ from tkinter import filedialog
 import pandas as pd
 import os # Necessary for relative paths
 import xml.etree.ElementTree as ET
-from sklearn.neighbors import KNeighborsClassifier
 import pickle
 #import sys # To append paths
 # My moduels
@@ -178,55 +177,3 @@ print(length(all_data.set_train)/165, length(all_data.set_test)/165, length(all_
 with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'wb') as output:
     pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
 
-# Load DataModalities object
-with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'rb') as input:
-    company1 = pickle.load(input)
-
-
-# Create kNN classifier
-neigh = KNeighborsClassifier(n_neighbors=3)
-
-# Get training data
-# TODO: Implement an 'all' option for modalities
-data_train, labels_train = all_data.read_data_array('quad_pol', 'train') 
-# Fit kNN
-neigh.fit(data_train, labels_train) 
-
-# Get test data
-# TODO: Implement an 'all' option for modalities
-data_test, labels_test = all_data.read_data_array('quad_pol', 'test') 
-# Score kNN
-print(neigh.score(data_test, labels_test)) 
-# Test kNN
-prediction_result = neigh.predict(data_test) 
-
-
-# Predict class for satellite image
-sat_im = all_sat_bands[0:3, :, :]
-n_channels = sat_im.shape[0]
-n_rows = sat_im.shape[1]
-n_cols = sat_im.shape[2]
-# Reshape to array 
-# TODO: Check that reshape is correct
-sat_im2 = np.reshape(sat_im, (n_rows*n_cols, n_channels))
-sat_im_result = neigh.predict(sat_im2)
-
-# Reshape back to image
-sat_im3 = np.reshape(sat_im2, (n_channels, n_rows, n_cols))
-
-# Check that reshape works correctly (image is the same after reshape)
-print(np.max(np.abs(sat_im - sat_im3)))
-
-# Show entire image
-showimage(sat_im, bands=[0,1,2])
-
-# Show entire image
-showimage(sat_im3, bands=[0,1,2])
-
-# Reshape to original input size
-sat_result2 = np.reshape(sat_im_result, (n_rows, n_cols))
-# Show classification result
-colors = ['red','green','blue','purple']
-fig = plt.figure()
-plt.imshow(sat_result2, cmap='jet')
-#plt.imshow(sat_result2, cmap=matplotlib.colors.ListedColormap(colors))

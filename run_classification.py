@@ -54,14 +54,14 @@ except:
 # Read multiple bands
 all_sat_bands = dataset.ReadAsArray()
 
-
+# TODO: Check why rerunning these commands causes index out of bounds in split (l 84)
 # Set class labels for dictionary
-#class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
-#class_dict = None
-#labels = input_data.assign_labels(class_dict=class_dict)
+class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
+class_dict = None
+labels = input_data.assign_labels(class_dict=class_dict)
 
 # Split into training, validation, and test sets
-#input_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.3, val_pct = 0.0)
+input_data.split(split_type = 'weighted', train_pct = 0.9, test_pct = 0.1, val_pct = 0.0)
 print(length(input_data.set_train)/165, length(input_data.set_test)/165, length(input_data.set_val)/165)
 
 
