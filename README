@@ -9,3 +9,4 @@ GDAL 2.1.0
 tk 8.5.18 (tkinter for file dialouge)
 pandas
 xlrd (requiered by pandas for reading Excel files)
+scikit-learn 0.18.1
