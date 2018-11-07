@@ -12,14 +12,14 @@ from tkinter import filedialog
 import pandas as pd
 import os # Necessary for relative paths
 import xml.etree.ElementTree as ET
+from sklearn.neighbors import KNeighborsClassifier
+import pickle
 #import sys # To append paths
 # My moduels
 from mytools import *
 from geopixpos import *
 from visandtest import *
 from dataclass import *
-from sklearn.neighbors import KNeighborsClassifier
-import pickle
 
 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -66,8 +66,6 @@ all_sat_bands = dataset.ReadAsArray()
 #point_lat = 70.0 
 #point_lon = 27.0
 #showimpoint(all_sat_bands, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
-## Show entire image
-#showimage(all_sat_bands, bands=[0,1,2])
     
 
 # Read Excel file with vegetation types
@@ -140,8 +138,6 @@ gps_points = list(zip(gps_id, pos_array))
 #pos_array2 = np.asarray(pos_array)
 pos_array2 = np.asarray([item[1] for item in gps_points])
 gps_id2 = [item[0] for item in gps_points]
-       
-# Categorize points
 
 
 # Get pixel positions from my geopixpos module
@@ -166,7 +162,7 @@ all_data.add_modality(gps_id, 'quad_pol', data_out.tolist())
 ## Print points
 #all_data.print_points()
 
-
+# Set class labels for dictionary
 class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
 labels = all_data.assign_labels(class_dict=class_dict)
 
@@ -174,15 +170,16 @@ labels = all_data.assign_labels(class_dict=class_dict)
 all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.3, val_pct = 0.0)
 print(length(all_data.set_train)/165, length(all_data.set_test)/165, length(all_data.set_val)/165)
 
+# Save DataModalities object
 with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'wb') as output:
     pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
 
-# https://stackoverflow.com/questions/4529815/saving-an-object-data-persistence
+# Load DataModalities object
 with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'rb') as input:
     company1 = pickle.load(input)
 
 # Create kNN classifier
-neigh = KNeighborsClassifier(n_neighbors=3)
+neigh = KNeighborsClassifier(n_neighbors=5)
 
 # Get training data
 # TODO: Implement an 'all' option for modalities
@@ -212,6 +209,7 @@ sat_im_result = neigh.predict(sat_im2)
 # Reshape back to image
 sat_im3 = np.reshape(sat_im2, (n_channels, n_rows, n_cols))
 
+# Check that reshape works correctly (image is the same after reshape)
 print(np.max(np.abs(sat_im - sat_im3)))
 
 # Show entire image
@@ -219,3 +217,8 @@ showimage(sat_im, bands=[0,1,2])
 
 # Show entire image
 showimage(sat_im3, bands=[0,1,2])
+
+# Show classification result
+sat_result2 = np.reshape(sat_im_result, (n_rows, n_cols))
+fig = plt.figure()
+plt.imshow(sat_result2, cmap='jet')
