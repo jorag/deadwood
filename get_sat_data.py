@@ -142,6 +142,8 @@ gps_id2 = [item[0] for item in gps_points]
 
 # Get pixel positions from my geopixpos module
 # TODO: Change so that coordinates can be input as tuples
+# TODO: geotransform does not appear to be correct for combined LS-8 / RS-2 SNAP products...
+# Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
 pix_lat, pix_long = pos2pix(geotransform, lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle', verbose=True)
 
 # Extract pixels from area
@@ -164,11 +166,13 @@ all_data.add_modality(gps_id, 'quad_pol', data_out.tolist())
 
 # Set class labels for dictionary
 class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
+class_dict = None
 labels = all_data.assign_labels(class_dict=class_dict)
 
 # Split into training, validation, and test sets
 all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.3, val_pct = 0.0)
 print(length(all_data.set_train)/165, length(all_data.set_test)/165, length(all_data.set_val)/165)
+
 
 # Save DataModalities object
 with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'wb') as output:
@@ -178,8 +182,9 @@ with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'wb') as output:
 with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'rb') as input:
     company1 = pickle.load(input)
 
+
 # Create kNN classifier
-neigh = KNeighborsClassifier(n_neighbors=5)
+neigh = KNeighborsClassifier(n_neighbors=3)
 
 # Get training data
 # TODO: Implement an 'all' option for modalities
@@ -218,7 +223,10 @@ showimage(sat_im, bands=[0,1,2])
 # Show entire image
 showimage(sat_im3, bands=[0,1,2])
 
-# Show classification result
+# Reshape to original input size
 sat_result2 = np.reshape(sat_im_result, (n_rows, n_cols))
+# Show classification result
+colors = ['red','green','blue','purple']
 fig = plt.figure()
 plt.imshow(sat_result2, cmap='jet')
+#plt.imshow(sat_result2, cmap=matplotlib.colors.ListedColormap(colors))
