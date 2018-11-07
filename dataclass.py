@@ -11,11 +11,15 @@ class DataModalities:
     """Create DataModalities object for training data.
     
     Functions:
-        save() - save DataModalities object 
-        load() - load DataModalities object
-        add_modality() - add new modality
-        read_data_array() - read dataset as array
-        set_log_type(log_type) - set log type for mytools.logit function 
+        add_points(point_name, point_class) - add data points
+        add_to_point(point_name, update_key, update_value, update_type) - add fields to data points
+        add_meta(point_name, meta_type, point_meta) - add meta info to point using add_to_point()
+        add_modality(point_name, modality_type, modality_data) - add new modality using add_to_point()
+        split(split_type=, train_pct=, test_pct=, val_pct=) - split in training/test/val sets 
+        assign_labels(self, class_dict=) - add numeric labels to points by dict with class names+labels
+        read_data_array(modalities, set_type) - read data (train/test/val) array with select modalities
+        set_log_type(log_type) - set log type for mytools.logit function
+        print_points(point_name=) - print points in point_name list
     """
     def __init__(self, name, **kwargs):
         self.name = name
@@ -225,6 +229,7 @@ class DataModalities:
     def assign_labels(self, class_dict = None):
         # Assign numeric labels to data points based on class_dict
         if class_dict is None:
+            logit('Warning! No class dict provided, creating based on class names.', self.log_type)
             # No class dict specified, assign each named class its own number
             unique_classes = np.unique(self.point_class)
             # Create dictionary
@@ -262,8 +267,7 @@ class DataModalities:
     
     def read_data_array(self, modalities, set_type):
         # Read out dataset as array
-        # Read out different arrays by which data is available?
-        # I.E. Read out SAR only area or SAR+OPT area
+        # TODO: Read out different arrays by which data is available? I.E. Read out SAR only area or SAR+OPT area
         
         # Ensure that modalities appear as a list
         if numel(modalities) == 1:
@@ -309,7 +313,10 @@ class DataPoint:
     """Data point.
     
     Functions:
-        update(**kwargs) - set variables to input given in keywordargs
+        update(input_type, **kwargs) - set variables to input given in keywordargs
+        soft_update(input_type, **kwargs) - as update(), but don't overwrite valid data with None/NaN
+        read_data(modalities) - read specified data modalities
+        print_point() - print all meta and modality keys
      """
     def __init__(self, id, parent, **kwargs):
         # Initialize variables
