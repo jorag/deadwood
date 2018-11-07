@@ -243,6 +243,7 @@ class DataModalities:
             self.class_dict = class_dict
 
         # Assign each class in dict a unique number, others to 0 
+        self.point_label = [] # reset
         # Get value for other class (if any)
         other_val = self.class_dict.get('other')
         for i_point in self.idx_list:
