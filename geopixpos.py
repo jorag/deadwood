@@ -80,7 +80,13 @@ def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 
     lon_indice = np.where(lon_diff == np.min(lon_diff))
     
     print(lat_indice)
+    print(lon_indice)
     print(np.min(lat_diff), np.min(lon_diff))
+    print(length(lat_indice[0]), length(lat_indice[1]), length(lon_indice[0]), length(lon_indice[1]))
+    
+    # Find where indice overlap
+    # Must be a match in BOTH row and column indice at the same time
+    row_candidates = 1
     
     # Return pixel position
     return

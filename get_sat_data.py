@@ -62,7 +62,7 @@ all_sat_bands = dataset.ReadAsArray()
 
 ## Check geo2pixmethods for one point 
 point_lat = 70.0 
-point_lon = 27.0
+point_lon = 28.0
 pix_lat, pix_long = pos2pix(geotransform, lat=point_lat, lon=point_lon, pixels_out = 'npsingle', verbose=True)
 
 lat_band = dataset.GetRasterBand(5)
