@@ -66,10 +66,12 @@ def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', v
 
 
 def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False):
-    """Find pixel position by geotranform-info from GDAL.
+    """Find pixel position by from latitude and longitude bands.
     
-    Input: geotranform, lat = , lon = , verbose = False 
+    Input: lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False
     """
+    
+    # Loop over all input points 
     
     # Subtract position from band
     lat_diff = np.abs(lat_band - lat)
@@ -78,23 +80,18 @@ def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 
     # Find minimum (zero crossing) in each direction for each band
     lat_indice = np.where(lat_diff == np.min(lat_diff))
     lon_indice = np.where(lon_diff == np.min(lon_diff))
-    #both_indice = np.where(lat_diff == np.min(lat_diff) and lon_diff == np.min(lon_diff))
     
     print(lat_band.shape)
     print(lat_indice)
     print(lon_indice)
-    #print(both_indice)
     print(np.min(lat_diff), np.min(lon_diff))
     print(length(lat_indice[0]), length(lat_indice[1]), length(lon_indice[0]), length(lon_indice[1]))
-    
-    # Find where indice overlap
-    # Must be a match in BOTH row and column indice at the same time
-    row_candidates = 1
-    
     
     # Convert to numpy arrays
     n_lat = length(lat_indice[0])
     n_lon = length(lon_indice[0])
+    
+    # Use longest list of indice as search index
     if n_lat > n_lon:
         X = np.zeros((n_lat, 2))
         X[:,0] = lat_indice[0]
@@ -112,10 +109,12 @@ def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 
         
         
     # https://stackoverflow.com/questions/38674027/find-the-row-indexes-of-several-values-in-a-numpy-array
-    # Finds index in longest indice array, must get back to original array indice
+    # Must be a match in BOTH row and column indice at the same time
+    # Finds index in longest indice array where both indices match
     match = np.where((X==searched_values[:,None]).all(-1))[1]
     print(match)
-    
+
+    # Get back the original array indice    
     for i_match in match:
         r_i = X[i_match,0]
         c_i = X[i_match,1]
@@ -123,15 +122,6 @@ def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 
         lat_val = lat_band[r_i, c_i]
         lon_val = lon_band[r_i, c_i]
         print((lat_val, lon_val))
-    
-    #lat_indice_set = set([lat_indice[0].tolist(), lat_indice[1].tolist()])
-    #lon_indice_set = set([lon_indice[0].tolist(), lon_indice[1].tolist()])
-    
-    #print(lat_indice_set)
-    #print(lon_indice_set)
-    
-    #remaining_points = list(lat_indice_set - lon_indice_set)
-    #print(remaining_points)
     
     # Return pixel position
     return
