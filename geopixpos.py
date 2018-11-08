@@ -70,62 +70,73 @@ def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 
     
     Input: lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False
     """
-    
+    # Check input
+    if numel(lat) < 2 or numel(lon) <2:
+        lat = make_list(lat)
+        lon = make_list(lon)
+        
+    # Initialize output lists
+    pixpos_row = []
+    pixpos_col = []
     # Loop over all input points 
-    
-    # Subtract position from band
-    lat_diff = np.abs(lat_band - lat)
-    lon_diff = np.abs(lon_band - lon)
-    
-    # Find minimum (zero crossing) in each direction for each band
-    lat_indice = np.where(lat_diff == np.min(lat_diff))
-    lon_indice = np.where(lon_diff == np.min(lon_diff))
-    
-    print(lat_band.shape)
-    print(lat_indice)
-    print(lon_indice)
-    print(np.min(lat_diff), np.min(lon_diff))
-    print(length(lat_indice[0]), length(lat_indice[1]), length(lon_indice[0]), length(lon_indice[1]))
-    
-    # Convert to numpy arrays
-    n_lat = length(lat_indice[0])
-    n_lon = length(lon_indice[0])
-    
-    # Use longest list of indice as search index
-    if n_lat > n_lon:
-        X = np.zeros((n_lat, 2))
-        X[:,0] = lat_indice[0]
-        X[:,1] = lat_indice[1]
-        searched_values = np.zeros((n_lon,2))
-        searched_values[:,0] = lon_indice[0]
-        searched_values[:,1] = lon_indice[1]
-    else:
-        X = np.zeros((n_lon,2))
-        X[:,0] = lon_indice[0]
-        X[:,1] = lon_indice[1]
-        searched_values = np.zeros((n_lat, 2))
-        searched_values[:,0] = lat_indice[0]
-        searched_values[:,1] = lat_indice[1]
+    for i_point in range(length(lat)):
+        # Current point of Interest
+        point_lat = lat[i_point]
+        point_lon = lon[i_point]
         
+        print((point_lat , point_lon))
         
-    # https://stackoverflow.com/questions/38674027/find-the-row-indexes-of-several-values-in-a-numpy-array
-    # Must be a match in BOTH row and column indice at the same time
-    # Finds index in longest indice array where both indices match
-    match = np.where((X==searched_values[:,None]).all(-1))[1]
-    print(match)
-
-    # Get back the original array indice    
-    for i_match in match:
-        r_i = X[i_match,0]
-        c_i = X[i_match,1]
-        print(r_i, c_i)
-        lat_val = lat_band[r_i, c_i]
-        lon_val = lon_band[r_i, c_i]
-        print((lat_val, lon_val))
+        # Subtract position from band
+        lat_diff = np.abs(lat_band - point_lat)
+        lon_diff = np.abs(lon_band - point_lon)
+        
+        # Find minimum (zero crossing) in each direction for each band
+        lat_indice = np.where(lat_diff == np.min(lat_diff))
+        lon_indice = np.where(lon_diff == np.min(lon_diff))
+        
+        # Convert to numpy arrays
+        n_lat = length(lat_indice[0])
+        n_lon = length(lon_indice[0])     
+        # Use longest list of indice as search index
+        if n_lat > n_lon:
+            X = np.zeros((n_lat, 2))
+            X[:,0] = lat_indice[0]
+            X[:,1] = lat_indice[1]
+            searched_values = np.zeros((n_lon,2))
+            searched_values[:,0] = lon_indice[0]
+            searched_values[:,1] = lon_indice[1]
+        else:
+            X = np.zeros((n_lon,2))
+            X[:,0] = lon_indice[0]
+            X[:,1] = lon_indice[1]
+            searched_values = np.zeros((n_lat, 2))
+            searched_values[:,0] = lat_indice[0]
+            searched_values[:,1] = lat_indice[1]
+            
+            
+        # https://stackoverflow.com/questions/38674027/
+        # Must be a match in BOTH row and column indice at the same time
+        # Finds index in longest indice array where both indices match
+        match = np.where((X==searched_values[:,None]).all(-1))[1]
+        print(match)
+        
+        # Get back the original array indice
+        if pixels_out.lower() in ['single', 'npsingle']:
+            i_match = 0 # TODO: Change how multiple matches are handled??
+            pixpos_row.append(X[i_match,0])
+            pixpos_col.append(X[i_match,1])
+            lat_val = lat_band[X[i_match,0], X[i_match,1]]
+            lon_val = lon_band[X[i_match,0], X[i_match,1]]
+            print((lat_val, lon_val))
+        else:
+            raise NotImplementedError('pixels_out = ' + pixels_out + ' not implemented in geopixpos.geobands2pix()!')
     
     # Return pixel position
-    return
-    #return pixpos_lat, pixpos_lon
+    if pixels_out.lower() in ['npsingle']:
+        pixpos_row = np.asarray(pixpos_row)
+        pixpos_col = np.asarray(pixpos_col)
+
+    return pixpos_row, pixpos_col
 
 
 def refinepos(a):
