@@ -89,13 +89,17 @@ n_channels = sat_im.shape[0]
 n_rows = sat_im.shape[1]
 n_cols = sat_im.shape[2]
 # Reshape to array 
+# TRY TO TRANSPOSE FIRST TO ENSURE CORRECT SHAPE
+sat_im = np.transpose(sat_im, (1, 2, 0))
 # TODO: Check that reshape is correct
 sat_im2 = np.reshape(sat_im, (n_rows*n_cols, n_channels))
 sat_im_result = neigh.predict(sat_im2)
 
 
 # Show entire image
-showimage(sat_im, bands=[0,1,2])
+plt.figure()
+plt.imshow(sat_im2) 
+plt.show()  # display it
 
 
 # Reshape to original input size
