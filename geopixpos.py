@@ -112,8 +112,7 @@ def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 
             searched_values = np.zeros((n_lat, 2))
             searched_values[:,0] = lat_indice[0]
             searched_values[:,1] = lat_indice[1]
-            
-            
+                     
         # https://stackoverflow.com/questions/38674027/
         # Must be a match in BOTH row and column indice at the same time
         # Finds index in longest indice array where both indices match
@@ -123,10 +122,10 @@ def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 
         # Get back the original array indice
         if pixels_out.lower() in ['single', 'npsingle']:
             i_match = 0 # TODO: Change how multiple matches are handled??
-            pixpos_row.append(X[i_match,0])
-            pixpos_col.append(X[i_match,1])
-            lat_val = lat_band[X[i_match,0], X[i_match,1]]
-            lon_val = lon_band[X[i_match,0], X[i_match,1]]
+            pixpos_row.append(X[match[i_match] , 0])
+            pixpos_col.append(X[match[i_match] , 1])
+            lat_val = lat_band[X[match[i_match],0], X[match[i_match],1]]
+            lon_val = lon_band[X[match[i_match],0], X[match[i_match],1]]
             print((lat_val, lon_val))
         else:
             raise NotImplementedError('pixels_out = ' + pixels_out + ' not implemented in geopixpos.geobands2pix()!')
