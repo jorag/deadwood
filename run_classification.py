@@ -57,7 +57,7 @@ all_sat_bands = dataset.ReadAsArray()
 # TODO: Check why rerunning these commands causes index out of bounds in split (l 84)
 # Set class labels for dictionary
 class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
-class_dict = None
+#class_dict = None
 labels = input_data.assign_labels(class_dict=class_dict)
 
 # Split into training, validation, and test sets

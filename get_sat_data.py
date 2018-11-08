@@ -151,8 +151,8 @@ gps_id2 = [item[0] for item in gps_points]
 # TODO: Change so that coordinates can be input as tuples
 # TODO: geotransform does not appear to be correct for combined LS-8 / RS-2 SNAP products...
 # Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
-pix_lat, pix_long = pos2pix(geotransform, lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle', verbose=True)
-pix_lat2, pix_long2 = geobands2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
+pix_lat2, pix_long2 = pos2pix(geotransform, lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle', verbose=True)
+pix_lat, pix_long = geobands2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
 
 # Extract pixels from area
 data_out = all_sat_bands[0:3, pix_lat, pix_long]
