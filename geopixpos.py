@@ -122,8 +122,8 @@ def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 
         # Get back the original array indice
         if pixels_out.lower() in ['single', 'npsingle']:
             i_match = 0 # TODO: Change how multiple matches are handled??
-            pixpos_row.append(X[match[i_match] , 0])
-            pixpos_col.append(X[match[i_match] , 1])
+            pixpos_row.append(int(X[match[i_match] , 0]))
+            pixpos_col.append(int(X[match[i_match] , 1]))
             lat_val = lat_band[X[match[i_match],0], X[match[i_match],1]]
             lon_val = lon_band[X[match[i_match],0], X[match[i_match],1]]
             print((lat_val, lon_val))
