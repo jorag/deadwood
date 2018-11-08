@@ -25,7 +25,7 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # Classify LIVE FOREST vs. DEAD FOREST vs. OTHER
 
 # Load DataModalities object
-with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'rb') as input:
+with open(os.path.join(dirname, "data", "obj-band2pix.pkl"), 'rb') as input:
     input_data = pickle.load(input)
     
 

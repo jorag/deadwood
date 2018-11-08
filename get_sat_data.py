@@ -183,10 +183,12 @@ print(length(all_data.set_train)/165, length(all_data.set_test)/165, length(all_
 
 
 # Save DataModalities object
-with open(os.path.join(dirname, "data", "obj-pickle.pkl"), 'wb') as output:
+with open(os.path.join(dirname, "data", "obj-band2pix.pkl"), 'wb') as output:
     pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
 
 print(pix_lat)
 print(pix_long)
 print(pix_lat2)
 print(pix_long2)
+print(pix_lat2-pix_lat)
+print(pix_long2-pix_long)

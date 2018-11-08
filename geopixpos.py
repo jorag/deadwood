@@ -7,12 +7,17 @@
 from mytools import *
 
 
-def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', verbose=False):
+def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', verbose=True):
     """Find pixel position by geotranform-info from GDAL.
     
     Input: geotranform, lat = , lon = , verbose = False 
     """
     func_log_id = "In pos2pix: "
+    
+    # TODO: ENSURE THAT INDICE RETURNED ARE POSITIVE
+    # TODO: "lat" should be row and "lon" clolumn
+    logit('WARNING! TEMPORARY FIX IN pos2pix TO ENSURE POSITIVE INDICE. LOOK INTO THIS!')
+    
     # Get upper left corner and pixel width
     ul_lat = geotransform[3] # lat or y??
     ul_lon = geotransform[0] # long or x??
@@ -62,7 +67,7 @@ def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', v
             logit(func_log_id + 'pixels_out = ' + str(pixels_out) + ' found exact match (1 pixel) for long = ' + str(lon))
         
     # Return pixel position
-    return pixpos_lat, pixpos_lon
+    return np.abs(pixpos_lat), np.abs(pixpos_lon)
 
 
 def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False):
