@@ -25,7 +25,7 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # Classify LIVE FOREST vs. DEAD FOREST vs. OTHER
 
 # Load DataModalities object
-with open(os.path.join(dirname, "data", "obj-band2pix.pkl"), 'rb') as input:
+with open(os.path.join(dirname, "data", "obj-B.pkl"), 'rb') as input:
     input_data = pickle.load(input)
     
 
@@ -88,17 +88,15 @@ sat_im = all_sat_bands[0:3, :, :]
 n_channels = sat_im.shape[0]
 n_rows = sat_im.shape[1]
 n_cols = sat_im.shape[2]
-# Reshape to array 
-# TRY TO TRANSPOSE FIRST TO ENSURE CORRECT SHAPE
-sat_im = np.transpose(sat_im, (1, 2, 0))
-# TODO: Check that reshape is correct
+# Reshape array to n_cols*n_rows rows with the channels as columns 
+sat_im = np.transpose(sat_im, (1, 2, 0)) # Change order to rows, cols, channels
 sat_im2 = np.reshape(sat_im, (n_rows*n_cols, n_channels))
 sat_im_result = neigh.predict(sat_im2)
 
 
 # Show entire image
 plt.figure()
-plt.imshow(sat_im2) 
+plt.imshow(sat_im) 
 plt.show()  # display it
 
 
