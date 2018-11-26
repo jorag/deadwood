@@ -4,7 +4,9 @@
 @author: jorag
 """
 
+import numpy as np
 from mytools import *
+import matplotlib.pyplot as plt
 
 
 def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', verbose=True):
@@ -107,11 +109,11 @@ def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 
             X = np.zeros((n_lat, 2))
             X[:,0] = lat_indice[0]
             X[:,1] = lat_indice[1]
-            searched_values = np.zeros((n_lon,2))
+            searched_values = np.zeros((n_lon, 2))
             searched_values[:,0] = lon_indice[0]
             searched_values[:,1] = lon_indice[1]
         else:
-            X = np.zeros((n_lon,2))
+            X = np.zeros((n_lon, 2))
             X[:,0] = lon_indice[0]
             X[:,1] = lon_indice[1]
             searched_values = np.zeros((n_lat, 2))
@@ -122,7 +124,20 @@ def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 
         # Must be a match in BOTH row and column indice at the same time
         # Finds index in longest indice array where both indices match
         match = np.where((X==searched_values[:,None]).all(-1))[1]
+        print('X ', X, '\n')
+        print('searched_values ', searched_values, '\n')
+        print(n_lat ,'lat_indice:', lat_indice, '\n')
+        print(n_lon ,'lon_indice:', lon_indice, '\n')
         print(match)
+        fig = plt.figure()
+        plt.gca().set_color_cycle(['red', 'green', 'blue', 'yellow'])
+        # Plot data
+        plt.scatter(X[:,0], X[:,1], c='b', marker = '+' )
+        plt.scatter(searched_values[:,0], searched_values[:,1], c='r', marker = 'x')
+        plt.xlabel("Row index")
+        plt.ylabel("Column index")
+        plt.legend(['Latitude', 'Longitude'], loc='lower right')
+        
         
         # Get back the original array indice
         if pixels_out.lower() in ['single', 'npsingle']:
