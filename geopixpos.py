@@ -91,19 +91,27 @@ def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 
         point_lat = lat[i_point]
         point_lon = lon[i_point]
         
+        # Could also look at smallest negative and smallest positive value??
         print((point_lat , point_lon))
         
-        # Subtract position from band
+        # Subtract position from band 
         lat_diff = np.abs(lat_band - point_lat)
         lon_diff = np.abs(lon_band - point_lon)
+        #lat_diff = (lat_band - point_lat)
+        #lon_diff = (lon_band - point_lon)
         
         # Find minimum (zero crossing) in each direction for each band
         lat_indice = np.where(lat_diff == np.min(lat_diff))
         lon_indice = np.where(lon_diff == np.min(lon_diff))
+#        lat_indice = np.where(lat_diff[lat_diff>0] == np.min(lat_diff[lat_diff>0]))
+#        lon_indice = np.where(lon_diff[lon_diff>0] == np.min(lon_diff[lon_diff>0]))
+        
         
         # Convert to numpy arrays
         n_lat = length(lat_indice[0])
-        n_lon = length(lon_indice[0])     
+        n_lon = length(lon_indice[0])   
+        print(n_lat ,'lat_indice:', lat_indice, '\n')
+        print(n_lon ,'lon_indice:', lon_indice, '\n')
         # Use longest list of indice as search index
         if n_lat > n_lon:
             X = np.zeros((n_lat, 2))
@@ -138,6 +146,30 @@ def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 
         plt.ylabel("Column index")
         plt.legend(['Latitude', 'Longitude'], loc='lower right')
         
+        # Check if there is an exact match, if not...
+        if match.size == 0:
+            # Set current minimum values to max (to find new minimum)
+            lat_diff[np.where(lat_diff == np.min(lat_diff))] = np.max(lat_diff)
+            lon_diff[np.where(lon_diff == np.min(lon_diff))] = np.max(lon_diff)
+            
+            lat_indice2 = np.where(lat_diff == np.min(lat_diff)) 
+            lon_indice2 = np.where(lon_diff == np.min(lon_diff)) 
+            X2 = np.zeros((length(lat_indice2[0]), 2))
+            X2[:,0] = lat_indice2[0]
+            X2[:,1] = lat_indice2[1]
+            X2 = np.vstack((X, X2))
+            
+            X4 = np.zeros((length(lon_indice2[0]), 2))
+            X4[:,0] = lon_indice2[0]
+            X4[:,1] = lon_indice2[1]
+            X4 = np.vstack((searched_values, X4))
+            # Plot data
+            plt.scatter(X2[0], X2[1], c='b', marker = '+' )
+            plt.scatter(X4[0], X4[1], c='r', marker = 'x')
+            plt.xlabel("Row index")
+            plt.ylabel("Column index")
+            plt.legend(['Latitude', 'Longitude'], loc='lower right')
+            print(match)
         
         # Get back the original array indice
         if pixels_out.lower() in ['single', 'npsingle']:
