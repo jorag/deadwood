@@ -72,6 +72,28 @@ def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', v
     return np.abs(pixpos_lat), np.abs(pixpos_lon)
 
 
+def geotuples2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False):
+    """Find pixel position by from latitude and longitude bands.
+    
+    Input: lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False
+    """
+    # Check input
+    if numel(lat) < 2 or numel(lon) <2:
+        lat = make_list(lat)
+        lon = make_list(lon)
+        
+   # Idea
+   # Can use geobands2pix as is if this function returns closest coordinates
+   # But if it is done here it could be more efficient since we know that there is an exact match
+   
+   # We should assume that the input band is a list of tuples...
+   # Could include pixel row and column indice in tuples to ease the process of 
+   # finding such coordinates, but this would be a much larger list
+
+    return pixpos_row, pixpos_col
+
+
+
 def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False):
     """Find pixel position by from latitude and longitude bands.
     
