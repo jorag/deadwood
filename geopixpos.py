@@ -79,15 +79,26 @@ def geotuples2pix(lat_band, lon_band, lat='default', lon='default', pixels_out =
     """
     # Check input
     if numel(lat) < 2 or numel(lon) <2:
-        coord_find = (lat, lon)
+        #coord_find = np.asarray((lat, lon))
+        coord_find = np.zeros((2,1))
+        coord_find[0,0] = lat
+        coord_find[1,0] = lon
 
     # TODO - move this elsewhere
     coord_band = list(zip(lat_band, lon_band))
     
     # Find distance 
     # TODO - consider Haversine
-    nearest = min(coord_band, key=lambda x: np.linalg.norm(coord_find - x))
+    #nearest = min(coord_band, key=lambda x: np.linalg.norm(coord_find - np.asarray(x)))
+    nearest = min(coord_band, key=lambda x: np.linalg.norm(coord_find - np.asarray(x)))
     print(nearest)
+    print(coord_band[0])
+    print(coord_band[0][0])
+    print(coord_band[0][0][0])
+    print(np.min(nearest[0]), np.mean(nearest[0]), np.max(nearest[0]), '\n')
+    print(np.min(nearest[1]), np.mean(nearest[1]), np.max(nearest[1]), '\n')
+    print(np.mean(nearest[0]), nearest[0], '\n')
+    print(np.mean(nearest[1]), nearest[1], '\n')
     
     # Idea
     # Can use geobands2pix as is if this function returns closest coordinates
