@@ -72,6 +72,33 @@ def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', v
     return np.abs(pixpos_lat), np.abs(pixpos_lon)
 
 
+def geocoords2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False):
+    """Find pixel position by from latitude and longitude bands.
+    
+    Input: lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False
+    """
+    # Check input
+    if numel(lat) < 2 or numel(lon) <2:
+        #coord_find = np.asarray((lat, lon))
+        coord_find = np.zeros((1,1,2))
+        coord_find[0,0,0] = lat
+        coord_find[0,0,1] = lon
+
+    # TODO - move this elsewhere
+    coord_band = np.dstack((lat_band, lon_band))
+    
+    # Find distance 
+    # TODO - consider Haversine
+    #nearest = min(coord_band, key=lambda x: np.linalg.norm(coord_find - np.asarray(x)))
+    dists = np.linalg.norm(coord_band-coord_find, axis=2)
+    print(dists)
+    print(dists.shape)
+    nearest = np.argmin(dists)
+    print(nearest)
+    print(lat_band[np.unravel_index(nearest, lat_band.shape)], lon_band[np.unravel_index(nearest, lon_band.shape)])
+
+
+
 def geotuples2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False):
     """Find pixel position by from latitude and longitude bands.
     

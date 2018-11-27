@@ -61,8 +61,8 @@ bandinfo_log(band, log_type='default')
 all_sat_bands = dataset.ReadAsArray()
 
 ## Check geo2pixmethods for one point 
-point_lat = 70.0110009 
-point_lon = 28.0110009
+point_lat = 70.0119879
+point_lon = 28.0119
 pix_lat, pix_long = pos2pix(geotransform, lat=point_lat, lon=point_lon, pixels_out = 'npsingle', verbose=True)
 
 # Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
@@ -76,6 +76,7 @@ lat_array = lat_band.ReadAsArray()
 logit('LAT min:'+ str(np.min(lat_array[lat_array>0])) + ', LAT max:'+ str(np.max(lat_array[lat_array>0])), log_type='default')
 logit('LAT band contains NaN: ' + str(np.isnan(lat_array).any()), log_type='default')
 
+geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lat=point_lat, lon=point_lon, pixels_out = 'single')
 geotuples2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lat=point_lat, lon=point_lon, pixels_out = 'single')
 geobands2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lat=point_lat, lon=point_lon, pixels_out = 'single')
 #showimpoint(all_sat_bands, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
