@@ -79,18 +79,25 @@ def geotuples2pix(lat_band, lon_band, lat='default', lon='default', pixels_out =
     """
     # Check input
     if numel(lat) < 2 or numel(lon) <2:
-        lat = make_list(lat)
-        lon = make_list(lon)
-        
-   # Idea
-   # Can use geobands2pix as is if this function returns closest coordinates
-   # But if it is done here it could be more efficient since we know that there is an exact match
-   
-   # We should assume that the input band is a list of tuples...
-   # Could include pixel row and column indice in tuples to ease the process of 
-   # finding such coordinates, but this would be a much larger list
+        coord_find = (lat, lon)
 
-    return pixpos_row, pixpos_col
+    # TODO - move this elsewhere
+    coord_band = list(zip(lat_band, lon_band))
+    
+    # Find distance 
+    # TODO - consider Haversine
+    nearest = min(coord_band, key=lambda x: np.linalg.norm(coord_find - x))
+    print(nearest)
+    
+    # Idea
+    # Can use geobands2pix as is if this function returns closest coordinates
+    # But if it is done here it could be more efficient since we know that there is an exact match
+   
+    # We should assume that the input band is a list of tuples...
+    # Could include pixel row and column indice in tuples to ease the process of 
+    # finding such coordinates, but this would be a much larger list
+
+    return 
 
 
 
