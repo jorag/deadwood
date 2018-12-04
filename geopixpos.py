@@ -96,15 +96,12 @@ def geocoords2pix(lat_band, lon_band, lat='default', lon='default', pixels_out =
         coord_find[0,0,0] = lat[i_point]
         coord_find[0,0,1] = lon[i_point]
     
-        # Find distance 
+        # Find distance between each coordinate in band (along third axis)
         # TODO - consider Haversine
-        #nearest = min(coord_band, key=lambda x: np.linalg.norm(coord_find - np.asarray(x)))
         dists = np.linalg.norm(coord_band-coord_find, axis=2)
-        print(dists)
-        print(dists.shape)
+        # Find nearest coordinate (least distance)
         nearest = np.argmin(dists)
-        print(nearest)
-        print(lat_band[np.unravel_index(nearest, lat_band.shape)], lon_band[np.unravel_index(nearest, lon_band.shape)])
+        #print(lat_band[np.unravel_index(nearest, lat_band.shape)], lon_band[np.unravel_index(nearest, lon_band.shape)])
         
         # Get back the original array indice
         if pixels_out.lower() in ['single', 'npsingle']:
@@ -113,7 +110,7 @@ def geocoords2pix(lat_band, lon_band, lat='default', lon='default', pixels_out =
             pixpos_col.append(int(indice[1]))
             lat_val = lat_band[int(indice[0]), int(indice[1])]
             lon_val = lon_band[int(indice[0]), int(indice[1])]
-            print((lat_val, lon_val))
+            print((lat_val, lon_val), '    ', lat_val-lat[i_point], lon_val-lon[i_point])
         else:
             raise NotImplementedError('pixels_out = ' + pixels_out + ' not implemented in geopixpos.geobands2pix()!')
     
