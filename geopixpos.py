@@ -77,25 +77,53 @@ def geocoords2pix(lat_band, lon_band, lat='default', lon='default', pixels_out =
     
     Input: lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False
     """
-    # Check input
-    if numel(lat) < 2 or numel(lon) <2:
-        #coord_find = np.asarray((lat, lon))
-        coord_find = np.zeros((1,1,2))
-        coord_find[0,0,0] = lat
-        coord_find[0,0,1] = lon
-
-    # TODO - move this elsewhere
+    # TODO - move this elsewhere?
     coord_band = np.dstack((lat_band, lon_band))
     
-    # Find distance 
-    # TODO - consider Haversine
-    #nearest = min(coord_band, key=lambda x: np.linalg.norm(coord_find - np.asarray(x)))
-    dists = np.linalg.norm(coord_band-coord_find, axis=2)
-    print(dists)
-    print(dists.shape)
-    nearest = np.argmin(dists)
-    print(nearest)
-    print(lat_band[np.unravel_index(nearest, lat_band.shape)], lon_band[np.unravel_index(nearest, lon_band.shape)])
+    # Check input
+    if numel(lat) < 2 or numel(lon) <2:
+        lat = make_list(lat)
+        lon = make_list(lon)
+        
+    # Initialize output lists
+    pixpos_row = []
+    pixpos_col = []
+
+    # Loop over all input points 
+    for i_point in range(length(lat)):
+        # Initialize 3D point array
+        coord_find = np.zeros((1,1,2))
+        coord_find[0,0,0] = lat[i_point]
+        coord_find[0,0,1] = lon[i_point]
+    
+        # Find distance 
+        # TODO - consider Haversine
+        #nearest = min(coord_band, key=lambda x: np.linalg.norm(coord_find - np.asarray(x)))
+        dists = np.linalg.norm(coord_band-coord_find, axis=2)
+        print(dists)
+        print(dists.shape)
+        nearest = np.argmin(dists)
+        print(nearest)
+        print(lat_band[np.unravel_index(nearest, lat_band.shape)], lon_band[np.unravel_index(nearest, lon_band.shape)])
+        
+        # Get back the original array indice
+        if pixels_out.lower() in ['single', 'npsingle']:
+            indice = np.unravel_index(nearest, lat_band.shape)
+            pixpos_row.append(int(indice[0]))
+            pixpos_col.append(int(indice[1]))
+            lat_val = lat_band[int(indice[0]), int(indice[1])]
+            lon_val = lon_band[int(indice[0]), int(indice[1])]
+            print((lat_val, lon_val))
+        else:
+            raise NotImplementedError('pixels_out = ' + pixels_out + ' not implemented in geopixpos.geobands2pix()!')
+    
+    # Return pixel position
+    if pixels_out.lower() in ['npsingle']:
+        pixpos_row = np.asarray(pixpos_row)
+        pixpos_col = np.asarray(pixpos_col)
+
+    return pixpos_row, pixpos_col
+
 
 
 def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False):
