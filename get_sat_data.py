@@ -77,7 +77,7 @@ logit('LAT min:'+ str(np.min(lat_array[lat_array>0])) + ', LAT max:'+ str(np.max
 logit('LAT band contains NaN: ' + str(np.isnan(lat_array).any()), log_type='default')
 
 geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lat=point_lat, lon=point_lon, pixels_out = 'single')
-geotuples2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lat=point_lat, lon=point_lon, pixels_out = 'single')
+
 geobands2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lat=point_lat, lon=point_lon, pixels_out = 'single')
 #showimpoint(all_sat_bands, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
     
