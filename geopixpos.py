@@ -72,15 +72,15 @@ def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', v
     return np.abs(pixpos_lat), np.abs(pixpos_lon)
 
 
-def geocoords2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False):
+def geocoords2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', log_type=None):
     """Find pixel position by from latitude and longitude bands.
     
-    Input: lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False
+    Input: lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', log_type=None
     """
     # TODO - move this elsewhere?
     coord_band = np.dstack((lat_band, lon_band))
     
-    # Check input
+    # Check input - TODO, check that lengths equal?
     if numel(lat) < 2 or numel(lon) <2:
         lat = make_list(lat)
         lon = make_list(lon)
@@ -110,7 +110,8 @@ def geocoords2pix(lat_band, lon_band, lat='default', lon='default', pixels_out =
             pixpos_col.append(int(indice[1]))
             lat_val = lat_band[int(indice[0]), int(indice[1])]
             lon_val = lon_band[int(indice[0]), int(indice[1])]
-            print((lat_val, lon_val), '    ', lat_val-lat[i_point], lon_val-lon[i_point])
+            if log_type is not None:
+                logit('Coord found: '+str(lat_val)+'  '+str(lon_val)+'. Diff: '+str(lat_val-lat[i_point])+'  '+str(lon_val-lon[i_point]), log_type)
         else:
             raise NotImplementedError('pixels_out = ' + pixels_out + ' not implemented in geopixpos.geobands2pix()!')
     
