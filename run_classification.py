@@ -61,6 +61,14 @@ all_sat_bands = dataset.ReadAsArray()
 # Set class labels for dictionary
 class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
 #class_dict = None
+
+# Get the list of unique class numbers  
+class_n_unique = np.unique(list(class_dict.values()))
+# Use the highest and lowest class n for colourbar visualization
+class_n_lowest = np.min(class_n_unique) 
+class_n_highest = np.max(class_n_unique) 
+
+# TODO: RETURN CLASS DICT TO USE FOR CODE ABOVE?
 labels = input_data.assign_labels(class_dict=class_dict)
 
 # Split into training, validation, and test sets
@@ -107,11 +115,11 @@ plt.show()  # display it
 sat_result2 = np.reshape(sat_im_result, (n_rows, n_cols))
 # Show classification result
 colors = ['red','green','blue','purple']
-cmap = plt.get_cmap('jet', 3)
+cmap = plt.get_cmap('jet', length(class_n_unique)) # Number of colours = n. of classes
 fig = plt.figure()
 #plt.imshow(sat_result2, cmap='jet')
-plt.imshow(sat_result2.astype(int), cmap=cmap, vmin=-0.5, vmax=2.5)
-plt.colorbar(extend='min')
+plt.imshow(sat_result2.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
+plt.colorbar(extend='min', ticks=np.unique(list(class_dict.values())) )
 #plt.colorbar()
 plt.show()  # display it
 #plt.imshow(sat_result2, cmap=matplotlib.colors.ListedColormap(colors))
