@@ -107,6 +107,11 @@ plt.show()  # display it
 sat_result2 = np.reshape(sat_im_result, (n_rows, n_cols))
 # Show classification result
 colors = ['red','green','blue','purple']
+cmap = plt.get_cmap('jet', 3)
 fig = plt.figure()
-plt.imshow(sat_result2, cmap='jet')
+#plt.imshow(sat_result2, cmap='jet')
+plt.imshow(sat_result2.astype(int), cmap=cmap, vmin=-0.5, vmax=2.5)
+plt.colorbar(extend='min')
+#plt.colorbar()
+plt.show()  # display it
 #plt.imshow(sat_result2, cmap=matplotlib.colors.ListedColormap(colors))
