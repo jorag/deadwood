@@ -21,6 +21,9 @@ from visandtest import *
 from dataclass import *
 
 
+# Set name of output object
+obj_out_name = "obj-C.pkl"
+
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Classify LIVE FOREST vs. DEAD FOREST vs. OTHER
@@ -189,7 +192,7 @@ print(length(all_data.set_train)/165, length(all_data.set_test)/165, length(all_
 
 
 # Save DataModalities object
-with open(os.path.join(dirname, "data", "obj-B.pkl"), 'wb') as output:
+with open(os.path.join(dirname, "data", obj_out_name), 'wb') as output:
     pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
 
 print(pix_lat)

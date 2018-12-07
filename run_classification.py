@@ -20,12 +20,15 @@ from visandtest import *
 from dataclass import *
 
 
+# Name of input object
+obj_in_name = "obj-C.pkl"
+
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Classify LIVE FOREST vs. DEAD FOREST vs. OTHER
 
 # Load DataModalities object
-with open(os.path.join(dirname, "data", "obj-B.pkl"), 'rb') as input:
+with open(os.path.join(dirname, "data", obj_in_name), 'rb') as input:
     input_data = pickle.load(input)
     
 
