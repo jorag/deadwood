@@ -263,7 +263,7 @@ class DataModalities:
                     
         # Log and return result
         logit('Number of classes out = ' + str(length(np.unique(self.point_label))), self.log_type)
-        return self.point_label
+        return self.point_label, self.class_dict
         
     
     def read_data_array(self, modalities, set_type):

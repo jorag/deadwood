@@ -59,17 +59,17 @@ all_sat_bands = dataset.ReadAsArray()
 
 # TODO: Check why rerunning these commands causes index out of bounds in split (l 84)
 # Set class labels for dictionary
-class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
-#class_dict = None
+class_dict_in = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
+class_dict_in = None
+
+# Get labels and class_dict (in case None is input, one is created)
+labels, class_dict = input_data.assign_labels(class_dict=class_dict_in)
 
 # Get the list of unique class numbers  
 class_n_unique = np.unique(list(class_dict.values()))
 # Use the highest and lowest class n for colourbar visualization
 class_n_lowest = np.min(class_n_unique) 
 class_n_highest = np.max(class_n_unique) 
-
-# TODO: RETURN CLASS DICT TO USE FOR CODE ABOVE?
-labels = input_data.assign_labels(class_dict=class_dict)
 
 # Split into training, validation, and test sets
 input_data.split(split_type = 'weighted', train_pct = 0.9, test_pct = 0.1, val_pct = 0.0)
