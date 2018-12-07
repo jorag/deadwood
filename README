@@ -1,6 +1,7 @@
-A Python project for classification of forest structure using satellite remote sensing data. 
+A Python project for classification of forest structure (healthy vs. defoliated trees) using satellite remote sensing data. 
 
-The first data source is quad-polarimetric RADARSAT-2 scenes.
+The primary data source is quad-polarimetric RADARSAT-2 scenes. 
+The added value of Sentinel-2 multispectral optical data is also studied.
 
 Dependencies:
 Python 3.4 (to be compatible with SNAPPY)
