@@ -170,7 +170,7 @@ class DataModalities:
             # Add data points to DataModalities list
             self.point_name.append(point_name[i_point])
             self.point_class.append(point_class[i_point])
-            # Create point
+            # Create DataPoint object and append to data_points list, point has some inheritance from parent DataModalities obj.
             self.data_points.append(DataPoint(self.__last_idx, self))
             # And add class:
             self.data_points[self.__last_idx].update('meta', point_name = point_name[i_point], point_class = point_class[i_point])
@@ -188,12 +188,12 @@ class DataModalities:
             if not isinstance(update_value, list):
                 update_value = make_list(update_value)
             
-        # Make sure there are points
+        # Make sure DataModalities object has points
         if self.__last_idx < 0:
             print('Warning! Object contains no data points!')
             return
         
-        # Default (missing update)
+        # Default values to use when data is missing (different for data modalities and meta info)
         if update_type in self.meta_types:
             kw_update_missing = dict([[update_key, self.meta_missing_value]])
         elif update_type in self.modality_types:
@@ -217,12 +217,12 @@ class DataModalities:
          
                        
     def add_meta(self, point_name, meta_type, point_meta):
-        # Wrapper for add_to_point
+        # Wrapper for add_to_point - meta information
         self.add_to_point(point_name, meta_type, point_meta, 'meta')
         
         
     def add_modality(self, point_name, modality_type, modality_data):
-        # Wrapper for add_to_point
+        # Wrapper for add_to_point - data modality values
         self.add_to_point(point_name, modality_type, modality_data, 'modality')
         
         
@@ -275,7 +275,7 @@ class DataModalities:
             if not isinstance(modalities, list):
                 modalities = make_list(modalities)
         
-        # Check which set we should use
+        # Check which set we should read (training/test/val)
         if set_type is None:
             set_use = self.idx_list
         elif set_type.lower() in ['all', 'data']:
