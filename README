@@ -4,9 +4,9 @@ The first data source is quad-polarimetric RADARSAT-2 scenes.
 
 Dependencies:
 Python 3.4 (to be compatible with SNAPPY)
-numpy 
-GDAL 2.1.0
+numpy (numeric computations, array handling, etc.)
+GDAL 2.1.0 (reading GeoTIFF images)
 tk 8.5.18 (tkinter for file dialouge)
-pandas
+pandas (for reading Excel/CSV ground-truth data files)
 xlrd (requiered by pandas for reading Excel files)
-scikit-learn 0.18.1
+scikit-learn 0.18.1 (for kNN and other Machine Learning methods)
