@@ -142,7 +142,12 @@ gps_id2 = [item[0] for item in gps_points]
 pix_lat, pix_long = geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
 
 # Extract pixels from area
-data_out = all_sat_bands[0:3, pix_lat, pix_long]
+# t11 = 11, t22 = 16, t33 = 19
+#data_out = all_sat_bands[0:3, pix_lat, pix_long] # Works, gives (3,165) array
+#data_out = all_sat_bands[np.ix_([11, 16, 19]), pix_lat, pix_long]
+#data_out = all_sat_bands[[11, 16, 19], [pix_lat.T], [pix_long.T]]
+data_out = all_sat_bands[[[11], [16], [19]], [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
+
 # Transpose so that rows correspond to observations
 if data_out.shape[0] != length(pix_lat) and data_out.shape[1] == length(pix_lat):
     data_out = data_out.T
