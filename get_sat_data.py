@@ -22,15 +22,12 @@ from dataclass import *
 
 
 # Set name of output object
-obj_out_name = "obj-C.pkl"
+obj_out_name = "dataset-B.pkl"
 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Classify LIVE FOREST vs. DEAD FOREST vs. OTHER
-# This function: Return data array? 
-# Files could be loaded using SNAPPY import product, but for now assuming that the input is .tiff is ok
 
-# Define class numbers
 
 # Read satellite data
 try:
@@ -56,32 +53,17 @@ except:
 # Get georeference info
 geotransform = dataset.GetGeoTransform()
     
-# Load a band, 1 based
-band = dataset.GetRasterBand(1)
-bandinfo_log(band, log_type='default')
+## Load a band, 1 based
+#band = dataset.GetRasterBand(1)
+#bandinfo_log(band, log_type='default')
 
 # Read multiple bands
 all_sat_bands = dataset.ReadAsArray()
 
-## Check geo2pixmethods for one point 
-point_lat = 70.0119879
-point_lon = 28.0119
-pix_lat, pix_long = pos2pix(geotransform, lat=point_lat, lon=point_lon, pixels_out = 'npsingle', verbose=True)
-
 # Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
 lat_band = dataset.GetRasterBand(21)
 lon_band = dataset.GetRasterBand(22)
-print('LAT BAND: \n')
-bandinfo_log(lat_band, log_type='default')
-print('LONG BAND: \n')
-bandinfo_log(lon_band, log_type='default')
-lat_array = lat_band.ReadAsArray()
-logit('LAT min:'+ str(np.min(lat_array[lat_array>0])) + ', LAT max:'+ str(np.max(lat_array[lat_array>0])), log_type='default')
-logit('LAT band contains NaN: ' + str(np.isnan(lat_array).any()), log_type='default')
 
-geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lat=point_lat, lon=point_lon, pixels_out = 'single')
-
-#geobands2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lat=point_lat, lon=point_lon, pixels_out = 'single')
 #showimpoint(all_sat_bands, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
     
 
@@ -114,11 +96,8 @@ for i_sheet in range(1,7):
     point_id = list(df['GPSwaypoint'])
     # Go through the list of points
     for id in point_id:
-        #print(id)
-        #print(gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)])
-        #point_info.append([gps_id.index(id), df['LCT1_2017'][point_id.index(id)], pos_array[gps_id.index(id)]])
-        name_init.append(id)
-        class_init.append(df['LCT1_2017'][point_id.index(id)])
+        name_init.append(id) # Point name, e.g. 'N_6_159'
+        class_init.append(df['LCT1_2017'][point_id.index(id)]) # Terrain type, e.g. 'Forest'
 
 
 # Read .gpx file with coordinates of transect points
@@ -160,7 +139,6 @@ gps_id2 = [item[0] for item in gps_points]
 # Get pixel positions from my geopixpos module
 # TODO: Change so that coordinates can be input as tuples
 # Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
-#pix_lat2, pix_long2 = pos2pix(geotransform, lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle', verbose=True)
 pix_lat, pix_long = geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
 
 # Extract pixels from area
@@ -188,16 +166,7 @@ labels = all_data.assign_labels(class_dict=class_dict)
 
 # Split into training, validation, and test sets
 all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.3, val_pct = 0.0)
-print(length(all_data.set_train)/165, length(all_data.set_test)/165, length(all_data.set_val)/165)
-
 
 # Save DataModalities object
 with open(os.path.join(dirname, "data", obj_out_name), 'wb') as output:
     pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
-
-print(pix_lat)
-print(pix_long)
-#print(pix_lat2)
-#print(pix_long2)
-#print(pix_lat2-pix_lat)
-#print(pix_long2-pix_long)

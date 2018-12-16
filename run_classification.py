@@ -21,7 +21,7 @@ from dataclass import *
 
 
 # Name of input object
-obj_in_name = "obj-C.pkl"
+obj_in_name = "dataset-B.pkl"
 
 dirname = os.path.realpath('.') # For parent directory use '..'
 

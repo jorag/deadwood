@@ -319,13 +319,22 @@ def bandinfo_log(band, log_type='default'):
         logit("Band, number of colour table with entries:", log_type)
         logit(band.GetRasterColorTable().GetCount(), log_type)
         
+def arrayinfo_log(array, log_type='default'):
+    """Log band info from array.
+    
+    Input: array, log_type='default'
+    """
+
+    logit('Band min:'+ str(np.min(array[array>0])) + ', Band max:'+ str(np.max(array[array>0])), log_type='default')
+    logit('Array contains NaN? -  ' + str(np.isnan(array).any()), log_type='default')
+        
         
 def haversine(lon1, lat1, lon2, lat2):
     """
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
     
-    From: https://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
+    From: https://stackoverflow.com/questions/4913349/
     """
     from math import radians, cos, sin, asin, sqrt
     # convert decimal degrees to radians
