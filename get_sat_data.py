@@ -136,30 +136,43 @@ pos_array2 = np.asarray([item[1] for item in gps_points])
 gps_id2 = [item[0] for item in gps_points]
 
 
+## Intialize data object
+all_data = DataModalities('Polmak')
+# Add points
+all_data.add_points(name_init, class_init)
+# Add GPS points
+all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
+
+
 # Get pixel positions from my geopixpos module
 # TODO: Change so that coordinates can be input as tuples
 # Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
 pix_lat, pix_long = geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
 
-# Extract pixels from area
+# Extract pixels from area - SAR
 # t11 = 11, t22 = 16, t33 = 19
-#data_out = all_sat_bands[0:3, pix_lat, pix_long] # Works, gives (3,165) array
-#data_out = all_sat_bands[np.ix_([11, 16, 19]), pix_lat, pix_long]
-#data_out = all_sat_bands[[11, 16, 19], [pix_lat.T], [pix_long.T]]
 data_out = all_sat_bands[[[11], [16], [19]], [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
 
 # Transpose so that rows correspond to observations
 if data_out.shape[0] != length(pix_lat) and data_out.shape[1] == length(pix_lat):
     data_out = data_out.T
         
-# Intialize data object
-all_data = DataModalities('Polmak')
-# Add points
-all_data.add_points(name_init, class_init)
-# Add GPS points
-all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
-# Add modality
+# Add SAR modality
 all_data.add_modality(gps_id, 'quad_pol', data_out.tolist())
+
+
+# Extract pixels from area - OPTICAL
+showimage(np.squeeze(all_sat_bands[[[2], [3], [4]], :, :])/16000, bands=[1,2,0])
+opt_out = all_sat_bands[[[2], [3], [4]], [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
+
+# Transpose so that rows correspond to observations
+if opt_out.shape[0] != length(pix_lat) and opt_out.shape[1] == length(pix_lat):
+    opt_out = opt_out.T
+
+
+# Add OPT modality
+all_data.add_modality(gps_id, 'optical', opt_out.tolist())
+
 
 ## Print points
 #all_data.print_points()
