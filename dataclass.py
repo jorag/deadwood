@@ -296,7 +296,14 @@ class DataModalities:
             label_array.append(self.data_points[i_point].label)
         
         # Squeeze numpy array to avoid singelton dimensions
-        return np.squeeze(np.asarray(data_array)), label_array
+        # TODO: Change this so that output is (n_data_points , n_modality1*n_modality2*...)
+        # TODO: But how to assure order of bands... Loop over modalities?
+        # array_out = np.squeeze(np.asarray(data_array))
+        array_out = np.asarray(data_array)
+        print(array_out.shape)
+        array_out = np.reshape(array_out, (array_out.shape[0], array_out.shape[1]*array_out.shape[2]))
+        print(array_out.shape)
+        return array_out, label_array
         
     
     def print_points(self, point_name = None):

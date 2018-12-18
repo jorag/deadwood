@@ -81,13 +81,13 @@ neigh = KNeighborsClassifier(n_neighbors=3)
 
 # Get training data
 # TODO: Implement an 'all' option for modalities
-data_train, labels_train = input_data.read_data_array('quad_pol', 'train') 
+data_train, labels_train = input_data.read_data_array(['quad_pol', 'optical'], 'train') 
 # Fit kNN
 neigh.fit(data_train, labels_train) 
 
 # Get test data
 # TODO: Implement an 'all' option for modalities
-data_test, labels_test = input_data.read_data_array('quad_pol', 'test') 
+data_test, labels_test = input_data.read_data_array(['quad_pol', 'optical'], 'test') 
 # Score kNN
 print(neigh.score(data_test, labels_test)) 
 # Test kNN
