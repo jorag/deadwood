@@ -95,7 +95,8 @@ prediction_result = neigh.predict(data_test)
 
 
 # Predict class for satellite image
-sat_im = all_sat_bands[0:3, :, :]
+sat_im = all_sat_bands[[2, 3, 4, 11, 16, 19], :, : ]
+# For some reason  [[2], [3], [4], [11], [16], [19]], :,: - gives size (6,1,2892,4182)...
 n_channels = sat_im.shape[0]
 n_rows = sat_im.shape[1]
 n_cols = sat_im.shape[2]
@@ -107,7 +108,7 @@ sat_im_result = neigh.predict(sat_im2)
 
 # Show entire image
 plt.figure()
-plt.imshow(sat_im) 
+plt.imshow(sat_im[:,:,0:3]/16000) 
 plt.show()  # display it
 
 
