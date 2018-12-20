@@ -29,6 +29,7 @@ class DataModalities:
         self.meta_types = 'meta'
         self.modality_missing_value = np.NaN
         self.modality_types = 'modality'
+        self.modality_bands = dict()
         self.label_missing_value = -1 # For np.unique to count number of classes
         # Misc settings
         self.log_type = 'default'
@@ -225,7 +226,10 @@ class DataModalities:
         # Wrapper for add_to_point - data modality values
         # Add top-level information here?? As kwargs??
         for key, value in kwargs.items():
-            setattr(self, key, value)
+            if key.lower() in 'bands_use': 
+                self.modality_bands[modality_type] = value
+            else:
+                setattr(self, key, value)
         # Add to each point
         self.add_to_point(point_name, modality_type, modality_data, 'modality')
         
