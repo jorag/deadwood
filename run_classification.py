@@ -94,8 +94,18 @@ print(neigh.score(data_test, labels_test))
 prediction_result = neigh.predict(data_test) 
 
 
-# Predict class for satellite image
-sat_im = all_sat_bands[[2, 3, 4, 11, 16, 19], :, : ]
+# Get bands used
+bands_use_lists = []
+bands_use_single = []
+for key in input_data.modality_bands.keys():
+    # Get list of lists of bands
+    bands_use_lists += input_data.modality_bands[key]
+    # Get single layer list
+    for item in input_data.modality_bands[key]:
+        bands_use_single.append(item[0])
+
+## Predict class for satellite image
+sat_im = all_sat_bands[bands_use_single , :, : ]
 # For some reason  [[2], [3], [4], [11], [16], [19]], :,: - gives size (6,1,2892,4182)...
 n_channels = sat_im.shape[0]
 n_rows = sat_im.shape[1]
@@ -108,7 +118,7 @@ sat_im_result = neigh.predict(sat_im2)
 
 # Show entire image
 plt.figure()
-plt.imshow(sat_im[:,:,0:3]/16000) 
+plt.imshow(sat_im[:,:,[5,4,3]]/16000) 
 plt.show()  # display it
 
 
