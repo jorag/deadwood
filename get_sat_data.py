@@ -151,18 +151,22 @@ pix_lat, pix_long = geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray()
 
 # Extract pixels from area - SAR
 # t11 = 11, t22 = 16, t33 = 19
-data_out = all_sat_bands[[[11], [16], [19]], [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
+sar_bands_use = [[11], [16], [19]]
+data_out = all_sat_bands[sar_bands_use , [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
 
 # Transpose so that rows correspond to observations
 if data_out.shape[0] != length(pix_lat) and data_out.shape[1] == length(pix_lat):
     data_out = data_out.T
-        
+
+# SAR info to add to object
+kw_sar = dict([['sar_bands_use', sar_bands_use]])
+
 # Add SAR modality
-all_data.add_modality(gps_id, 'quad_pol', data_out.tolist())
+all_data.add_modality(gps_id, 'quad_pol', data_out.tolist(), **kw_sar)
 
 
 # Extract pixels from area - OPTICAL
-showimage(np.squeeze(all_sat_bands[[[2], [3], [4]], :, :])/16000, bands=[1,2,0])
+showimage(np.squeeze(all_sat_bands[[[2], [3], [4]], :, :])/10000, bands=[1,2,0])
 opt_out = all_sat_bands[[[2], [3], [4]], [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
 
 # Transpose so that rows correspond to observations

@@ -221,8 +221,12 @@ class DataModalities:
         self.add_to_point(point_name, meta_type, point_meta, 'meta')
         
         
-    def add_modality(self, point_name, modality_type, modality_data):
+    def add_modality(self, point_name, modality_type, modality_data, **kwargs):
         # Wrapper for add_to_point - data modality values
+        # Add top-level information here?? As kwargs??
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        # Add to each point
         self.add_to_point(point_name, modality_type, modality_data, 'modality')
         
         
