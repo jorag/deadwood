@@ -21,8 +21,10 @@ class DataModalities:
         set_log_type(log_type) - set log type for mytools.logit function
         print_points(point_name=) - print points in point_name list
     """
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, data_path, **kwargs):
+        # Two most important attributes, name and path to dataset
         self.name = name
+        self.dataset_path = data_path
         # Set default values
         # Class settings
         self.meta_missing_value = None
@@ -224,12 +226,12 @@ class DataModalities:
         
     def add_modality(self, point_name, modality_type, modality_data, **kwargs):
         # Wrapper for add_to_point - data modality values
-        # Add top-level information here?? As kwargs??
+        # Add to modality_bands - potentially also to other fields?
         for key, value in kwargs.items():
             if key.lower() in 'bands_use': 
                 self.modality_bands[modality_type] = value
             else:
-                setattr(self, key, value)
+                setattr(self, key, value) # TODO: remove this?
         # Add to each point
         self.add_to_point(point_name, modality_type, modality_data, 'modality')
         
@@ -304,13 +306,9 @@ class DataModalities:
             label_array.append(self.data_points[i_point].label)
         
         # Squeeze numpy array to avoid singelton dimensions
-        # TODO: Change this so that output is (n_data_points , n_modality1*n_modality2*...)
         # TODO: But how to assure order of bands... Loop over modalities?
-        # array_out = np.squeeze(np.asarray(data_array))
         array_out = np.asarray(data_array)
-        print(array_out.shape)
         array_out = np.reshape(array_out, (array_out.shape[0], array_out.shape[1]*array_out.shape[2]))
-        print(array_out.shape)
         return array_out, label_array
         
     

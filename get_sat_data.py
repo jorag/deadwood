@@ -137,7 +137,8 @@ gps_id2 = [item[0] for item in gps_points]
 
 
 ## Intialize data object
-all_data = DataModalities('Polmak')
+# TODO - add meta information here as kwargs, such as year, area, etc.
+all_data = DataModalities('Polmak-2017-B', sat_file)
 # Add points
 all_data.add_points(name_init, class_init)
 # Add GPS points
