@@ -25,6 +25,7 @@ class DataModalities:
         # Two most important attributes, name and path to dataset
         self.name = name
         self.dataset_path = data_path # TODO: Change this to dict. Move dataset ID to add_points. Use ID as key to this dict. 
+        self.data_paths = dict()
         # Set default values
         # Class settings
         self.meta_missing_value = None
@@ -153,7 +154,7 @@ class DataModalities:
                 self.data_points[i_point].set = 'val'
 
             
-    def add_points(self, point_name, point_class, **kwargs):
+    def add_points(self, point_name, point_class, dataset_id = None, dataset_path = None):
         # TODO: Consider changing so that point_class is not added at creation
         # Check that lengths match
         if numel(point_name) != numel(point_class):
@@ -164,6 +165,10 @@ class DataModalities:
                 point_name = make_list(point_name)
             if not isinstance(point_class, list):
                 point_class = make_list(point_class)
+        
+        # Store the dataset path
+        if dataset_id is not None:
+            self.data_paths[dataset_id] = dataset_path  
         
         # Add data points to DataModalities list
         for i_point in range(length(point_name)):
@@ -178,8 +183,7 @@ class DataModalities:
             # And add class:
             self.data_points[self.__last_idx].update('meta', point_name = point_name[i_point], point_class = point_class[i_point])
             # Add dataset ID
-            # TODO: Change this to hardcode the field name?
-            self.data_points[self.__last_idx].update('meta', **kwargs)
+            self.data_points[self.__last_idx].update('meta', dataset_id = dataset_id)
             
             
     def add_to_point(self, point_name, update_key, update_value, update_type):
