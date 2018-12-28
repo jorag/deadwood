@@ -32,6 +32,10 @@ with open(os.path.join(dirname, "data", obj_in_name), 'rb') as input:
     input_data = pickle.load(input)
     
 
+## Read satellite data
+#dataset = gdal.Open(input_data.dataset_path)
+#gdalinfo_log(dataset, log_type='default')
+
 # Read satellite data
 try:
     # Read predefined file

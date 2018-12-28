@@ -140,7 +140,7 @@ gps_id2 = [item[0] for item in gps_points]
 # TODO - add meta information here as kwargs, such as year, area, etc.
 all_data = DataModalities('Polmak-2017-B', sat_file)
 # Add points
-all_data.add_points(name_init, class_init)
+all_data.add_points(name_init, class_init, dataset_id = 'SAR-B')
 # Add GPS points
 all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
 
