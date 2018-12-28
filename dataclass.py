@@ -21,11 +21,10 @@ class DataModalities:
         set_log_type(log_type) - set log type for mytools.logit function
         print_points(point_name=) - print points in point_name list
     """
-    def __init__(self, name, data_path, **kwargs):
+    def __init__(self, name, **kwargs):
         # Two most important attributes, name and path to dataset
         self.name = name
-        self.dataset_path = data_path # TODO: Change this to dict. Move dataset ID to add_points. Use ID as key to this dict. 
-        self.data_paths = dict()
+        self.data_paths = dict() # Keys generated when data points are added
         # Set default values
         # Class settings
         self.meta_missing_value = None
@@ -155,7 +154,7 @@ class DataModalities:
 
             
     def add_points(self, point_name, point_class, dataset_id = None, dataset_path = None):
-        # TODO: Consider changing so that point_class is not added at creation
+        # TODO: Consider changing so that point_class is not added at creation?
         # Check that lengths match
         if numel(point_name) != numel(point_class):
             raise AssertionError('DataModalities: Lenght of point names and point classes do not match!', length(point_name), length(point_class))
