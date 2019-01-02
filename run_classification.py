@@ -99,7 +99,7 @@ prediction_result = neigh.predict(data_test)
 # Get bands used in two lists
 bands_use_lists = []
 bands_use_single = []
-for key in input_data.modality_bands.keys():
+for key in input_data.modality_order: # .modality_bands.keys()
     # Get list of lists of bands
     bands_use_lists += input_data.modality_bands[key]
     # Get single layer list
@@ -155,8 +155,15 @@ plt.show()  # display it
         
 # Try scaling        
 sc = StandardScaler()  
-X_train = sc.fit_transform(data_train)  
+X_train = sc.fit_transform(data_train) 
+print(np.min(X_train, axis=0)) 
+print(np.mean(X_train, axis=0))
+print(np.max(X_train, axis=0))
 X_test = sc.transform(data_test)  
+print(np.min(X_test, axis=0)) 
+print(np.mean(X_test, axis=0))
+print(np.max(X_test, axis=0))
+
 
 rf = RandomForestRegressor(n_estimators=20, random_state=0, verbose=1)  
 rf.fit(X_train, labels_train) 
@@ -165,6 +172,9 @@ print(rf.score(X_test, labels_test))
 
 # Scale entire image
 scaled_im = sc.transform(sat_im_prediction)
+print(np.min(scaled_im, axis=0)) 
+print(np.mean(scaled_im, axis=0))
+print(np.max(scaled_im, axis=0))
 rf2_im_result = rf.predict(scaled_im)
 # Reshape to original input size
 sat_result_rf2 = np.reshape(rf2_im_result, (n_rows, n_cols))

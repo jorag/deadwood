@@ -32,6 +32,7 @@ class DataModalities:
         self.modality_missing_value = np.NaN
         self.modality_types = 'modality'
         self.modality_bands = dict()
+        self.modality_order = [] # TODO - change band storage implementation to dict with dataset ID as key?
         self.label_missing_value = -1 # For np.unique to count number of classes
         # Misc settings
         self.log_type = 'default'
@@ -232,6 +233,8 @@ class DataModalities:
         
     def add_modality(self, point_name, modality_type, modality_data, **kwargs):
         # Wrapper for add_to_point - data modality values
+        # Store order of modalities, for getting correct band order etc.
+        self.modality_order.append(modality_type)
         # Add to modality_bands - potentially also to other fields?
         for key, value in kwargs.items():
             if key.lower() in 'bands_use': 
