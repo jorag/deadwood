@@ -13,6 +13,7 @@ import os # Necessary for relative paths
 import pickle # To load object
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import StandardScaler
 #import sys # To append paths
 # My moduels
 from mytools import *
@@ -61,7 +62,7 @@ all_sat_bands = dataset.ReadAsArray()
 # TODO: Check why rerunning these commands causes index out of bounds in split (l 84)
 # Set class labels for dictionary
 class_dict_in = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
-class_dict_in = None
+#class_dict_in = None
 
 # Get labels and class_dict (in case None is input, one is created)
 labels, class_dict = input_data.assign_labels(class_dict=class_dict_in)
@@ -142,11 +143,33 @@ regressor.fit(data_train, labels_train)
 y_pred = regressor.predict(data_test) 
 print(regressor.score(data_test, labels_test)) 
 
-rf_im_result = neigh.predict(sat_im_prediction)
+rf_im_result = regressor.predict(sat_im_prediction)
 # Reshape to original input size
 sat_result_rf = np.reshape(rf_im_result, (n_rows, n_cols))
 
 fig2 = plt.figure()
 plt.imshow(sat_result_rf.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
+plt.colorbar(ticks=np.unique(list(class_dict.values())) )
+plt.show()  # display it
+
+        
+# Try scaling        
+sc = StandardScaler()  
+X_train = sc.fit_transform(data_train)  
+X_test = sc.transform(data_test)  
+
+rf = RandomForestRegressor(n_estimators=20, random_state=0, verbose=1)  
+rf.fit(X_train, labels_train) 
+y_pred = rf.predict(X_test) 
+print(rf.score(X_test, labels_test)) 
+
+# Scale entire image
+scaled_im = sc.transform(sat_im_prediction)
+rf2_im_result = rf.predict(scaled_im)
+# Reshape to original input size
+sat_result_rf2 = np.reshape(rf2_im_result, (n_rows, n_cols))
+
+fig3 = plt.figure()
+plt.imshow(sat_result_rf2.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
 plt.colorbar(ticks=np.unique(list(class_dict.values())) )
 plt.show()  # display it
