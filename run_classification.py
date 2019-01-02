@@ -10,8 +10,9 @@ import gdal
 import tkinter
 from tkinter import filedialog
 import os # Necessary for relative paths
+import pickle # To load object
 from sklearn.neighbors import KNeighborsClassifier
-import pickle
+from sklearn.ensemble import RandomForestRegressor
 #import sys # To append paths
 # My moduels
 from mytools import *
@@ -113,7 +114,7 @@ n_cols = sat_im.shape[2]
 # Reshape array to n_cols*n_rows rows with the channels as columns 
 sat_im = np.transpose(sat_im, (1, 2, 0)) # Change order to rows, cols, channels
 sat_im_prediction = np.reshape(sat_im, (n_rows*n_cols, n_channels))
-sat_im_result = neigh.predict(sat_im_prediction)
+kNN_im_result = neigh.predict(sat_im_prediction)
 
 
 # Show entire image
@@ -123,13 +124,29 @@ plt.show()  # display it
 
 
 # Reshape to original input size
-sat_result2 = np.reshape(sat_im_result, (n_rows, n_cols))
+sat_result_kNN = np.reshape(kNN_im_result, (n_rows, n_cols))
 # Show classification result
 colors = ['red','green','blue','purple']
 cmap = plt.get_cmap('jet', length(class_n_unique)) # Number of colours = n. of classes
 fig = plt.figure()
 #plt.imshow(sat_result2, cmap='jet')
-plt.imshow(sat_result2.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
+plt.imshow(sat_result_kNN.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
 plt.colorbar(ticks=np.unique(list(class_dict.values())) )
 plt.show()  # display it
 
+        
+# Test Random Forest
+
+regressor = RandomForestRegressor(n_estimators=20, random_state=0)  
+regressor.fit(data_train, labels_train) 
+y_pred = regressor.predict(data_test) 
+print(regressor.score(data_test, labels_test)) 
+
+rf_im_result = neigh.predict(sat_im_prediction)
+# Reshape to original input size
+sat_result_rf = np.reshape(rf_im_result, (n_rows, n_cols))
+
+fig2 = plt.figure()
+plt.imshow(sat_result_rf.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
+plt.colorbar(ticks=np.unique(list(class_dict.values())) )
+plt.show()  # display it
