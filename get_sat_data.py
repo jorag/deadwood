@@ -85,10 +85,10 @@ except:
     xls_veg = pd.ExcelFile(veg_file)
 
 
-# Go through all sheets in Excel sheet
+# Go through all sheets in Excel file for vegetation
 point_info = []
-class_init = []
-name_init = []
+class_veg = []
+name_veg = []
 for i_sheet in range(1,7):
     print(i_sheet)
     # Get pandas dataframe
@@ -96,8 +96,8 @@ for i_sheet in range(1,7):
     point_id = list(df['GPSwaypoint'])
     # Go through the list of points
     for id in point_id:
-        name_init.append(id) # Point name, e.g. 'N_6_159'
-        class_init.append(df['LCT1_2017'][point_id.index(id)]) # Terrain type, e.g. 'Forest'
+        name_veg.append(id) # Point name, e.g. 'N_6_159'
+        class_veg.append(df['LCT1_2017'][point_id.index(id)]) # Terrain type, e.g. 'Forest'
 
 
 # Read .gpx file with coordinates of transect points
@@ -148,19 +148,21 @@ except:
 
 
 # Store class as dict with GPSwaypoint as ID
-class_dict = dict(zip(gps_id, class_init))
+class_dict = dict(zip(gps_id, class_veg))
 
-# Go through all sheets in Excel sheet
+# Initialize output lists and temporary variables
 point_info = []
 class_tree = []
 name_tree = []
+lai_point = []
+prev_id = 'dummy'
+# Go through all sheets in Excel sheet
 for i_sheet in range(1,7):
     print(i_sheet)
     # Get pandas dataframe
     df = pd.read_excel(xls_tree, str(i_sheet))
     point_id = list(df['ID']) # Country
     # Go through the list of points
-    prev_id = 'dummy'
     for row in df.itertuples(index=True, name='Pandas'):
         # Check if the current tree is in a new transect point
         curr_id = str(row.Country) + '_' + str(row.Transect) + '_'  + str(row.ID)
@@ -169,8 +171,14 @@ for i_sheet in range(1,7):
             print(row.Stemdiam2, getattr(row, 'Stemdiam3'))
             prev_id = curr_id
             LAI_proxy_temp = 0
-
-        LAI_proxy_temp += row.Crowndiam1 * row.Crowndiam2 * row.CrownPropLive/100
+            # Add waypoint name to list of IDs
+            name_tree.append(curr_id)
+            # Add LAI to list or use to classify point as is???
+            lai_point.append(0)
+        
+        # Add area of crown (based on DIAMETERS) to last point
+        lai_point[-1] += np.pi/4 * row.Crowndiam1 * row.Crowndiam2 * row.CrownPropLive/100
+        #LAI_proxy_temp += np.pi/4 * row.Crowndiam1 * row.Crowndiam2 * row.CrownPropLive/100
         #print(row.Crowndiam1, getattr(row, 'Crowndiam2'), row.Treeheight)
 
 
@@ -192,7 +200,7 @@ gps_id2 = [item[0] for item in gps_points]
 # TODO - add meta information here as kwargs, such as year, area, etc.
 all_data = DataModalities('Polmak-2017-B')
 # Add points
-all_data.add_points(name_init, class_init, dataset_id = 'SAR-B', dataset_path = sat_file)
+all_data.add_points(name_veg, class_veg, dataset_id = 'SAR-B', dataset_path = sat_file)
 # Add GPS points
 all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
 
