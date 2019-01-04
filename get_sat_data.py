@@ -27,7 +27,7 @@ transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examin
 lai_threshold_live = 0.0125 # min Leaf Area Index to be assigned to Live class 
 
 # Set name of output object
-obj_out_name = "dataset-B.pkl"
+obj_out_name = "TwoMod-B.pkl"
 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
@@ -196,7 +196,7 @@ for i_point in range(length(name_tree)):
         class_dict[name_tree[i_point]] = 'Defoliated'
 
 # Return original order of points
-c = [class_dict[x] for x in gps_id]
+class_use = [class_dict[x] for x in gps_id]
 
 
 
@@ -212,7 +212,7 @@ gps_id2 = [item[0] for item in gps_points]
 # TODO - add meta information here as kwargs, such as year, area, etc.
 all_data = DataModalities('Polmak-2017-B')
 # Add points
-all_data.add_points(name_veg, class_veg, dataset_id = 'SAR-B', dataset_path = sat_file)
+all_data.add_points(name_veg, class_use, dataset_id = 'SAR-B', dataset_path = sat_file)
 # Add GPS points
 all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
 

@@ -23,7 +23,7 @@ from dataclass import *
 
 
 # Name of input object
-obj_in_name = "dataset-B.pkl"
+obj_in_name = 'TwoMod-B.pkl'
 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
@@ -61,7 +61,7 @@ all_sat_bands = dataset.ReadAsArray()
 
 # TODO: Check why rerunning these commands causes index out of bounds in split (l 84)
 # Set class labels for dictionary
-class_dict_in = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
+class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 #class_dict_in = None
 
 # Get labels and class_dict (in case None is input, one is created)
