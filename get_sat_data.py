@@ -176,12 +176,26 @@ for i_sheet in range(1,7):
             # Add LAI to list or use to classify point as is???
             lai_point.append(0)
         
-        # Add area of crown (based on DIAMETERS) to last point
+        # Add area of crown (based on DIAMETERS) to last point. (ellipse*fraction_live)/total_point_area
         lai_point[-1] += np.pi/4 * row.Crowndiam1 * row.Crowndiam2 * row.CrownPropLive/100
         #LAI_proxy_temp += np.pi/4 * row.Crowndiam1 * row.Crowndiam2 * row.CrownPropLive/100
         #print(row.Crowndiam1, getattr(row, 'Crowndiam2'), row.Treeheight)
 
+# Store Leaf Area Index and names as array
+lai_array = np.asarray(lai_point)
+tree_point_array = np.asarray(name_tree)
+live_crown_points = tree_point_array[lai_array>0]
 
+# Sort into healthy and defoliated forest
+lai_threshold_live = 1.5
+for i_point in range(length(name_tree)):
+    # Check if Leaf Area Index is greater than threshold
+    if lai_point[i_point] > lai_threshold_live:
+        print(class_dict[name_tree[i_point]] , '-> Live')
+        class_dict[name_tree[i_point]] = 'Live'
+    else:
+        print(class_dict[name_tree[i_point]] , '-> Defoliated')
+        class_dict[name_tree[i_point]] = 'Defoliated'
 
 # Return original order of points
 c = [class_dict[x] for x in gps_id]
