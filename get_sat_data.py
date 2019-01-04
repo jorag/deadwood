@@ -160,9 +160,12 @@ for i_sheet in range(1,7):
     df = pd.read_excel(xls_tree, str(i_sheet))
     point_id = list(df['ID']) # Country
     # Go through the list of points
-    for id in point_id:
-        name_tree.append(id) # Point name, e.g. 'N_6_159'
-        class_tree.append(df['Crowndiam1'][point_id.index(id)]) # Terrain type, e.g. 'Forest'
+    for row in df.itertuples(index=True, name='Pandas'):
+        print(str(row.Country) + '_' + str(row.Transect) + '_'  + str(row.ID))
+        print(getattr(row, 'Crowndiam1'), getattr(row, 'Crowndiam2'), row.Treeheight)
+#    for id in point_id:
+#        name_tree.append(id) # Point name, e.g. 'N_6_159'
+#        class_tree.append(df['Crowndiam1'][point_id.index(id)]) # Terrain type, e.g. 'Forest'
 
 
 # Return original order of points
@@ -209,7 +212,7 @@ all_data.add_modality(gps_id, 'quad_pol', data_out.tolist(), **kw_sar)
 
 
 # Extract pixels from area - OPTICAL
-showimage(np.squeeze(all_sat_bands[[[2], [3], [4]], :, :])/10000, bands=[1,2,0])
+#showimage(np.squeeze(all_sat_bands[[[2], [3], [4]], :, :])/10000, bands=[1,2,0])
 opt_bands_use = [[2], [3], [4]]
 opt_out = all_sat_bands[opt_bands_use, [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
 
