@@ -75,14 +75,14 @@ try:
         logit('Read file: ' + veg_file, log_type = 'default')
     
     # Load data
-    xls = pd.ExcelFile(veg_file)
+    xls_veg = pd.ExcelFile(veg_file)
 except:      
     logit('Error, promt user for file.', log_type = 'default')
     # Predefined file failed for some reason, promt user
     root = tkinter.Tk() # GUI for file selection
     root.withdraw()
     veg_file = tkinter.filedialog.askopenfilename(title='Select input .csv/.xls(x) file')
-    xls = pd.ExcelFile(veg_file)
+    xls_veg = pd.ExcelFile(veg_file)
 
 
 # Go through all sheets in Excel sheet
@@ -92,7 +92,7 @@ name_init = []
 for i_sheet in range(1,7):
     print(i_sheet)
     # Get pandas dataframe
-    df = pd.read_excel(xls, str(i_sheet))
+    df = pd.read_excel(xls_veg, str(i_sheet))
     point_id = list(df['GPSwaypoint'])
     # Go through the list of points
     for id in point_id:
@@ -127,6 +127,48 @@ for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
 gps_id = []
 for elem in tree.findall("//{http://www.topografix.com/GPX/1/1}name"):
     gps_id.append(elem.text)
+
+
+# Read Excel file with tree data
+try:
+    # Read predefined tree data file
+    with open(os.path.join(dirname, "data", "tree-data-path")) as infile:
+        tree_file = infile.readline().strip()
+        logit('Read file: ' + tree_file, log_type = 'default')
+    
+    # Load data
+    xls_tree = pd.ExcelFile(tree_file)
+except:      
+    logit('Error, promt user for file.', log_type = 'default')
+    # Predefined file failed for some reason, promt user
+    root = tkinter.Tk() # GUI for file selection
+    root.withdraw()
+    tree_file = tkinter.filedialog.askopenfilename(title='Select input .csv/.xls(x) file')
+    xls_tree = pd.ExcelFile(tree_file)
+
+
+# Store class as dict with GPSwaypoint as ID
+class_dict = dict(zip(gps_id, class_init))
+
+# Go through all sheets in Excel sheet
+point_info = []
+class_tree = []
+name_tree = []
+for i_sheet in range(1,7):
+    print(i_sheet)
+    # Get pandas dataframe
+    df = pd.read_excel(xls_tree, str(i_sheet))
+    point_id = list(df['ID']) # Country
+    # Go through the list of points
+    for id in point_id:
+        name_tree.append(id) # Point name, e.g. 'N_6_159'
+        class_tree.append(df['Crowndiam1'][point_id.index(id)]) # Terrain type, e.g. 'Forest'
+
+
+# Return original order of points
+c = [class_dict[x] for x in gps_id]
+
+
 
 # Merge names and positions
 gps_points = list(zip(gps_id, pos_array))
