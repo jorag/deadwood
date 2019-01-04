@@ -20,6 +20,11 @@ from geopixpos import *
 from visandtest import *
 from dataclass import *
 
+# Ground truth info
+transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examined)
+
+# Processing parameters - minimum of X * 100 m^2 LAI to be in 'Live' class
+lai_threshold_live = 0.0125 # min Leaf Area Index to be assigned to Live class 
 
 # Set name of output object
 obj_out_name = "dataset-B.pkl"
@@ -156,7 +161,7 @@ class_tree = []
 name_tree = []
 lai_point = []
 prev_id = 'dummy'
-# Go through all sheets in Excel sheet
+# Go through all sheets in Excel file with tree data
 for i_sheet in range(1,7):
     print(i_sheet)
     # Get pandas dataframe
@@ -164,37 +169,30 @@ for i_sheet in range(1,7):
     point_id = list(df['ID']) # Country
     # Go through the list of points
     for row in df.itertuples(index=True, name='Pandas'):
-        # Check if the current tree is in a new transect point
+        # Get ID of current point 
         curr_id = str(row.Country) + '_' + str(row.Transect) + '_'  + str(row.ID)
+        # Check if the current tree is in a new transect point
         if curr_id != prev_id:
-            print(prev_id)
-            print(row.Stemdiam2, getattr(row, 'Stemdiam3'))
             prev_id = curr_id
-            LAI_proxy_temp = 0
             # Add waypoint name to list of IDs
             name_tree.append(curr_id)
-            # Add LAI to list or use to classify point as is???
+            # Add LAI to list
             lai_point.append(0)
         
-        # Add area of crown (based on DIAMETERS) to last point. (ellipse*fraction_live)/total_point_area
-        lai_point[-1] += np.pi/4 * row.Crowndiam1 * row.Crowndiam2 * row.CrownPropLive/100
-        #LAI_proxy_temp += np.pi/4 * row.Crowndiam1 * row.Crowndiam2 * row.CrownPropLive/100
-        #print(row.Crowndiam1, getattr(row, 'Crowndiam2'), row.Treeheight)
+        # Add area of crown (based on DIAMETERS in m) to last point (ellipse*fraction_live)/total_point_area
+        lai_point[-1] += (np.pi/4*row.Crowndiam1*row.Crowndiam2*row.CrownPropLive/100)/transect_point_area
 
-# Store Leaf Area Index and names as array
-lai_array = np.asarray(lai_point)
-tree_point_array = np.asarray(name_tree)
-live_crown_points = tree_point_array[lai_array>0]
+## Store Leaf Area Index and names as array
+#lai_array = np.asarray(lai_point)
+#tree_point_array = np.asarray(name_tree)
+#live_crown_points = tree_point_array[lai_array>0]
 
 # Sort into healthy and defoliated forest
-lai_threshold_live = 1.5
 for i_point in range(length(name_tree)):
     # Check if Leaf Area Index is greater than threshold
     if lai_point[i_point] > lai_threshold_live:
-        print(class_dict[name_tree[i_point]] , '-> Live')
         class_dict[name_tree[i_point]] = 'Live'
     else:
-        print(class_dict[name_tree[i_point]] , '-> Defoliated')
         class_dict[name_tree[i_point]] = 'Defoliated'
 
 # Return original order of points
