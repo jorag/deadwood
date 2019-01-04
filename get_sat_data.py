@@ -160,12 +160,19 @@ for i_sheet in range(1,7):
     df = pd.read_excel(xls_tree, str(i_sheet))
     point_id = list(df['ID']) # Country
     # Go through the list of points
+    prev_id = 'dummy'
     for row in df.itertuples(index=True, name='Pandas'):
-        print(str(row.Country) + '_' + str(row.Transect) + '_'  + str(row.ID))
-        print(getattr(row, 'Crowndiam1'), getattr(row, 'Crowndiam2'), row.Treeheight)
-#    for id in point_id:
-#        name_tree.append(id) # Point name, e.g. 'N_6_159'
-#        class_tree.append(df['Crowndiam1'][point_id.index(id)]) # Terrain type, e.g. 'Forest'
+        # Check if the current tree is in a new transect point
+        curr_id = str(row.Country) + '_' + str(row.Transect) + '_'  + str(row.ID)
+        if curr_id != prev_id:
+            print(prev_id)
+            print(row.Stemdiam2, getattr(row, 'Stemdiam3'))
+            prev_id = curr_id
+            LAI_proxy_temp = 0
+
+        LAI_proxy_temp += row.Crowndiam1 * row.Crowndiam2 * row.CrownPropLive/100
+        #print(row.Crowndiam1, getattr(row, 'Crowndiam2'), row.Treeheight)
+
 
 
 # Return original order of points
