@@ -141,14 +141,24 @@ def norm01(input_array, min_cap = None, max_cap = None, log_type='print'):
     if max_cap is not None:
         input_array[input_array > max_cap] = np.NaN
     
-    # Mean ratios
-    data_mean = np.nanmean(input_array, axis=0)
-    for i_col in range(1, input_array.shape[1]):
-        print(data_mean[i_col-1]/data_mean[i_col])
-
+    # Normalize to 0-1 (globally)
+    output_array = input_array - np.nanmin(input_array)
+    output_array = output_array/np.nanmax(output_array)
+    
+    print('\n INPUT:')
     print(np.nanmax(input_array))
+    print(np.nanmean(input_array))
     print(np.nanmin(input_array))
     print(np.nanmax(input_array, axis=0))
+    print(np.nanmean(input_array, axis=0))
     print(np.nanmin(input_array, axis=0))
+    
+    print('\n outPUT:')
+    print(np.nanmax(output_array))
+    print(np.nanmean(output_array))
+    print(np.nanmin(output_array))
+    print(np.nanmax(output_array, axis=0))
+    print(np.nanmean(output_array, axis=0))
+    print(np.nanmin(output_array, axis=0))
         
-    return 
+    return output_array
