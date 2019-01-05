@@ -141,7 +141,10 @@ def norm01(input_array, min_cap = None, max_cap = None, log_type='print'):
     if max_cap is not None:
         input_array[input_array > max_cap] = np.NaN
     
-    valid_min = np.min(input_array[input_array>-9999])
+    # Mean ratios
+    data_mean = np.nanmean(input_array, axis=0)
+    for i_col in range(1, input_array.shape[1]):
+        print(data_mean[i_col-1]/data_mean[i_col])
 
     print(np.nanmax(input_array))
     print(np.nanmin(input_array))
