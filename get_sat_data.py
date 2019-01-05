@@ -22,7 +22,7 @@ from dataclass import *
 
 # Get data for classification (LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER)
 
-# Ground truth info
+# Ground truth info - TODO: Store this info and parameters in object!!
 transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examined)
 
 # Processing parameters - minimum of X * 100 m^2 LAI to be in 'Live' class
@@ -31,48 +31,10 @@ lai_threshold_live = 0.0125 # min Leaf Area Index to be assigned to Live class
 
 # Set name of output object
 obj_out_name = "TwoMod-B.pkl"
-
+# Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
-
-# Read satellite data
-try:
-    # Read predefined file
-    with open(os.path.join(dirname, "data", "sat-data-path")) as infile:
-        sat_file = infile.readline().strip()
-        logit('Read file: ' + sat_file, log_type = 'default')
     
-    # Load data
-    dataset = gdal.Open(sat_file)
-    gdalinfo_log(dataset, log_type='default')
-except:
-    logit('Error, promt user for file.', log_type = 'default')
-    # Predefined file failed for some reason, promt user
-    root = tkinter.Tk() # GUI for file selection
-    root.withdraw()
-    sat_file = tkinter.filedialog.askopenfilename(title='Select input .tif file')
-    # Load data
-    dataset = gdal.Open(sat_file)
-    gdalinfo_log(dataset, log_type='default')
-            
-
-# Get georeference info
-geotransform = dataset.GetGeoTransform()
-    
-## Load a band, 1 based
-#band = dataset.GetRasterBand(1)
-#bandinfo_log(band, log_type='default')
-
-# Read multiple bands
-all_sat_bands = dataset.ReadAsArray()
-
-# Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
-lat_band = dataset.GetRasterBand(21)
-lon_band = dataset.GetRasterBand(22)
-
-#showimpoint(all_sat_bands, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
-    
-
 # Read Excel file with vegetation types
 try:
     # Read predefined file
@@ -89,7 +51,6 @@ except:
     root.withdraw()
     veg_file = tkinter.filedialog.askopenfilename(title='Select input .csv/.xls(x) file')
     xls_veg = pd.ExcelFile(veg_file)
-
 
 # Go through all sheets in Excel file for vegetation
 point_info = []
@@ -232,13 +193,51 @@ for i_point in range(length(name_tree)):
 class_use = [class_dict[x] for x in gps_id]
 
 
-
 # Merge names and positions
 gps_points = list(zip(gps_id, pos_array))
 # Convert to numpy array
 #pos_array2 = np.asarray(pos_array)
 pos_array2 = np.asarray([item[1] for item in gps_points])
 gps_id2 = [item[0] for item in gps_points]
+
+
+# ADD SATELLITE DATA
+
+# Read satellite data
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, "data", "sat-data-path")) as infile:
+        sat_file = infile.readline().strip()
+        logit('Read file: ' + sat_file, log_type = 'default')
+    
+    # Load data
+    dataset = gdal.Open(sat_file)
+    gdalinfo_log(dataset, log_type='default')
+except:
+    logit('Error, promt user for file.', log_type = 'default')
+    # Predefined file failed for some reason, promt user
+    root = tkinter.Tk() # GUI for file selection
+    root.withdraw()
+    sat_file = tkinter.filedialog.askopenfilename(title='Select input .tif file')
+    # Load data
+    dataset = gdal.Open(sat_file)
+    gdalinfo_log(dataset, log_type='default')
+            
+
+# Get georeference info
+geotransform = dataset.GetGeoTransform()
+    
+# Read multiple bands
+raster_data_array = dataset.ReadAsArray()
+
+# Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
+lat_band = dataset.GetRasterBand(21)
+lon_band = dataset.GetRasterBand(22)
+
+## Load a band, 1 based
+#band = dataset.GetRasterBand(1)
+#bandinfo_log(band, log_type='default')
+#showimpoint(raster_data_array, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
 
 
 ## Intialize data object
@@ -258,7 +257,7 @@ pix_lat, pix_long = geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray()
 # Extract pixels from area - SAR
 # t11 = 11, t22 = 16, t33 = 19
 sar_bands_use = [[11], [16], [19]]
-data_out = all_sat_bands[sar_bands_use , [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
+data_out = raster_data_array[sar_bands_use , [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
 
 # Transpose so that rows correspond to observations
 if data_out.shape[0] != length(pix_lat) and data_out.shape[1] == length(pix_lat):
@@ -272,9 +271,9 @@ all_data.add_modality(gps_id, 'quad_pol', data_out.tolist(), **kw_sar)
 
 
 # Extract pixels from area - OPTICAL
-#showimage(np.squeeze(all_sat_bands[[[2], [3], [4]], :, :])/10000, bands=[1,2,0])
+#showimage(np.squeeze(raster_data_array[[[2], [3], [4]], :, :])/10000, bands=[1,2,0])
 opt_bands_use = [[2], [3], [4]]
-opt_out = all_sat_bands[opt_bands_use, [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
+opt_out = raster_data_array[opt_bands_use, [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
 
 # Transpose so that rows correspond to observations
 if opt_out.shape[0] != length(pix_lat) and opt_out.shape[1] == length(pix_lat):

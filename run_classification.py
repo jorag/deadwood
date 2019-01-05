@@ -36,7 +36,6 @@ with open(os.path.join(dirname, "data", obj_in_name), 'rb') as input:
 
 # TRAIN AND CROSS-VALIDATE
 
-# TODO: Check why rerunning these commands causes index out of bounds in split (l 84)
 # Set class labels for dictionary
 class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 #class_dict_in = None
@@ -44,11 +43,11 @@ class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 # Get labels and class_dict (in case None is input, one is created)
 labels, class_dict = input_data.assign_labels(class_dict=class_dict_in)
 
-# Get the list of unique class numbers  
-class_n_unique = np.unique(list(class_dict.values()))
-# Use the highest and lowest class n for colourbar visualization
-class_n_lowest = np.min(class_n_unique) 
-class_n_highest = np.max(class_n_unique) 
+# Get all data
+all_data, all_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
+
+# Normalize data - should probably be done when data is stored in object...
+print(np.max(all_data,axis=0))
 
 # Split into training, validation, and test sets
 input_data.split(split_type = 'weighted', train_pct = 0.9, test_pct = 0.1, val_pct = 0.0)
@@ -128,11 +127,19 @@ plt.show()  # display it
 
 # Reshape to original input size
 sat_result_kNN = np.reshape(kNN_im_result, (n_rows, n_cols))
+
 # Show classification result
+
+# For colourbar: Get the list of unique class numbers  
+class_n_unique = np.unique(list(class_dict.values()))
+# Use the highest and lowest class n for colourbar visualization
+class_n_lowest = np.min(class_n_unique) 
+class_n_highest = np.max(class_n_unique)
+ 
 colors = ['red','green','blue','purple']
 cmap = plt.get_cmap('jet', length(class_n_unique)) # Number of colours = n. of classes
+
 fig = plt.figure()
-#plt.imshow(sat_result2, cmap='jet')
 plt.imshow(sat_result_kNN.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
 plt.colorbar(ticks=np.unique(list(class_dict.values())) )
 plt.show()  # display it
