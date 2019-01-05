@@ -272,7 +272,7 @@ print(np.max(sar_data_temp))
 print(np.min(sar_data_temp))
 print(np.max(sar_data_temp, axis=0))
 print(np.min(sar_data_temp, axis=0))
-norm01(sar_data_temp)
+norm01(sar_data_temp, min_cap=-9998)
                             
 # Transpose so that rows correspond to observations
 if data_out.shape[0] != length(pix_lat) and data_out.shape[1] == length(pix_lat):

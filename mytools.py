@@ -133,11 +133,19 @@ def norm01(input_array, min_cap = None, max_cap = None, log_type='print'):
     
     Use for normalization
     """
+    
+    # Replace values outside envolope/cap with NaNs
+    if min_cap is not None:
+        input_array[input_array  < min_cap] = np.NaN
+                   
+    if max_cap is not None:
+        input_array[input_array > max_cap] = np.NaN
+    
     valid_min = np.min(input_array[input_array>-9999])
 
-    print(np.max(input_array))
-    print(np.min(input_array))
-    print(np.max(input_array, axis=0))
-    print(np.min(input_array, axis=0))
+    print(np.nanmax(input_array))
+    print(np.nanmin(input_array))
+    print(np.nanmax(input_array, axis=0))
+    print(np.nanmin(input_array, axis=0))
         
     return 
