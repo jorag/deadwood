@@ -20,18 +20,19 @@ from geopixpos import *
 from visandtest import *
 from dataclass import *
 
+# Get data for classification of LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
+
 # Ground truth info
 transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examined)
 
 # Processing parameters - minimum of X * 100 m^2 LAI to be in 'Live' class
+# TODO: NEED TO ADJUST THESE THRESHOLDS AFTER DISCUSSION WITH ECOLOGISTS/EXPERTS
 lai_threshold_live = 0.0125 # min Leaf Area Index to be assigned to Live class 
 
 # Set name of output object
 obj_out_name = "TwoMod-B.pkl"
 
 dirname = os.path.realpath('.') # For parent directory use '..'
-
-# Classify LIVE FOREST vs. DEAD FOREST vs. OTHER
 
 
 # Read satellite data
@@ -160,6 +161,12 @@ point_info = []
 class_tree = []
 name_tree = []
 lai_point = []
+dai_point = [] # "Defoliated" Area Index (tree crown area without leaves)
+n_stems_live = []
+n_stems_dead = []
+max_stem_thick = []
+avg_tree_height = [0]
+n_trees = [1]
 prev_id = 'dummy'
 # Go through all sheets in Excel file with tree data
 for i_sheet in range(1,7):
@@ -176,18 +183,44 @@ for i_sheet in range(1,7):
             prev_id = curr_id
             # Add waypoint name to list of IDs
             name_tree.append(curr_id)
-            # Add LAI to list
+            # Calculate average tree height
+            avg_tree_height[-1] = avg_tree_height[-1]/n_trees[-1]
+            # Add new LAI to list
             lai_point.append(0)
+            # Add new "DAI" to list
+            dai_point.append(0)
+            # Add new Stems_Live to list
+            n_stems_live.append(0)
+            # Add new Stems_Dead to list
+            n_stems_dead.append(0)
+            # Add new maximum stem thickness
+            max_stem_thick.append(0)
+            # Add new average tree height
+            avg_tree_height.append(0)
+            # Add new tree count
+            n_trees.append(0)
         
         # Add area of crown (based on DIAMETERS in m) to last point (ellipse*fraction_live)/total_point_area
         lai_point[-1] += (np.pi/4*row.Crowndiam1*row.Crowndiam2*row.CrownPropLive/100)/transect_point_area
+        # Add area of defoliated crown (DIAMETERS in m) to last point (ellipse*fraction_dead)/total_point_area
+        dai_point[-1] += (np.pi/4*row.Crowndiam1*row.Crowndiam2*(100-row.CrownPropLive)/100)/transect_point_area
+        # Update number of live stems
+        n_stems_live[-1] += row.Stems_Live
+        # Update number of dead stems
+        n_stems_dead[-1] += row.Stems_Dead
+        # Maximum stem thickness
+        max_stem_thick[-1] = np.nanmax([max_stem_thick[-1], row.Stemdiam1, row.Stemdiam2, row.Stemdiam3])
+        # Update number of trees count
+        n_trees[-1] += 1
+        # Sum tree height (divide by final tree count later)
+        avg_tree_height[-1] += row.Treeheight
 
-## Store Leaf Area Index and names as array
-#lai_array = np.asarray(lai_point)
-#tree_point_array = np.asarray(name_tree)
-#live_crown_points = tree_point_array[lai_array>0]
+# Remove first (dummy) elements used to avoid throw-away counting variables
+n_trees.pop(0)
+avg_tree_height.pop(0)
 
 # Sort into healthy and defoliated forest
+# TODO: NEED TO ADJUST THESE RULES AFTER DISCUSSION WITH ECOLOGISTS/EXPERTS
 for i_point in range(length(name_tree)):
     # Check if Leaf Area Index is greater than threshold
     if lai_point[i_point] > lai_threshold_live:
