@@ -109,3 +109,20 @@ def logit(txt_in, log_type='print'):
         print(txt_in)
         
     return
+
+
+def imtensor2array(input_im):
+    """Convert 3D image array on the form channel, x, y to 2D array with 
+    channels as columns.
+    
+    Useful for classification or normalization
+    """
+    # Get number of channels etc.
+    n_channels = input_im.shape[0]
+    n_rows = input_im.shape[1]
+    n_cols = input_im.shape[2]
+    # Reshape array to n_cols*n_rows rows with the channels as columns 
+    input_im = np.transpose(input_im, (1, 2, 0)) # Change order to rows, cols, channels
+    output_im = np.reshape(input_im, (n_rows*n_cols, n_channels))
+        
+    return output_im
