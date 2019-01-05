@@ -115,7 +115,7 @@ def imtensor2array(input_im):
     """Convert 3D image array on the form channel, x, y to 2D array with 
     channels as columns.
     
-    Useful for classification or normalization
+    Useful for classification or normalization.
     """
     # Get number of channels etc.
     n_channels = input_im.shape[0]
@@ -125,4 +125,19 @@ def imtensor2array(input_im):
     input_im = np.transpose(input_im, (1, 2, 0)) # Change order to rows, cols, channels
     output_im = np.reshape(input_im, (n_rows*n_cols, n_channels))
         
-    return output_im
+    return output_im, n_rows, n_cols 
+
+
+def norm01(input_array, min_cap = None, max_cap = None, log_type='print'):
+    """Normalize.
+    
+    Use for normalization
+    """
+    valid_min = np.min(input_array[input_array>-9999])
+
+    print(np.max(input_array))
+    print(np.min(input_array))
+    print(np.max(input_array, axis=0))
+    print(np.min(input_array, axis=0))
+        
+    return 

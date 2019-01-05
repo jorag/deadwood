@@ -263,7 +263,7 @@ data_out = raster_data_array[sar_bands_use , [pix_lat.T], [pix_long.T]] # Works,
 # Get array with SAR data
 sar_data_temp = raster_data_array[sar_bands_single,:,:]
 # Convert to 2D array
-sar_data_temp = imtensor2array(sar_data_temp)
+sar_data_temp, n_rows, n_cols = imtensor2array(sar_data_temp)
 
 valid_min = np.min(sar_data_temp[sar_data_temp>-9999])
 print(np.max(data_out))
@@ -272,6 +272,7 @@ print(np.max(sar_data_temp))
 print(np.min(sar_data_temp))
 print(np.max(sar_data_temp, axis=0))
 print(np.min(sar_data_temp, axis=0))
+norm01(sar_data_temp)
                             
 # Transpose so that rows correspond to observations
 if data_out.shape[0] != length(pix_lat) and data_out.shape[1] == length(pix_lat):

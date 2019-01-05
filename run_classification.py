@@ -116,7 +116,7 @@ sat_im = all_sat_bands[bands_use_single , :, : ]
 ## Reshape array to n_cols*n_rows rows with the channels as columns 
 #sat_im = np.transpose(sat_im, (1, 2, 0)) # Change order to rows, cols, channels
 #sat_im_prediction = np.reshape(sat_im, (n_rows*n_cols, n_channels))
-sat_im_prediction = imtensor2array(sat_im)
+sat_im_prediction, n_rows, n_cols = imtensor2array(sat_im)
 kNN_im_result = neigh.predict(sat_im_prediction)
 
 
