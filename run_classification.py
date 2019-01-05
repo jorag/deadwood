@@ -12,7 +12,7 @@ from tkinter import filedialog
 import os # Necessary for relative paths
 import pickle # To load object
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 #import sys # To append paths
 # My moduels
@@ -138,7 +138,7 @@ plt.show()  # display it
         
 # Test Random Forest
 
-regressor = RandomForestRegressor(n_estimators=20, random_state=0)  
+regressor = RandomForestClassifier(n_estimators=20, random_state=0)  
 regressor.fit(data_train, labels_train) 
 y_pred = regressor.predict(data_test) 
 print(regressor.score(data_test, labels_test)) 
@@ -165,7 +165,7 @@ print(np.mean(X_test, axis=0))
 print(np.max(X_test, axis=0))
 
 
-rf = RandomForestRegressor(n_estimators=20, random_state=0, verbose=1)  
+rf = RandomForestClassifier(n_estimators=20, random_state=0, verbose=1)  
 rf.fit(X_train, labels_train) 
 y_pred = rf.predict(X_test) 
 print(rf.score(X_test, labels_test)) 
