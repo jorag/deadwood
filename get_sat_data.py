@@ -20,7 +20,7 @@ from geopixpos import *
 from visandtest import *
 from dataclass import *
 
-# Get data for classification of LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
+# Get data for classification (LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER)
 
 # Ground truth info
 transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examined)

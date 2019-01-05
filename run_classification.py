@@ -21,43 +21,20 @@ from geopixpos import *
 from visandtest import *
 from dataclass import *
 
+# Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
-# Name of input object
+# Name of input object and file with satellite data path string
 obj_in_name = 'TwoMod-B.pkl'
-
+sat_pathfile_name = "sat-data-path"
+# Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
-
-# Classify LIVE FOREST vs. DEAD FOREST vs. OTHER
 
 # Load DataModalities object
 with open(os.path.join(dirname, "data", obj_in_name), 'rb') as input:
     input_data = pickle.load(input)
     
 
-## Read satellite data
-try:
-    # Read predefined file
-    with open(os.path.join(dirname, "data", "sat-data-path")) as infile:
-        sat_file = infile.readline().strip()
-        logit('Read file: ' + sat_file, log_type = 'default')
-    
-    # Load data
-    dataset = gdal.Open(sat_file)
-    gdalinfo_log(dataset, log_type='default')
-except:
-    logit('Error, promt user for file.', log_type = 'default')
-    # Predefined file failed for some reason, promt user
-    root = tkinter.Tk() # GUI for file selection
-    root.withdraw()
-    sat_file = tkinter.filedialog.askopenfilename(title='Select input .tif file')
-    # Load data
-    dataset = gdal.Open(sat_file)
-    gdalinfo_log(dataset, log_type='default')
-            
-
-
-# Read multiple bands
-all_sat_bands = dataset.ReadAsArray()
+# TRAIN AND CROSS-VALIDATE
 
 # TODO: Check why rerunning these commands causes index out of bounds in split (l 84)
 # Set class labels for dictionary
@@ -95,6 +72,31 @@ print(neigh.score(data_test, labels_test))
 # Test kNN on test dataset
 prediction_result = neigh.predict(data_test) 
 
+
+# TEST ON COMPLETE IMAGE
+
+## Read satellite data
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, 'data', sat_pathfile_name)) as infile:
+        sat_file = infile.readline().strip()
+        logit('Read file: ' + sat_file, log_type = 'default')
+    
+    # Load data
+    dataset = gdal.Open(sat_file)
+    gdalinfo_log(dataset, log_type='default')
+except:
+    logit('Error, promt user for file.', log_type = 'default')
+    # Predefined file failed for some reason, promt user
+    root = tkinter.Tk() # GUI for file selection
+    root.withdraw()
+    sat_file = tkinter.filedialog.askopenfilename(title='Select input .tif file')
+    # Load data
+    dataset = gdal.Open(sat_file)
+    gdalinfo_log(dataset, log_type='default')
+
+# Read multiple bands
+all_sat_bands = dataset.ReadAsArray()
 
 # Get bands used in two lists
 bands_use_lists = []
