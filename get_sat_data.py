@@ -257,8 +257,22 @@ pix_lat, pix_long = geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray()
 # Extract pixels from area - SAR
 # t11 = 11, t22 = 16, t33 = 19
 sar_bands_use = [[11], [16], [19]]
+sar_bands_single = [11, 16, 19]
 data_out = raster_data_array[sar_bands_use , [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
 
+# Get array with SAR data
+sar_data_temp = raster_data_array[sar_bands_single,:,:]
+# Convert to 2D array
+sar_data_temp = imtensor2array(sar_data_temp)
+
+valid_min = np.min(sar_data_temp[sar_data_temp>-9999])
+print(np.max(data_out))
+print(np.min(data_out))
+print(np.max(sar_data_temp))
+print(np.min(sar_data_temp))
+print(np.max(sar_data_temp, axis=0))
+print(np.min(sar_data_temp, axis=0))
+                            
 # Transpose so that rows correspond to observations
 if data_out.shape[0] != length(pix_lat) and data_out.shape[1] == length(pix_lat):
     data_out = data_out.T
