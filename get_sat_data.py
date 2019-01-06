@@ -30,7 +30,7 @@ transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examin
 lai_threshold_live = 0.0125 # min Leaf Area Index to be assigned to Live class 
 
 # Set name of output object
-obj_out_name = "TwoMod-B.pkl"
+obj_out_name = "Pauli-B.pkl"
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
@@ -234,11 +234,6 @@ raster_data_array = dataset.ReadAsArray()
 lat_band = dataset.GetRasterBand(21)
 lon_band = dataset.GetRasterBand(22)
 
-## Load a band, 1 based
-#band = dataset.GetRasterBand(1)
-#bandinfo_log(band, log_type='default')
-#showimpoint(raster_data_array, geotransform, point_lat, point_lon, n_pixel_x=500, n_pixel_y=500, bands=[0,1,2])
-
 
 ## Intialize data object
 # TODO - add meta information here as kwargs, such as year, area, etc.
@@ -254,25 +249,37 @@ all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
 # Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
 pix_lat, pix_long = geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
 
-# Extract pixels from area - SAR
+# Extract pixels from area - SAR 
+# NOTE: WHEN ALL BANDS ARE READ, PYTHON'S 0 BASED INDEXING MUST BE USED IN ARRAY
 # t11 = 11, t22 = 16, t33 = 19
-sar_bands_use = [[11], [16], [19]]
-sar_bands_single = [11, 16, 19]
+#sar_bands_use = [[11], [16], [19]]
+#sar_bands_single = [11, 16, 19]
+sar_bands_use = [[10], [15], [18]]
+sar_bands_single = [10, 15, 18]
 data_out = raster_data_array[sar_bands_use , [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
 
 # Get array with SAR data
 sar_data_temp = raster_data_array[sar_bands_single,:,:]
+showimage(sar_data_temp)
 # Convert to 2D array
 sar_data_temp, n_rows, n_cols = imtensor2array(sar_data_temp)
+
+sar_data_temp = norm01(sar_data_temp, min_cap=-9998)
+
+sar_data_im = np.reshape(sar_data_temp, (n_rows, n_cols, sar_data_temp.shape[1]))
+
+plt.figure()
+plt.imshow(sar_data_im) 
+plt.show()  # display it
 
 valid_min = np.min(sar_data_temp[sar_data_temp>-9999])
 print(np.max(data_out))
 print(np.min(data_out))
 print(np.max(sar_data_temp))
 print(np.min(sar_data_temp))
-print(np.max(sar_data_temp, axis=0))
-print(np.min(sar_data_temp, axis=0))
-norm01(sar_data_temp, min_cap=-9998)
+print(np.nanmax(sar_data_temp, axis=0))
+print(np.nanmin(sar_data_temp, axis=0))
+
                             
 # Transpose so that rows correspond to observations
 if data_out.shape[0] != length(pix_lat) and data_out.shape[1] == length(pix_lat):
