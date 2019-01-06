@@ -269,7 +269,7 @@ plt.show()  # display it
 # Convert to 2D array
 sar_data_temp, n_rows, n_cols = imtensor2array(sar_data_temp)
 
-sar_data_temp = norm01(sar_data_temp, min_cap=0.2, min_cap_value=0.2, max_cap = 0.9, max_cap_value=1, log_type='print')
+sar_data_temp = norm01(sar_data_temp, norm_type='global', min_cap=0.0, min_cap_value=-12.0, max_cap = 0.39, max_cap_value=0.5, log_type='print')
 
 sar_data_im = np.reshape(sar_data_temp, (n_rows, n_cols, sar_data_temp.shape[1]))
 
