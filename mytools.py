@@ -128,7 +128,7 @@ def imtensor2array(input_im):
     return output_im, n_rows, n_cols 
 
 
-def norm01(input_array, min_cap = None, max_cap = None, log_type=None):
+def norm01(input_array, min_cap = None, max_cap = None, min_cap_value = np.NaN, max_cap_value = np.NaN, log_type=None):
     """Normalize.
     
     Use for normalization
@@ -136,10 +136,10 @@ def norm01(input_array, min_cap = None, max_cap = None, log_type=None):
     
     # Replace values outside envolope/cap with NaNs
     if min_cap is not None:
-        input_array[input_array  < min_cap] = np.NaN
+        input_array[input_array  < min_cap] = min_cap_value
                    
     if max_cap is not None:
-        input_array[input_array > max_cap] = np.NaN
+        input_array[input_array > max_cap] = max_cap_value
     
     # Normalize to 0-1 (globally)
 #    output_array = input_array - np.nanmin(input_array)

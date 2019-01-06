@@ -261,24 +261,22 @@ data_out = raster_data_array[sar_bands_use , [pix_lat.T], [pix_long.T]] # Works,
 # Get array with SAR data
 sar_data_temp = raster_data_array[sar_bands_single,:,:]
 showimage(sar_data_temp)
+
+plt.figure()
+plt.imshow(np.transpose(sar_data_temp, (1,2,0)) +0.3, vmin = 0.001, vmax = 0.01) 
+plt.show()  # display it
+
 # Convert to 2D array
 sar_data_temp, n_rows, n_cols = imtensor2array(sar_data_temp)
 
-sar_data_temp = norm01(sar_data_temp, min_cap=-9998, log_type='print')
+sar_data_temp = norm01(sar_data_temp, min_cap=0.2, min_cap_value=0.2, max_cap = 0.9, max_cap_value=1, log_type='print')
 
 sar_data_im = np.reshape(sar_data_temp, (n_rows, n_cols, sar_data_temp.shape[1]))
 
 plt.figure()
-plt.imshow(sar_data_im) 
+plt.imshow(sar_data_im, vmin = 0, vmax = 0.0001) 
 plt.show()  # display it
 
-valid_min = np.min(sar_data_temp[sar_data_temp>-9999])
-print(np.max(data_out))
-print(np.min(data_out))
-print(np.max(sar_data_temp))
-print(np.min(sar_data_temp))
-print(np.nanmax(sar_data_temp, axis=0))
-print(np.nanmin(sar_data_temp, axis=0))
 
                             
 # Transpose so that rows correspond to observations
