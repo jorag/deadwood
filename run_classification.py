@@ -14,6 +14,7 @@ import pickle # To load object
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 #import sys # To append paths
 # My moduels
 from mytools import *
@@ -42,15 +43,19 @@ class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 # Get labels and class_dict (in case None is input, one is created)
 labels, class_dict = input_data.assign_labels(class_dict=class_dict_in)
 
+
+# Split into training, validation, and test sets
+input_data.split(split_type = 'weighted', train_pct = 0.9, test_pct = 0.1, val_pct = 0.0)
+print(length(input_data.set_train)/165, length(input_data.set_test)/165, length(input_data.set_val)/165)
+
 # Get all data
 all_data, all_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
 
 # Normalize data - should probably be done when data is stored in object...
 print(np.max(all_data,axis=0))
 
-# Split into training, validation, and test sets
-input_data.split(split_type = 'weighted', train_pct = 0.9, test_pct = 0.1, val_pct = 0.0)
-print(length(input_data.set_train)/165, length(input_data.set_test)/165, length(input_data.set_val)/165)
+
+X_train, X_test, y_train, y_test = train_test_split(all_data, all_labels, test_size=0.2, random_state=0)  
 
 # Get training data
 # TODO: Implement an 'all' option for modalities
@@ -69,6 +74,14 @@ neigh.fit(data_train, labels_train)
 print(neigh.score(data_test, labels_test)) 
 # Test kNN on test dataset
 prediction_result = neigh.predict(data_test) 
+
+
+# Test Random Forest
+
+rf = RandomForestClassifier(n_estimators=20, random_state=0)  
+rf.fit(data_train, labels_train) 
+y_pred = rf.predict(data_test) 
+print(rf.score(data_test, labels_test)) 
 
 
 # TEST ON COMPLETE IMAGE
@@ -109,14 +122,7 @@ for key in input_data.modality_order: # .modality_bands.keys()
 sat_im = all_sat_bands[bands_use_single , :, : ]
 ## Reshape array to n_cols*n_rows rows with the channels as columns 
 sat_im_prediction, n_rows, n_cols = imtensor2array(sat_im)
-kNN_im_result = neigh.predict(sat_im_prediction)
 
-
-# Reshape to original input size
-sat_result_kNN = np.reshape(kNN_im_result, (n_rows, n_cols))
-
-
-# Show classification result
 
 # For colourbar: Get the list of unique class numbers  
 class_n_unique = np.unique(list(class_dict.values()))
@@ -127,19 +133,20 @@ class_n_highest = np.max(class_n_unique)
 colors = ['red','green','blue','purple']
 cmap = plt.get_cmap('jet', length(class_n_unique)) # Number of colours = n. of classes
 
+                   
+# kNN image
+kNN_im_result = neigh.predict(sat_im_prediction)
+# Reshape to original input size
+sat_result_kNN = np.reshape(kNN_im_result, (n_rows, n_cols))
+
+# Show classification result
 fig = plt.figure()
 plt.imshow(sat_result_kNN.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
 plt.colorbar(ticks=np.unique(list(class_dict.values())) )
 plt.show()  # display it
 
-        
-# Test Random Forest
 
-rf = RandomForestClassifier(n_estimators=20, random_state=0)  
-rf.fit(data_train, labels_train) 
-y_pred = rf.predict(data_test) 
-print(rf.score(data_test, labels_test)) 
-
+# RF image
 rf_im_result = rf.predict(sat_im_prediction)
 # Reshape to original input size
 sat_result_rf = np.reshape(rf_im_result, (n_rows, n_cols))
