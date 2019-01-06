@@ -128,7 +128,7 @@ def imtensor2array(input_im):
     return output_im, n_rows, n_cols 
 
 
-def norm01(input_array, min_cap = None, max_cap = None, log_type='print'):
+def norm01(input_array, min_cap = None, max_cap = None, log_type=None):
     """Normalize.
     
     Use for normalization
@@ -142,23 +142,27 @@ def norm01(input_array, min_cap = None, max_cap = None, log_type='print'):
         input_array[input_array > max_cap] = np.NaN
     
     # Normalize to 0-1 (globally)
-    output_array = input_array - np.nanmin(input_array)
-    output_array = output_array/np.nanmax(output_array)
+#    output_array = input_array - np.nanmin(input_array)
+#    output_array = output_array/np.nanmax(output_array)
+    output_array = input_array - np.nanmin(input_array, axis=0)
+    output_array = output_array/np.nanmax(output_array, axis=0)
     
-    print('\n INPUT:')
-    print(np.nanmax(input_array))
-    print(np.nanmean(input_array))
-    print(np.nanmin(input_array))
-    print(np.nanmax(input_array, axis=0))
-    print(np.nanmean(input_array, axis=0))
-    print(np.nanmin(input_array, axis=0))
-    
-    print('\n outPUT:')
-    print(np.nanmax(output_array))
-    print(np.nanmean(output_array))
-    print(np.nanmin(output_array))
-    print(np.nanmax(output_array, axis=0))
-    print(np.nanmean(output_array, axis=0))
-    print(np.nanmin(output_array, axis=0))
+    # Log / print results
+    if log_type is not None:
+        logit('\n INPUT:', log_type)
+        logit(np.nanmax(input_array), log_type)
+        logit(np.nanmean(input_array), log_type)
+        logit(np.nanmin(input_array), log_type)
+        logit(np.nanmax(input_array, axis=0), log_type)
+        logit(np.nanmean(input_array, axis=0), log_type)
+        logit(np.nanmin(input_array, axis=0), log_type)
+        
+        logit('\n OUTPUT:', log_type)
+        logit(np.nanmax(output_array), log_type)
+        logit(np.nanmean(output_array), log_type)
+        logit(np.nanmin(output_array), log_type)
+        logit(np.nanmax(output_array, axis=0), log_type)
+        logit(np.nanmean(output_array, axis=0), log_type)
+        logit(np.nanmin(output_array, axis=0), log_type)
         
     return output_array

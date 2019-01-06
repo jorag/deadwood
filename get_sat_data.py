@@ -264,7 +264,7 @@ showimage(sar_data_temp)
 # Convert to 2D array
 sar_data_temp, n_rows, n_cols = imtensor2array(sar_data_temp)
 
-sar_data_temp = norm01(sar_data_temp, min_cap=-9998)
+sar_data_temp = norm01(sar_data_temp, min_cap=-9998, log_type='print')
 
 sar_data_im = np.reshape(sar_data_temp, (n_rows, n_cols, sar_data_temp.shape[1]))
 
