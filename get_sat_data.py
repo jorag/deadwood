@@ -255,32 +255,30 @@ all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
 #pix_lat, pix_long = geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
 pix_lat, pix_long = geocoords2pix(raster_data_array[lat_band,:,:], raster_data_array[lon_band,:,:], lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
 
-# Extract pixels from area - SAR 
-data_out = raster_data_array[sar_bands_use , [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
 
 # Get array with SAR data
 sar_data_temp = raster_data_array[sar_bands_single,:,:]
 
 # Convert to 2D array
 sar_data_temp, n_rows, n_cols = imtensor2array(sar_data_temp)
-
+# Normalize data
 sar_data_temp = norm01(sar_data_temp, norm_type=sar_norm_type, log_type='print')
-
+# Reshape to 3D image tensor (3 channels)
 sar_data_im = np.reshape(sar_data_temp, (n_rows, n_cols, sar_data_temp.shape[1]))
+# Get pixels
+sar_pixels = sar_data_im[pix_lat.T, pix_long.T, :] 
 
-
-
-
-                            
-# Transpose so that rows correspond to observations
-if data_out.shape[0] != length(pix_lat) and data_out.shape[1] == length(pix_lat):
-    data_out = data_out.T
+## Extract pixels from area - SAR 
+#data_out = raster_data_array[sar_bands_use , [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array                            
+## Transpose so that rows correspond to observations
+#if data_out.shape[0] != length(pix_lat) and data_out.shape[1] == length(pix_lat):
+#    data_out = data_out.T
 
 # SAR info to add to object
 kw_sar = dict([['bands_use', sar_bands_use]])
 
 # Add SAR modality
-all_data.add_modality(gps_id, 'quad_pol', data_out.tolist(), **kw_sar)
+all_data.add_modality(gps_id, 'quad_pol', sar_pixels.tolist(), **kw_sar)
 
 
 # Extract pixels from area - OPTICAL
