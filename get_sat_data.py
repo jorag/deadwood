@@ -45,10 +45,8 @@ sar_bands_use = [10, 15, 18]
 sar_norm_type = 'global' # 'local'
 
 # OPT bands:
-#opt_bands_use = [[2], [3], [4]]
 opt_bands_use = [2, 3, 4]
 opt_norm_type = 'global' # 'local'
-
 
     
 # Read Excel file with vegetation types
@@ -276,12 +274,7 @@ kw_sar = dict([['bands_use', sar_bands_use]])
 all_data.add_modality(gps_id, 'quad_pol', sar_pixels.tolist(), **kw_sar)
 
 
-## Extract pixels from area - OPTICAL
-#opt_out = raster_data_array[opt_bands_use, [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
-## Transpose so that rows correspond to observations
-#if opt_out.shape[0] != length(pix_lat) and opt_out.shape[1] == length(pix_lat):
-#    opt_out = opt_out.T
-    
+## Extract pixels from area - OPTICAL    
 # Get array with MULTISPECTRAL OPTICAL data
 opt_data_temp = raster_data_array[opt_bands_use,:,:]
 
@@ -305,7 +298,6 @@ all_data.add_modality(gps_id, 'optical', opt_pixels.tolist(), **kw_opt)
 #all_data.print_points()
 
 # Set class labels for dictionary
-class_dict = dict([['Forest', 1], ['Wooded mire', 2], ['other', 0]])
 class_dict = None
 labels = all_data.assign_labels(class_dict=class_dict)
 

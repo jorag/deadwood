@@ -38,7 +38,6 @@ with open(os.path.join(dirname, "data", obj_in_name), 'rb') as input:
 
 # Set class labels for dictionary
 class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
-#class_dict_in = None
 
 # Get labels and class_dict (in case None is input, one is created)
 labels, class_dict = input_data.assign_labels(class_dict=class_dict_in)
@@ -136,48 +135,16 @@ plt.show()  # display it
         
 # Test Random Forest
 
-regressor = RandomForestClassifier(n_estimators=20, random_state=0)  
-regressor.fit(data_train, labels_train) 
-y_pred = regressor.predict(data_test) 
-print(regressor.score(data_test, labels_test)) 
+rf = RandomForestClassifier(n_estimators=20, random_state=0)  
+rf.fit(data_train, labels_train) 
+y_pred = rf.predict(data_test) 
+print(rf.score(data_test, labels_test)) 
 
-rf_im_result = regressor.predict(sat_im_prediction)
+rf_im_result = rf.predict(sat_im_prediction)
 # Reshape to original input size
 sat_result_rf = np.reshape(rf_im_result, (n_rows, n_cols))
 
 fig2 = plt.figure()
 plt.imshow(sat_result_rf.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
-plt.colorbar(ticks=np.unique(list(class_dict.values())) )
-plt.show()  # display it
-
-        
-# Try scaling        
-sc = StandardScaler()  
-X_train = sc.fit_transform(data_train) 
-print(np.min(X_train, axis=0)) 
-print(np.mean(X_train, axis=0))
-print(np.max(X_train, axis=0))
-X_test = sc.transform(data_test)  
-print(np.min(X_test, axis=0)) 
-print(np.mean(X_test, axis=0))
-print(np.max(X_test, axis=0))
-
-
-rf = RandomForestClassifier(n_estimators=20, random_state=0, verbose=1)  
-rf.fit(X_train, labels_train) 
-y_pred = rf.predict(X_test) 
-print(rf.score(X_test, labels_test)) 
-
-# Scale entire image
-scaled_im = sc.transform(sat_im_prediction)
-print(np.min(scaled_im, axis=0)) 
-print(np.mean(scaled_im, axis=0))
-print(np.max(scaled_im, axis=0))
-rf2_im_result = rf.predict(scaled_im)
-# Reshape to original input size
-sat_result_rf2 = np.reshape(rf2_im_result, (n_rows, n_cols))
-
-fig3 = plt.figure()
-plt.imshow(sat_result_rf2.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
 plt.colorbar(ticks=np.unique(list(class_dict.values())) )
 plt.show()  # display it
