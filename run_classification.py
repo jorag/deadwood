@@ -24,7 +24,7 @@ from dataclass import *
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
 # Name of input object and file with satellite data path string
-obj_in_name = 'TwoMod-B.pkl'
+obj_in_name = 'Pauli-B.pkl'
 sat_pathfile_name = "sat-data-path"
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'

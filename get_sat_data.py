@@ -35,16 +35,20 @@ obj_out_name = "Pauli-B.pkl"
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # PARAMETERS
-# t11 = 11, t22 = 16, t33 = 19
+# Geo bands: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
+lat_band = 20 # 21-1
+lon_band = 21 # 22-1
+
+# SAR bands: t11 = 11, t22 = 16, t33 = 19
 # NOTE: WHEN ALL BANDS ARE READ, PYTHON'S 0 BASED INDEXING MUST BE USED IN ARRAY
-#sar_bands_use = [[10], [15], [18]]
-#sar_bands_single = [10, 15, 18]
 sar_bands_use = [10, 15, 18]
 sar_norm_type = 'global' # 'local'
 
-# Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
-lat_band = 20 # 21-1
-lon_band = 21 # 22-1
+# OPT bands:
+#opt_bands_use = [[2], [3], [4]]
+opt_bands_use = [2, 3, 4]
+opt_norm_type = 'global' # 'local'
+
 
     
 # Read Excel file with vegetation types
@@ -254,7 +258,7 @@ pix_lat, pix_long = geocoords2pix(raster_data_array[lat_band,:,:], raster_data_a
 
 
 # Get array with SAR data
-sar_data_temp = raster_data_array[sar_bands_single,:,:]
+sar_data_temp = raster_data_array[sar_bands_use,:,:]
 
 # Convert to 2D array
 sar_data_temp, n_rows, n_cols = imtensor2array(sar_data_temp)
@@ -272,19 +276,29 @@ kw_sar = dict([['bands_use', sar_bands_use]])
 all_data.add_modality(gps_id, 'quad_pol', sar_pixels.tolist(), **kw_sar)
 
 
-# Extract pixels from area - OPTICAL
-opt_bands_use = [[2], [3], [4]]
-opt_out = raster_data_array[opt_bands_use, [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
+## Extract pixels from area - OPTICAL
+#opt_out = raster_data_array[opt_bands_use, [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
+## Transpose so that rows correspond to observations
+#if opt_out.shape[0] != length(pix_lat) and opt_out.shape[1] == length(pix_lat):
+#    opt_out = opt_out.T
+    
+# Get array with MULTISPECTRAL OPTICAL data
+opt_data_temp = raster_data_array[opt_bands_use,:,:]
 
-# Transpose so that rows correspond to observations
-if opt_out.shape[0] != length(pix_lat) and opt_out.shape[1] == length(pix_lat):
-    opt_out = opt_out.T
+# Convert to 2D array
+opt_data_temp, n_rows, n_cols = imtensor2array(opt_data_temp)
+# Normalize data
+opt_data_temp = norm01(opt_data_temp, norm_type=opt_norm_type, log_type='print')
+# Reshape to 3D image tensor (3 channels)
+opt_data_temp = np.reshape(opt_data_temp, (n_rows, n_cols, opt_data_temp.shape[1]))
+# Get pixels
+opt_pixels = opt_data_temp[pix_lat.T, pix_long.T, :] 
 
 # OPT info to add to object
 kw_opt = dict([['bands_use', opt_bands_use]])
 
 # Add OPT modality
-all_data.add_modality(gps_id, 'optical', opt_out.tolist(), **kw_opt)
+all_data.add_modality(gps_id, 'optical', opt_pixels.tolist(), **kw_opt)
 
 
 ## Print points
