@@ -98,11 +98,9 @@ except:
 all_sat_bands = dataset.ReadAsArray()
 
 # Get bands used in two lists
-#bands_use_lists = []
 bands_use_single = []
 for key in input_data.modality_order: # .modality_bands.keys()
     # Get list of lists of bands
-    #bands_use_lists += input_data.modality_bands[key]
     bands_use_single += input_data.modality_bands[key]
 #    # Get single layer list
 #    for item in input_data.modality_bands[key]:
@@ -110,25 +108,14 @@ for key in input_data.modality_order: # .modality_bands.keys()
 
 ## Predict class for entire satellite image
 sat_im = all_sat_bands[bands_use_single , :, : ]
-# For some reason  [[2], [3], [4], [11], [16], [19]], :,: - gives size (6,1,2892,4182)...
-#n_channels = sat_im.shape[0]
-#n_rows = sat_im.shape[1]
-#n_cols = sat_im.shape[2]
 ## Reshape array to n_cols*n_rows rows with the channels as columns 
-#sat_im = np.transpose(sat_im, (1, 2, 0)) # Change order to rows, cols, channels
-#sat_im_prediction = np.reshape(sat_im, (n_rows*n_cols, n_channels))
 sat_im_prediction, n_rows, n_cols = imtensor2array(sat_im)
 kNN_im_result = neigh.predict(sat_im_prediction)
 
 
-# Show entire image
-plt.figure()
-plt.imshow(sat_im[:,:,[1,2,0]]/16000) 
-plt.show()  # display it
-
-
 # Reshape to original input size
 sat_result_kNN = np.reshape(kNN_im_result, (n_rows, n_cols))
+
 
 # Show classification result
 
