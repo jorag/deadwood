@@ -34,6 +34,17 @@ obj_out_name = "Pauli-B.pkl"
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
+# PARAMETERS
+# t11 = 11, t22 = 16, t33 = 19
+# NOTE: WHEN ALL BANDS ARE READ, PYTHON'S 0 BASED INDEXING MUST BE USED IN ARRAY
+sar_bands_use = [[10], [15], [18]]
+sar_bands_single = [10, 15, 18]
+sar_norm_type = 'global' # 'local'
+
+# Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
+lat_band = 20 # 21-1
+lon_band = 21 # 22-1
+
     
 # Read Excel file with vegetation types
 try:
@@ -227,12 +238,8 @@ except:
 # Get georeference info
 geotransform = dataset.GetGeoTransform()
     
-# Read multiple bands
+# Read ALL bands - note that it will be zero indexed
 raster_data_array = dataset.ReadAsArray()
-
-# Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
-lat_band = dataset.GetRasterBand(21)
-lon_band = dataset.GetRasterBand(22)
 
 
 ## Intialize data object
@@ -245,37 +252,23 @@ all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
 
 
 # Get pixel positions from my geopixpos module
-# TODO: Change so that coordinates can be input as tuples
-# Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
-pix_lat, pix_long = geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
+#pix_lat, pix_long = geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
+pix_lat, pix_long = geocoords2pix(raster_data_array[lat_band,:,:], raster_data_array[lon_band,:,:], lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
 
 # Extract pixels from area - SAR 
-# NOTE: WHEN ALL BANDS ARE READ, PYTHON'S 0 BASED INDEXING MUST BE USED IN ARRAY
-# t11 = 11, t22 = 16, t33 = 19
-#sar_bands_use = [[11], [16], [19]]
-#sar_bands_single = [11, 16, 19]
-sar_bands_use = [[10], [15], [18]]
-sar_bands_single = [10, 15, 18]
 data_out = raster_data_array[sar_bands_use , [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
 
 # Get array with SAR data
 sar_data_temp = raster_data_array[sar_bands_single,:,:]
-showimage(sar_data_temp)
-
-plt.figure()
-plt.imshow(np.transpose(sar_data_temp, (1,2,0)) +0.3, vmin = 0.001, vmax = 0.01) 
-plt.show()  # display it
 
 # Convert to 2D array
 sar_data_temp, n_rows, n_cols = imtensor2array(sar_data_temp)
 
-sar_data_temp = norm01(sar_data_temp, norm_type='global', min_cap=0.0, min_cap_value=-12.0, max_cap = 0.39, max_cap_value=0.5, log_type='print')
+sar_data_temp = norm01(sar_data_temp, norm_type=sar_norm_type, log_type='print')
 
 sar_data_im = np.reshape(sar_data_temp, (n_rows, n_cols, sar_data_temp.shape[1]))
 
-plt.figure()
-plt.imshow(sar_data_im, vmin = 0, vmax = 0.0001) 
-plt.show()  # display it
+
 
 
                             
