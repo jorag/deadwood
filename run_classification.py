@@ -98,14 +98,15 @@ except:
 all_sat_bands = dataset.ReadAsArray()
 
 # Get bands used in two lists
-bands_use_lists = []
+#bands_use_lists = []
 bands_use_single = []
 for key in input_data.modality_order: # .modality_bands.keys()
     # Get list of lists of bands
-    bands_use_lists += input_data.modality_bands[key]
-    # Get single layer list
-    for item in input_data.modality_bands[key]:
-        bands_use_single.append(item[0])
+    #bands_use_lists += input_data.modality_bands[key]
+    bands_use_single += input_data.modality_bands[key]
+#    # Get single layer list
+#    for item in input_data.modality_bands[key]:
+#        bands_use_single.append(item[0])
 
 ## Predict class for entire satellite image
 sat_im = all_sat_bands[bands_use_single , :, : ]

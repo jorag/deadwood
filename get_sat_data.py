@@ -37,8 +37,9 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # PARAMETERS
 # t11 = 11, t22 = 16, t33 = 19
 # NOTE: WHEN ALL BANDS ARE READ, PYTHON'S 0 BASED INDEXING MUST BE USED IN ARRAY
-sar_bands_use = [[10], [15], [18]]
-sar_bands_single = [10, 15, 18]
+#sar_bands_use = [[10], [15], [18]]
+#sar_bands_single = [10, 15, 18]
+sar_bands_use = [10, 15, 18]
 sar_norm_type = 'global' # 'local'
 
 # Dataset: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
@@ -234,9 +235,6 @@ except:
     dataset = gdal.Open(sat_file)
     gdalinfo_log(dataset, log_type='default')
             
-
-# Get georeference info
-geotransform = dataset.GetGeoTransform()
     
 # Read ALL bands - note that it will be zero indexed
 raster_data_array = dataset.ReadAsArray()
@@ -252,7 +250,6 @@ all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
 
 
 # Get pixel positions from my geopixpos module
-#pix_lat, pix_long = geocoords2pix(lat_band.ReadAsArray(), lon_band.ReadAsArray(), lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
 pix_lat, pix_long = geocoords2pix(raster_data_array[lat_band,:,:], raster_data_array[lon_band,:,:], lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
 
 
@@ -264,15 +261,9 @@ sar_data_temp, n_rows, n_cols = imtensor2array(sar_data_temp)
 # Normalize data
 sar_data_temp = norm01(sar_data_temp, norm_type=sar_norm_type, log_type='print')
 # Reshape to 3D image tensor (3 channels)
-sar_data_im = np.reshape(sar_data_temp, (n_rows, n_cols, sar_data_temp.shape[1]))
+sar_data_temp = np.reshape(sar_data_temp, (n_rows, n_cols, sar_data_temp.shape[1]))
 # Get pixels
-sar_pixels = sar_data_im[pix_lat.T, pix_long.T, :] 
-
-## Extract pixels from area - SAR 
-#data_out = raster_data_array[sar_bands_use , [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array                            
-## Transpose so that rows correspond to observations
-#if data_out.shape[0] != length(pix_lat) and data_out.shape[1] == length(pix_lat):
-#    data_out = data_out.T
+sar_pixels = sar_data_temp[pix_lat.T, pix_long.T, :] 
 
 # SAR info to add to object
 kw_sar = dict([['bands_use', sar_bands_use]])
@@ -282,7 +273,6 @@ all_data.add_modality(gps_id, 'quad_pol', sar_pixels.tolist(), **kw_sar)
 
 
 # Extract pixels from area - OPTICAL
-#showimage(np.squeeze(raster_data_array[[[2], [3], [4]], :, :])/10000, bands=[1,2,0])
 opt_bands_use = [[2], [3], [4]]
 opt_out = raster_data_array[opt_bands_use, [pix_lat.T], [pix_long.T]] # Works, gives (3,165) array
 
