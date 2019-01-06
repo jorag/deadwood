@@ -15,6 +15,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
 #import sys # To append paths
 # My moduels
 from mytools import *
@@ -50,6 +51,8 @@ print(length(input_data.set_train)/165, length(input_data.set_test)/165, length(
 
 # Get all data
 all_data, all_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
+# Get SAR data
+sar_data, sar_labels = input_data.read_data_array(['quad_pol'], 'all') 
 
 # Normalize data - should probably be done when data is stored in object...
 print(np.max(all_data,axis=0))
@@ -73,7 +76,17 @@ neigh.fit(data_train, labels_train)
 # Score kNN
 print(neigh.score(data_test, labels_test)) 
 # Test kNN on test dataset
-prediction_result = neigh.predict(data_test) 
+prediction_result = neigh.predict(data_test)
+
+# Cross validate - All data
+knn_all = KNeighborsClassifier(n_neighbors=3)
+scores_all = cross_val_score(knn_all, all_data, all_labels, cv=5)
+print(scores_all) 
+
+# Cross validate - SAR data
+knn_sar = KNeighborsClassifier(n_neighbors=3)
+scores_sar = cross_val_score(knn_sar, sar_data, sar_labels, cv=5)
+print(scores_sar) 
 
 
 # Test Random Forest
