@@ -100,7 +100,7 @@ def geocoords2pix(lat_band, lon_band, lat='default', lon='default', pixels_out =
         # TODO - consider Haversine
         dists = np.linalg.norm(coord_band-coord_find, axis=2)
         # Find nearest coordinate (least distance)
-        nearest = np.argmin(dists)
+        nearest = np.nanargmin(dists)
         #print(lat_band[np.unravel_index(nearest, lat_band.shape)], lon_band[np.unravel_index(nearest, lon_band.shape)])
         
         # Get back the original array indice
