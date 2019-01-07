@@ -30,7 +30,10 @@ transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examin
 lai_threshold_live = 0.0125 # min Leaf Area Index to be assigned to Live class 
 
 # Set name of output object
-obj_out_name = "Pauli-B.pkl"
+dataset_use = 'Pauli-B'
+obj_out_name = dataset_use + '.pkl'
+sat_pathfile_name = dataset_use + '-path'
+
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
@@ -220,7 +223,7 @@ gps_id2 = [item[0] for item in gps_points]
 # Read satellite data
 try:
     # Read predefined file
-    with open(os.path.join(dirname, "data", "sat-data-path")) as infile:
+    with open(os.path.join(dirname, 'data', sat_pathfile_name)) as infile:
         sat_file = infile.readline().strip()
         logit('Read file: ' + sat_file, log_type = 'default')
     

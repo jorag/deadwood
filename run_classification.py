@@ -26,8 +26,10 @@ from dataclass import *
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
 # Name of input object and file with satellite data path string
-obj_in_name = 'Pauli-B.pkl'
-sat_pathfile_name = "sat-data-path"
+dataset_use = 'Pauli-B'
+obj_in_name = dataset_use + '.pkl'
+sat_pathfile_name = dataset_use + '-path'
+
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
@@ -57,16 +59,8 @@ sar_data, sar_labels = input_data.read_data_array(['quad_pol'], 'all')
 # Normalize data - should probably be done when data is stored in object...
 print(np.max(all_data,axis=0))
 
-
-X_train, X_test, y_train, y_test = train_test_split(all_data, all_labels, test_size=0.2, random_state=0)  
-
-# Get training data
-# TODO: Implement an 'all' option for modalities
-data_train, labels_train = input_data.read_data_array(['quad_pol', 'optical'], 'train') 
-
-# Get test data
-# TODO: Implement an 'all' option for modalities
-data_test, labels_test = input_data.read_data_array(['quad_pol', 'optical'], 'test') 
+# Split into training and test datasets
+data_train, data_test, labels_train, labels_test = train_test_split(all_data, all_labels, test_size=0.2, random_state=0)  
 
 # Create kNN classifier
 neigh = KNeighborsClassifier(n_neighbors=3)
