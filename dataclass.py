@@ -312,22 +312,10 @@ class DataModalities:
         # Loop over points in each set, and update set membership
         for i_point in set_use:
             data_array.append(self.data_points[i_point].read_data(modalities)) 
-            #data_array.append(np.asarray(self.data_points[i_point].read_data(modalities))) 
             label_array.append(self.data_points[i_point].label)
         
-        # Get number of points out
-        n_rows = length(data_array)
-        # Get number of modality values out
-        n_cols = length(data_array[0])
-        print(data_array)
-#        for i_modality in range(length(modalities)):
-#            print(data_array)
-            
-        # Squeeze numpy array to avoid singelton dimensions
-        # TODO: But how to assure order of bands... Loop over modalities?
+        # Convert to numpy array
         array_out = np.asarray(data_array)
-        print(array_out.shape)
-        #array_out = np.reshape(array_out, (array_out.shape[0], array_out.shape[1]*array_out.shape[2]))
         return array_out, label_array
         
     
@@ -410,7 +398,7 @@ class DataPoint:
         for key in modalities:
             # Check that key is a valid data modality (else add empty value??) 
             if key in self.modality_keys:  # Use .lower() for improved ruggedness
-                #data_out.append(getattr(self, key))
+                # Get values and add to list
                 data_add = getattr(self, key)
                 if not isinstance(data_add, list):
                     data_add = make_list(data_add)
