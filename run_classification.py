@@ -26,7 +26,7 @@ from dataclass import *
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
 # Name of input object and file with satellite data path string
-dataset_use = 'Pauli-B'
+dataset_use = 'vanZyl-B'
 obj_in_name = dataset_use + '.pkl'
 sat_pathfile_name = dataset_use + '-path'
 

@@ -30,7 +30,7 @@ transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examin
 lai_threshold_live = 0.0125 # min Leaf Area Index to be assigned to Live class 
 
 # Set name of output object
-dataset_use = 'Pauli-B'
+dataset_use = 'vanZyl-A'
 obj_out_name = dataset_use + '.pkl'
 sat_pathfile_name = dataset_use + '-path'
 
@@ -44,7 +44,7 @@ lon_band = 21 # 22-1
 
 # SAR bands: t11 = 11, t22 = 16, t33 = 19
 # NOTE: WHEN ALL BANDS ARE READ, PYTHON'S 0 BASED INDEXING MUST BE USED IN ARRAY
-sar_bands_use = [10, 15, 18]
+sar_bands_use = [10, 15, 18] # getattrb(dataset_use, 'sar_bands_use')
 sar_norm_type = 'global' # 'local'
 
 # OPT bands:
