@@ -26,7 +26,7 @@ from dataclass import *
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
 # Name of input object and file with satellite data path string
-dataset_use = 'vanZyl-B'
+dataset_use = 'vanZyl-A'
 obj_in_name = dataset_use + '.pkl'
 sat_pathfile_name = dataset_use + '-path'
 
@@ -130,6 +130,8 @@ sat_im = all_sat_bands[bands_use_single , :, : ]
 ## Reshape array to n_cols*n_rows rows with the channels as columns 
 sat_im_prediction, n_rows, n_cols = imtensor2array(sat_im)
 
+# NORMALIZE IMAGE - TODO: Change to 'local' both here and in get_sat_data??
+sat_im_prediction = norm01(sat_im_prediction, norm_type='global', log_type = 'print')
 
 # For colourbar: Get the list of unique class numbers  
 class_n_unique = np.unique(list(class_dict.values()))
@@ -151,6 +153,8 @@ fig = plt.figure()
 plt.imshow(sat_result_kNN.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
 plt.colorbar(ticks=np.unique(list(class_dict.values())) )
 plt.show()  # display it
+
+
 
 
 # RF image
