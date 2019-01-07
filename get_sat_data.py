@@ -37,18 +37,29 @@ sat_pathfile_name = dataset_use + '-path'
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
+# Load data bands dictionary object
+with open(os.path.join(dirname, 'data', 'band_dicts'), 'rb') as input:
+    sar_bands_dict, opt_bands_dict, geo_bands_dict = pickle.load(input)
+                          
 # PARAMETERS
 # Geo bands: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
-lat_band = 20 # 21-1
-lon_band = 21 # 22-1
+#lat_band = 20 # 21-1
+#lon_band = 21 # 22-1
+lat_band = geo_bands_dict[dataset_use]['lat']
+lon_band = geo_bands_dict[dataset_use]['lon']
 
 # SAR bands: t11 = 11, t22 = 16, t33 = 19
 # NOTE: WHEN ALL BANDS ARE READ, PYTHON'S 0 BASED INDEXING MUST BE USED IN ARRAY
-sar_bands_use = [10, 15, 18] # getattrb(dataset_use, 'sar_bands_use')
+#sar_bands_use = [10, 15, 18] # getattrb(dataset_use, 'sar_bands_use')
+sar_bands_use = sar_bands_dict[dataset_use]
 sar_norm_type = 'global' # 'local'
 
 # OPT bands:
-opt_bands_use = [2, 3, 4]
+opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
+opt_bands_use = []
+for key in opt_bands_include:
+    opt_bands_use.append(opt_bands_dict[dataset_use][key])
+
 opt_norm_type = 'global' # 'local'
 
     

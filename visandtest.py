@@ -40,7 +40,7 @@ def showimage(all_data, bands=[0,1,2]):
 
 
 def showallbands(dataset_array):
-    # Show all bands in GDAL image
+    # Show all bands in GDAL image array
     
     # Rearrage dimensions to x,y,channel format
     im_generate = np.transpose(dataset_array, (1,2,0))

@@ -9,6 +9,7 @@ Created on Mon Jan  7 12:43:21 2019
 """
 import numpy as np
 import pickle
+import os # Necessary for relative paths
 #import sys # To append paths
 # My moduels
 from mytools import *
@@ -26,11 +27,9 @@ lon_band = 21 # 22-1
 # SAR bands: t11 = 11, t22 = 16, t33 = 19
 # NOTE: WHEN ALL BANDS ARE READ, PYTHON'S 0 BASED INDEXING MUST BE USED IN ARRAY
 sar_bands_use = [10, 15, 18]
-sar_norm_type = 'global' # 'local'
 
-# OPT bands:
-opt_bands_use = [2, 3, 4]
-opt_norm_type = 'global' # 'local'
+
+
 
 # Initialize dictionaries
 sar_bands_dict = dict()
@@ -46,7 +45,7 @@ opt_bands_dict['vanZyl-A'] = dict(zip(['b02','b03','b04','b05','b06','b07','b08'
 
 
 # Add GEO bands
-geo_bands_dict['vanZyl-A'] = dict(zip(['lat', 'lon'], [14, 15]))
+geo_bands_dict['vanZyl-A'] = dict(zip(['lat', 'lon'], [38, 39]))
 
 # Save DataModalities object
 with open(os.path.join(dirname, 'data', 'band_dicts'), 'wb') as output:
