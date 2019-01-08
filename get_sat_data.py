@@ -30,7 +30,7 @@ transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examin
 lai_threshold_live = 0.0125 # min Leaf Area Index to be assigned to Live class 
 
 # Set name of output object
-dataset_use = 'vanZyl-B'
+dataset_use = 'vanZyl-C'
 obj_out_name = dataset_use + '.pkl'
 sat_pathfile_name = dataset_use + '-path'
 
@@ -258,7 +258,7 @@ raster_data_array = dataset.ReadAsArray()
 
 ## Intialize data object
 # TODO - add meta information here as kwargs, such as year, area, etc.
-all_data = DataModalities('Polmak-2017-B')
+all_data = DataModalities(dataset_use)
 # Add points
 all_data.add_points(name_veg, class_use, dataset_id = 'SAR-B', dataset_path = sat_file)
 # Add GPS points
