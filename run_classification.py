@@ -26,7 +26,7 @@ from dataclass import *
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
 # Name of input object and file with satellite data path string
-dataset_use = 'vanZyl-A'
+dataset_use = 'vanZyl-B'
 obj_in_name = dataset_use + '.pkl'
 sat_pathfile_name = dataset_use + '-path'
 
@@ -75,19 +75,21 @@ prediction_result = neigh.predict(data_test)
 # Cross validate - All data
 knn_all = KNeighborsClassifier(n_neighbors=3)
 scores_all = cross_val_score(knn_all, all_data, all_labels, cv=5)
+print('kNN OPT+SAR - ' + dataset_use + ' :')
 print(scores_all) 
 
 # Cross validate - SAR data
 knn_sar = KNeighborsClassifier(n_neighbors=3)
 scores_sar = cross_val_score(knn_sar, sar_data, sar_labels, cv=5)
+print('kNN SAR only - ' + dataset_use + ' :')
 print(scores_sar) 
 
 
 # Test Random Forest
-
 rf = RandomForestClassifier(n_estimators=20, random_state=0)  
 rf.fit(data_train, labels_train) 
 y_pred = rf.predict(data_test) 
+print('RF OPT+SAR - ' + dataset_use + ' :')
 print(rf.score(data_test, labels_test)) 
 
 
@@ -121,9 +123,7 @@ bands_use_single = []
 for key in input_data.modality_order: # .modality_bands.keys()
     # Get list of lists of bands
     bands_use_single += input_data.modality_bands[key]
-#    # Get single layer list
-#    for item in input_data.modality_bands[key]:
-#        bands_use_single.append(item[0])
+
 
 ## Predict class for entire satellite image
 sat_im = all_sat_bands[bands_use_single , :, : ]
@@ -152,9 +152,8 @@ sat_result_kNN = np.reshape(kNN_im_result, (n_rows, n_cols))
 fig = plt.figure()
 plt.imshow(sat_result_kNN.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
 plt.colorbar(ticks=np.unique(list(class_dict.values())) )
+plt.title('kNN result' + dataset_use)
 plt.show()  # display it
-
-
 
 
 # RF image
@@ -165,4 +164,5 @@ sat_result_rf = np.reshape(rf_im_result, (n_rows, n_cols))
 fig2 = plt.figure()
 plt.imshow(sat_result_rf.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
 plt.colorbar(ticks=np.unique(list(class_dict.values())) )
+plt.title('Random Forest result, '+dataset_use)
 plt.show()  # display it
