@@ -38,14 +38,16 @@ geo_bands_dict = dict()
 
 # Add SAR bands
 sar_bands_dict['vanZyl-A'] = [0, 1, 2]
+sar_bands_dict['vanZyl-B'] = [0, 1, 2]
 
 
 # Add OPT bands
 opt_bands_dict['vanZyl-A'] = dict(zip(['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12'], [3,4,5,6,7,8,9,10,11,12]))
-
+opt_bands_dict['vanZyl-B'] = dict(zip(['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12'], [3,4,5,6,7,8,9,10,11,12]))
 
 # Add GEO bands
 geo_bands_dict['vanZyl-A'] = dict(zip(['lat', 'lon'], [38, 39]))
+geo_bands_dict['vanZyl-B'] = dict(zip(['lat', 'lon'], [14, 15]))
 
 # Save DataModalities object
 with open(os.path.join(dirname, 'data', 'band_dicts'), 'wb') as output:
