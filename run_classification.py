@@ -25,126 +25,134 @@ from dataclass import *
 
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
-# Name of input object and file with satellite data path string
-dataset_use = 'vanZyl-B'
-obj_in_name = dataset_use + '.pkl'
-sat_pathfile_name = dataset_use + '-path'
+# List of datasets to process
+dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
-
+# Output files
 knn_file = 'cross_validation_knn.pkl'
 rf_file = 'cross_validation_rf.pkl'
                           
-# Read or create reult dicts - kNN
-try:
-    # Read predefined file
-    with open(os.path.join(dirname, 'data', knn_file )) as infile:
-        knn_cv_all, knn_cv_sar, knn_cv_opt = pickle.load(infile)
-except:
-    knn_cv_all = dict(); knn_cv_sar = dict(); knn_cv_opt = dict()
+# Loop through all satellite images
+for dataset_use in dataset_list:
     
-# Read or create reult dicts - Random Forest
-try:
-    # Read predefined file
-    with open(os.path.join(dirname, 'data', rf_file )) as infile:
-        rf_cv_all, rf_cv_sar, rf_cv_opt = pickle.load(infile)
-except:
-    rf_cv_all = dict(); rf_cv_sar = dict(); rf_cv_opt = dict()
-
-# Load DataModalities object
-with open(os.path.join(dirname, "data", obj_in_name), 'rb') as input:
-    input_data = pickle.load(input)
+    # Name of input object and file with satellite data path string
+    #dataset_use = 'vanZyl-B'
+    obj_in_name = dataset_use + '.pkl'
+    sat_pathfile_name = dataset_use + '-path'
     
-
-# TRAIN AND CROSS-VALIDATE
-
-# Set class labels for dictionary - TODO: Consider moving this to get_stat_data
-class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
-
-# Get labels and class_dict (in case None is input, one is created)
-labels, class_dict = input_data.assign_labels(class_dict=class_dict_in)
-
-
-# Split into training, validation, and test sets
-#input_data.split(split_type = 'weighted', train_pct = 0.9, test_pct = 0.1, val_pct = 0.0)
-#print(length(input_data.set_train)/165, length(input_data.set_test)/165, length(input_data.set_val)/165)
-
-# Get all data
-all_data, all_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
-# Get SAR data
-sar_data, sar_labels = input_data.read_data_array(['quad_pol'], 'all') 
-# Get OPT data
-opt_data, opt_labels = input_data.read_data_array(['optical'], 'all') 
-
-# Normalize data - should probably be done when data is stored in object...
-print(np.max(all_data,axis=0))
-
-# Split into training and test datasets
-data_train, data_test, labels_train, labels_test = train_test_split(all_data, all_labels, test_size=0.2, random_state=0)  
-
-# Create kNN classifier
-neigh = KNeighborsClassifier(n_neighbors=3)
-# Fit kNN
-neigh.fit(data_train, labels_train) 
-
-# Score kNN
-print(neigh.score(data_test, labels_test)) 
-# Test kNN on test dataset
-prediction_result = neigh.predict(data_test)
-
-# Cross validate - kNN - All data
-knn_all = KNeighborsClassifier(n_neighbors=3)
-knn_scores_all = cross_val_score(knn_all, all_data, all_labels, cv=5)
-# Add to output dict
-knn_cv_all[dataset_use] = knn_scores_all
-print('kNN OPT+SAR - ' + dataset_use + ' :')
-print(knn_scores_all) 
-
-# Cross validate - kNN - SAR data
-knn_sar = KNeighborsClassifier(n_neighbors=3)
-knn_scores_sar = cross_val_score(knn_sar, sar_data, sar_labels, cv=5)
-# Add to output dict
-knn_cv_sar[dataset_use] = knn_scores_sar
-print('kNN SAR only - ' + dataset_use + ' :')
-print(knn_scores_sar)
-
-# Cross validate - kNN - OPT data
-knn_opt = KNeighborsClassifier(n_neighbors=3)
-knn_scores_opt = cross_val_score(knn_opt, opt_data, opt_labels, cv=5)
-# Add to output dict
-knn_cv_opt[dataset_use] = knn_scores_opt
-print('kNN opt only - ' + dataset_use + ' :')
-print(knn_scores_opt) 
-
-
-# Cross validate - Random Forest - All data
-rf_all = RandomForestClassifier(n_estimators=20, random_state=0)
-rf_scores_all = cross_val_score(rf_all, all_data, all_labels, cv=5)
-# Add to output dict
-rf_cv_all[dataset_use] = rf_scores_all
-print('RF OPT+SAR - ' + dataset_use + ' :')
-print(rf_scores_all) 
-
-# Cross validate - Random Forest - SAR data
-rf_sar = RandomForestClassifier(n_estimators=20, random_state=0)
-rf_scores_sar = cross_val_score(rf_sar, sar_data, sar_labels, cv=5)
-# Add to output dict
-rf_cv_sar[dataset_use] = rf_scores_sar
-print('RF OPT+SAR - ' + dataset_use + ' :')
-print(rf_scores_sar)
-
-# Cross validate - Random Forest - OPT data
-rf_opt = RandomForestClassifier(n_estimators=20, random_state=0)
-rf_scores_opt = cross_val_score(rf_opt, opt_data, opt_labels, cv=5)
-# Add to output dict
-rf_cv_opt[dataset_use] = rf_scores_opt
-print('RF OPT - ' + dataset_use + ' :')
-print(rf_scores_opt)         
-
-
-rf_all.fit(data_train, labels_train) 
-y_pred = rf_all.predict(data_test) 
+    
+                              
+    # Read or create reult dicts - kNN
+    try:
+        # Read predefined file
+        with open(os.path.join(dirname, 'data', knn_file )) as infile:
+            knn_cv_all, knn_cv_sar, knn_cv_opt = pickle.load(infile)
+    except:
+        knn_cv_all = dict(); knn_cv_sar = dict(); knn_cv_opt = dict()
+        
+    # Read or create reult dicts - Random Forest
+    try:
+        # Read predefined file
+        with open(os.path.join(dirname, 'data', rf_file )) as infile:
+            rf_cv_all, rf_cv_sar, rf_cv_opt = pickle.load(infile)
+    except:
+        rf_cv_all = dict(); rf_cv_sar = dict(); rf_cv_opt = dict()
+    
+    # Load DataModalities object
+    with open(os.path.join(dirname, "data", obj_in_name), 'rb') as input:
+        input_data = pickle.load(input)
+        
+    
+    # TRAIN AND CROSS-VALIDATE
+    
+    # Set class labels for dictionary - TODO: Consider moving this to get_stat_data
+    class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
+    
+    # Get labels and class_dict (in case None is input, one is created)
+    labels, class_dict = input_data.assign_labels(class_dict=class_dict_in)
+    
+    
+    # Split into training, validation, and test sets
+    #input_data.split(split_type = 'weighted', train_pct = 0.9, test_pct = 0.1, val_pct = 0.0)
+    #print(length(input_data.set_train)/165, length(input_data.set_test)/165, length(input_data.set_val)/165)
+    
+    # Get all data
+    all_data, all_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
+    # Get SAR data
+    sar_data, sar_labels = input_data.read_data_array(['quad_pol'], 'all') 
+    # Get OPT data
+    opt_data, opt_labels = input_data.read_data_array(['optical'], 'all') 
+    
+    # Normalize data - should probably be done when data is stored in object...
+    print(np.max(all_data,axis=0))
+    
+    # Split into training and test datasets
+    data_train, data_test, labels_train, labels_test = train_test_split(all_data, all_labels, test_size=0.2, random_state=0)  
+    
+    # Create kNN classifier
+    neigh = KNeighborsClassifier(n_neighbors=3)
+    # Fit kNN
+    neigh.fit(data_train, labels_train) 
+    
+    # Score kNN
+    print(neigh.score(data_test, labels_test)) 
+    # Test kNN on test dataset
+    prediction_result = neigh.predict(data_test)
+    
+    # Cross validate - kNN - All data
+    knn_all = KNeighborsClassifier(n_neighbors=3)
+    knn_scores_all = cross_val_score(knn_all, all_data, all_labels, cv=5)
+    # Add to output dict
+    knn_cv_all[dataset_use] = knn_scores_all
+    print('kNN OPT+SAR - ' + dataset_use + ' :')
+    print(knn_scores_all) 
+    
+    # Cross validate - kNN - SAR data
+    knn_sar = KNeighborsClassifier(n_neighbors=3)
+    knn_scores_sar = cross_val_score(knn_sar, sar_data, sar_labels, cv=5)
+    # Add to output dict
+    knn_cv_sar[dataset_use] = knn_scores_sar
+    print('kNN SAR only - ' + dataset_use + ' :')
+    print(knn_scores_sar)
+    
+    # Cross validate - kNN - OPT data
+    knn_opt = KNeighborsClassifier(n_neighbors=3)
+    knn_scores_opt = cross_val_score(knn_opt, opt_data, opt_labels, cv=5)
+    # Add to output dict
+    knn_cv_opt[dataset_use] = knn_scores_opt
+    print('kNN opt only - ' + dataset_use + ' :')
+    print(knn_scores_opt) 
+    
+    
+    # Cross validate - Random Forest - All data
+    rf_all = RandomForestClassifier(n_estimators=20, random_state=0)
+    rf_scores_all = cross_val_score(rf_all, all_data, all_labels, cv=5)
+    # Add to output dict
+    rf_cv_all[dataset_use] = rf_scores_all
+    print('RF OPT+SAR - ' + dataset_use + ' :')
+    print(rf_scores_all) 
+    
+    # Cross validate - Random Forest - SAR data
+    rf_sar = RandomForestClassifier(n_estimators=20, random_state=0)
+    rf_scores_sar = cross_val_score(rf_sar, sar_data, sar_labels, cv=5)
+    # Add to output dict
+    rf_cv_sar[dataset_use] = rf_scores_sar
+    print('RF OPT+SAR - ' + dataset_use + ' :')
+    print(rf_scores_sar)
+    
+    # Cross validate - Random Forest - OPT data
+    rf_opt = RandomForestClassifier(n_estimators=20, random_state=0)
+    rf_scores_opt = cross_val_score(rf_opt, opt_data, opt_labels, cv=5)
+    # Add to output dict
+    rf_cv_opt[dataset_use] = rf_scores_opt
+    print('RF OPT - ' + dataset_use + ' :')
+    print(rf_scores_opt)         
+    
+    
+    rf_all.fit(data_train, labels_train) 
+    y_pred = rf_all.predict(data_test) 
 
 
 # SAVE RESULTS
