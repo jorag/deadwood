@@ -15,17 +15,8 @@ import os # Necessary for relative paths
 from mytools import *
 
 
-
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
-
-# PARAMETERS
-# Geo bands: A lat = 45, lon = 46. Dataset B & C: lat = 21, lon = 22
-lat_band = 20 # 21-1
-lon_band = 21 # 22-1
-
-
-
 
 # Initialize dictionaries
 sar_bands_dict = dict()

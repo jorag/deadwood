@@ -33,6 +33,25 @@ sat_pathfile_name = dataset_use + '-path'
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
+knn_file = 'cross_validation_knn.pkl'
+rf_file = 'cross_validation_rf.pkl'
+                          
+# Read or create reult dicts - kNN
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, 'data', knn_file )) as infile:
+        knn_cv_all, knn_cv_sar, knn_cv_opt = pickle.load(infile)
+except:
+    knn_cv_all = dict(); knn_cv_sar = dict(); knn_cv_opt = dict()
+    
+# Read or create reult dicts - Random Forest
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, 'data', rf_file )) as infile:
+        rf_cv_all, rf_cv_sar, rf_cv_opt = pickle.load(infile)
+except:
+    rf_cv_all = dict(); rf_cv_sar = dict(); rf_cv_opt = dict()
+
 # Load DataModalities object
 with open(os.path.join(dirname, "data", obj_in_name), 'rb') as input:
     input_data = pickle.load(input)
@@ -74,24 +93,39 @@ prediction_result = neigh.predict(data_test)
 
 # Cross validate - All data
 knn_all = KNeighborsClassifier(n_neighbors=3)
-scores_all = cross_val_score(knn_all, all_data, all_labels, cv=5)
+knn_scores_all = cross_val_score(knn_all, all_data, all_labels, cv=5)
+# Add to output dict
+knn_cv_all[dataset_use] = knn_scores_all
 print('kNN OPT+SAR - ' + dataset_use + ' :')
-print(scores_all) 
+print(knn_scores_all) 
 
 # Cross validate - SAR data
 knn_sar = KNeighborsClassifier(n_neighbors=3)
-scores_sar = cross_val_score(knn_sar, sar_data, sar_labels, cv=5)
+knn_scores_sar = cross_val_score(knn_sar, sar_data, sar_labels, cv=5)
+# Add to output dict
+knn_cv_sar[dataset_use] = knn_scores_sar
 print('kNN SAR only - ' + dataset_use + ' :')
-print(scores_sar) 
+print(knn_scores_sar) 
 
 
 # Test Random Forest
-rf = RandomForestClassifier(n_estimators=20, random_state=0)  
-rf.fit(data_train, labels_train) 
-y_pred = rf.predict(data_test) 
-print('RF OPT+SAR - ' + dataset_use + ' :')
-print(rf.score(data_test, labels_test)) 
+rf_all = RandomForestClassifier(n_estimators=20, random_state=0)
+rf_scores_all = cross_val_score(rf_all, all_data, all_labels, cv=5)
+# Add to output dict
+rf_cv_all[dataset_use] = rf_scores_all
+rf_all.fit(data_train, labels_train) 
+y_pred = rf_all.predict(data_test) 
 
+print('RF OPT+SAR - ' + dataset_use + ' :')
+print(rf_scores_all) 
+
+
+# SAVE RESULTS
+with open(os.path.join(dirname, 'data', knn_file), 'wb') as output:
+    pickle.dump([knn_cv_all, knn_cv_sar, knn_cv_opt], output, pickle.HIGHEST_PROTOCOL)
+
+with open(os.path.join(dirname, 'data', rf_file), 'wb') as output:
+    pickle.dump([rf_cv_all, rf_cv_sar, rf_cv_opt], output, pickle.HIGHEST_PROTOCOL)
 
 # TEST ON COMPLETE IMAGE
 
@@ -157,7 +191,7 @@ plt.show()  # display it
 
 
 # RF image
-rf_im_result = rf.predict(sat_im_prediction)
+rf_im_result = rf_all.predict(sat_im_prediction)
 # Reshape to original input size
 sat_result_rf = np.reshape(rf_im_result, (n_rows, n_cols))
 
