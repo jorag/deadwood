@@ -93,7 +93,7 @@ print(neigh.score(data_test, labels_test))
 # Test kNN on test dataset
 prediction_result = neigh.predict(data_test)
 
-# Cross validate - All data
+# Cross validate - kNN - All data
 knn_all = KNeighborsClassifier(n_neighbors=3)
 knn_scores_all = cross_val_score(knn_all, all_data, all_labels, cv=5)
 # Add to output dict
@@ -101,7 +101,7 @@ knn_cv_all[dataset_use] = knn_scores_all
 print('kNN OPT+SAR - ' + dataset_use + ' :')
 print(knn_scores_all) 
 
-# Cross validate - SAR data
+# Cross validate - kNN - SAR data
 knn_sar = KNeighborsClassifier(n_neighbors=3)
 knn_scores_sar = cross_val_score(knn_sar, sar_data, sar_labels, cv=5)
 # Add to output dict
@@ -109,7 +109,7 @@ knn_cv_sar[dataset_use] = knn_scores_sar
 print('kNN SAR only - ' + dataset_use + ' :')
 print(knn_scores_sar)
 
-# Cross validate - OPT data
+# Cross validate - kNN - OPT data
 knn_opt = KNeighborsClassifier(n_neighbors=3)
 knn_scores_opt = cross_val_score(knn_opt, opt_data, opt_labels, cv=5)
 # Add to output dict
@@ -118,14 +118,29 @@ print('kNN opt only - ' + dataset_use + ' :')
 print(knn_scores_opt) 
 
 
-# Test Random Forest
+# Cross validate - Random Forest - All data
 rf_all = RandomForestClassifier(n_estimators=20, random_state=0)
 rf_scores_all = cross_val_score(rf_all, all_data, all_labels, cv=5)
 # Add to output dict
 rf_cv_all[dataset_use] = rf_scores_all
 print('RF OPT+SAR - ' + dataset_use + ' :')
 print(rf_scores_all) 
-         
+
+# Cross validate - Random Forest - SAR data
+rf_sar = RandomForestClassifier(n_estimators=20, random_state=0)
+rf_scores_sar = cross_val_score(rf_sar, sar_data, sar_labels, cv=5)
+# Add to output dict
+rf_cv_sar[dataset_use] = rf_scores_sar
+print('RF OPT+SAR - ' + dataset_use + ' :')
+print(rf_scores_sar)
+
+# Cross validate - Random Forest - OPT data
+rf_opt = RandomForestClassifier(n_estimators=20, random_state=0)
+rf_scores_opt = cross_val_score(rf_opt, opt_data, opt_labels, cv=5)
+# Add to output dict
+rf_cv_opt[dataset_use] = rf_scores_opt
+print('RF OPT - ' + dataset_use + ' :')
+print(rf_scores_opt)         
 
 
 rf_all.fit(data_train, labels_train) 
