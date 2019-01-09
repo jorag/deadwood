@@ -126,11 +126,10 @@ rf_cv_all[dataset_use] = rf_scores_all
 print('RF OPT+SAR - ' + dataset_use + ' :')
 print(rf_scores_all) 
          
-         
+
+
 rf_all.fit(data_train, labels_train) 
 y_pred = rf_all.predict(data_test) 
-
-
 
 
 # SAVE RESULTS
