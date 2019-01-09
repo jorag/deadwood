@@ -20,7 +20,9 @@ from geopixpos import *
 from visandtest import *
 from dataclass import *
 
-# Get data for classification (LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER)
+# List of datasets to process
+dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
+
 
 # Ground truth info - TODO: Store this info and parameters in object!!
 transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examined)
@@ -28,6 +30,17 @@ transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examin
 # Processing parameters - minimum of X * 100 m^2 LAI to be in 'Live' class
 # TODO: NEED TO ADJUST THESE THRESHOLDS AFTER DISCUSSION WITH ECOLOGISTS/EXPERTS
 lai_threshold_live = 0.0125 # min Leaf Area Index to be assigned to Live class 
+
+# Normalization
+opt_norm_type = 'global' # 'local'
+sar_norm_type = 'global' # 'local'
+
+# Which Sentinel-2 bands to use
+opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
+
+#for dataset_use in dataset_list:
+
+# Get data for classification (LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER)
 
 # Set name of output object
 dataset_use = 'Coh-C'
@@ -48,13 +61,9 @@ lon_band = geo_bands_dict[dataset_use]['lon']
 # SAR bands
 sar_bands_use = sar_bands_dict[dataset_use]
 # OPT bands
-opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
 opt_bands_use = []
 for key in opt_bands_include:
     opt_bands_use.append(opt_bands_dict[dataset_use][key])
-# Normalization
-opt_norm_type = 'global' # 'local'
-sar_norm_type = 'global' # 'local'
 
     
 # Read Excel file with vegetation types
@@ -79,7 +88,6 @@ point_info = []
 class_veg = []
 name_veg = []
 for i_sheet in range(1,7):
-    print(i_sheet)
     # Get pandas dataframe
     df = pd.read_excel(xls_veg, str(i_sheet))
     point_id = list(df['GPSwaypoint'])
@@ -153,7 +161,6 @@ n_trees = [1]
 prev_id = 'dummy'
 # Go through all sheets in Excel file with tree data
 for i_sheet in range(1,7):
-    print(i_sheet)
     # Get pandas dataframe
     df = pd.read_excel(xls_tree, str(i_sheet))
     point_id = list(df['ID']) # Country
@@ -301,16 +308,14 @@ kw_opt = dict([['bands_use', opt_bands_use]])
 # Add OPT modality
 all_data.add_modality(gps_id, 'optical', opt_pixels.tolist(), **kw_opt)
 
-
 ## Print points
 #all_data.print_points()
 
 # Set class labels for dictionary
-class_dict = None
-labels = all_data.assign_labels(class_dict=class_dict)
-
+#class_dict = None
+#labels = all_data.assign_labels(class_dict=class_dict)
 # Split into training, validation, and test sets
-all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.3, val_pct = 0.0)
+#all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.3, val_pct = 0.0)
 
 # Save DataModalities object
 with open(os.path.join(dirname, "data", obj_out_name), 'wb') as output:
