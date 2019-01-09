@@ -29,8 +29,8 @@ sar_bands_dict['vanZyl-B'] = [0, 1, 2]
 sar_bands_dict['vanZyl-C'] = [0, 1, 2]
 # SAR bands: t11 = 11, t22 = 16, t33 = 19
 # NOTE: WHEN ALL BANDS ARE READ, PYTHON'S 0 BASED INDEXING MUST BE USED IN ARRAY
-sar_bands_dict['Coh-A'] = [34, 39, 42] # [34,35,36,37,38,39,40,41,42]
-sar_bands_dict['Coh-B'] = [10, 15, 18] # [10,11,12,13,14,15,16,17,18]
+sar_bands_dict['Coh-A'] = [34,35,36,37,38,39,40,41,42] # [34, 39, 42] # 
+sar_bands_dict['Coh-B'] = [10,11,12,13,14,15,16,17,18] # [10, 15, 18] # 
 sar_bands_dict['Coh-C'] = [10,11,12,13,14,15,16,17,18] # [10, 15, 18] # 
 
 # List of optical band names (added zero for correct alphabetical sorting)

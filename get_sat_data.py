@@ -33,12 +33,15 @@ transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examin
 lai_threshold_live = 0.0125 # min Leaf Area Index to be assigned to Live class 
 
 # Normalization
-opt_norm_type = 'global' # 'local'
-sar_norm_type = 'global' # 'local'
+opt_norm_type = 'local' # 'global' # 
+sar_norm_type = 'local' # 'global' # 
 
 # Which Sentinel-2 bands to use
 opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
 
+    
+# Path to working directory 
+dirname = os.path.realpath('.') # For parent directory use '..'
 
 # READ GROUND TRUTH DATA FILES
 # Read Excel file with vegetation types
@@ -214,9 +217,6 @@ for dataset_use in dataset_list:
     #dataset_use = 'Coh-C'
     obj_out_name = dataset_use + '.pkl'
     sat_pathfile_name = dataset_use + '-path'
-    
-    # Path to working directory 
-    dirname = os.path.realpath('.') # For parent directory use '..'
     
     # Load data bands dictionary object
     with open(os.path.join(dirname, 'data', 'band_dicts'), 'rb') as input:
