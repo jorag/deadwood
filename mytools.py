@@ -142,7 +142,10 @@ def norm01(input_array, norm_type='global', min_cap=None, max_cap=None, min_cap_
         input_array[input_array > max_cap] = max_cap_value
     
     # Normalize data for selected normalization option
-    if norm_type.lower() in ['global', 'all', 'set']:
+    if norm_type.lower() in ['none']:
+        # Return input (might print min, max, and min)
+        output_array = input_array
+    elif norm_type.lower() in ['global', 'all', 'set']:
         # Normalize to 0-1 (globally)
         output_array = input_array - np.nanmin(input_array)
         output_array = output_array/np.nanmax(output_array)
