@@ -59,7 +59,7 @@ with open(os.path.join(dirname, "data", obj_in_name), 'rb') as input:
 
 # TRAIN AND CROSS-VALIDATE
 
-# Set class labels for dictionary
+# Set class labels for dictionary - TODO: Consider moving this to get_stat_data
 class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 
 # Get labels and class_dict (in case None is input, one is created)
@@ -67,13 +67,15 @@ labels, class_dict = input_data.assign_labels(class_dict=class_dict_in)
 
 
 # Split into training, validation, and test sets
-input_data.split(split_type = 'weighted', train_pct = 0.9, test_pct = 0.1, val_pct = 0.0)
-print(length(input_data.set_train)/165, length(input_data.set_test)/165, length(input_data.set_val)/165)
+#input_data.split(split_type = 'weighted', train_pct = 0.9, test_pct = 0.1, val_pct = 0.0)
+#print(length(input_data.set_train)/165, length(input_data.set_test)/165, length(input_data.set_val)/165)
 
 # Get all data
 all_data, all_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
 # Get SAR data
 sar_data, sar_labels = input_data.read_data_array(['quad_pol'], 'all') 
+# Get OPT data
+opt_data, opt_labels = input_data.read_data_array(['optical'], 'all') 
 
 # Normalize data - should probably be done when data is stored in object...
 print(np.max(all_data,axis=0))
@@ -105,7 +107,15 @@ knn_scores_sar = cross_val_score(knn_sar, sar_data, sar_labels, cv=5)
 # Add to output dict
 knn_cv_sar[dataset_use] = knn_scores_sar
 print('kNN SAR only - ' + dataset_use + ' :')
-print(knn_scores_sar) 
+print(knn_scores_sar)
+
+# Cross validate - OPT data
+knn_opt = KNeighborsClassifier(n_neighbors=3)
+knn_scores_opt = cross_val_score(knn_opt, opt_data, opt_labels, cv=5)
+# Add to output dict
+knn_cv_opt[dataset_use] = knn_scores_opt
+print('kNN opt only - ' + dataset_use + ' :')
+print(knn_scores_opt) 
 
 
 # Test Random Forest
@@ -113,11 +123,14 @@ rf_all = RandomForestClassifier(n_estimators=20, random_state=0)
 rf_scores_all = cross_val_score(rf_all, all_data, all_labels, cv=5)
 # Add to output dict
 rf_cv_all[dataset_use] = rf_scores_all
+print('RF OPT+SAR - ' + dataset_use + ' :')
+print(rf_scores_all) 
+         
+         
 rf_all.fit(data_train, labels_train) 
 y_pred = rf_all.predict(data_test) 
 
-print('RF OPT+SAR - ' + dataset_use + ' :')
-print(rf_scores_all) 
+
 
 
 # SAVE RESULTS
