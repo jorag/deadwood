@@ -24,6 +24,7 @@ from dataclass import *
 dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 
 
+# PARAMETERS
 # Ground truth info - TODO: Store this info and parameters in object!!
 transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examined)
 
@@ -38,10 +39,176 @@ sar_norm_type = 'global' # 'local'
 # Which Sentinel-2 bands to use
 opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
 
+
+# READ GROUND TRUTH DATA FILES
+# Read Excel file with vegetation types
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, "data", "vegetation-data-path")) as infile:
+        veg_file = infile.readline().strip()
+        logit('Read file: ' + veg_file, log_type = 'default')
+    
+    # Load data
+    xls_veg = pd.ExcelFile(veg_file)
+except:      
+    logit('Error, promt user for file.', log_type = 'default')
+    # Predefined file failed for some reason, promt user
+    root = tkinter.Tk() # GUI for file selection
+    root.withdraw()
+    veg_file = tkinter.filedialog.askopenfilename(title='Select input .csv/.xls(x) file')
+    xls_veg = pd.ExcelFile(veg_file)
+
+# Go through all sheets in Excel file for vegetation
+point_info = []
+class_veg = []
+name_veg = []
+for i_sheet in range(1,7):
+    # Get pandas dataframe
+    df = pd.read_excel(xls_veg, str(i_sheet))
+    point_id = list(df['GPSwaypoint'])
+    # Go through the list of points
+    for id in point_id:
+        name_veg.append(id) # Point name, e.g. 'N_6_159'
+        class_veg.append(df['LCT1_2017'][point_id.index(id)]) # Terrain type, e.g. 'Forest'
+
+
+# Read .gpx file with coordinates of transect points
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, "data", "gps-data-path")) as infile:
+        gps_file = infile.readline().strip()
+        logit('Read file: ' + gps_file, log_type = 'default')
+    
+    # Load data
+    tree = ET.parse(gps_file)
+except:      
+    logit('Error, promt user for file.', log_type = 'default')
+    # Predefined file failed for some reason, promt user
+    root = tkinter.Tk() # GUI for file selection
+    root.withdraw()
+    gps_file = tkinter.filedialog.askopenfilename(title='Select input .gpx file')
+    # Load data
+    tree = ET.parse(gps_file)
+
+# Get lat and long
+pos_array = []
+for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
+    lon, lat = elem.attrib['lon'], elem.attrib['lat']
+    pos_array.append((float(lat), float(lon)))
+# Get name of waypoints
+gps_id = []
+for elem in tree.findall("//{http://www.topografix.com/GPX/1/1}name"):
+    gps_id.append(elem.text)
+
+
+# Read Excel file with tree data
+try:
+    # Read predefined tree data file
+    with open(os.path.join(dirname, "data", "tree-data-path")) as infile:
+        tree_file = infile.readline().strip()
+        logit('Read file: ' + tree_file, log_type = 'default')
+    
+    # Load data
+    xls_tree = pd.ExcelFile(tree_file)
+except:      
+    logit('Error, promt user for file.', log_type = 'default')
+    # Predefined file failed for some reason, promt user
+    root = tkinter.Tk() # GUI for file selection
+    root.withdraw()
+    tree_file = tkinter.filedialog.askopenfilename(title='Select input .csv/.xls(x) file')
+    xls_tree = pd.ExcelFile(tree_file)
+
+
+# Store class as dict with GPSwaypoint as ID
+class_dict = dict(zip(gps_id, class_veg))
+
+# Read tree data
+# Initialize output lists and temporary variables
+point_info = []
+class_tree = []
+name_tree = []
+lai_point = []
+dai_point = [] # "Defoliated" Area Index (tree crown area without leaves)
+n_stems_live = []
+n_stems_dead = []
+max_stem_thick = []
+avg_tree_height = [0]
+n_trees = [1]
+prev_id = 'dummy'
+# Go through all sheets in Excel file with tree data
+for i_sheet in range(1,7):
+    # Get pandas dataframe
+    df = pd.read_excel(xls_tree, str(i_sheet))
+    point_id = list(df['ID']) # Country
+    # Go through the list of points
+    for row in df.itertuples(index=True, name='Pandas'):
+        # Get ID of current point 
+        curr_id = str(row.Country) + '_' + str(row.Transect) + '_'  + str(row.ID)
+        # Check if the current tree is in a new transect point
+        if curr_id != prev_id:
+            prev_id = curr_id
+            # Add waypoint name to list of IDs
+            name_tree.append(curr_id)
+            # Calculate average tree height
+            avg_tree_height[-1] = avg_tree_height[-1]/n_trees[-1]
+            # Add new LAI to list
+            lai_point.append(0)
+            # Add new "DAI" to list
+            dai_point.append(0)
+            # Add new Stems_Live to list
+            n_stems_live.append(0)
+            # Add new Stems_Dead to list
+            n_stems_dead.append(0)
+            # Add new maximum stem thickness
+            max_stem_thick.append(0)
+            # Add new average tree height
+            avg_tree_height.append(0)
+            # Add new tree count
+            n_trees.append(0)
+        
+        # Add area of crown (based on DIAMETERS in m) to last point (ellipse*fraction_live)/total_point_area
+        lai_point[-1] += (np.pi/4*row.Crowndiam1*row.Crowndiam2*row.CrownPropLive/100)/transect_point_area
+        # Add area of defoliated crown (DIAMETERS in m) to last point (ellipse*fraction_dead)/total_point_area
+        dai_point[-1] += (np.pi/4*row.Crowndiam1*row.Crowndiam2*(100-row.CrownPropLive)/100)/transect_point_area
+        # Update number of live stems
+        n_stems_live[-1] += row.Stems_Live
+        # Update number of dead stems
+        n_stems_dead[-1] += row.Stems_Dead
+        # Maximum stem thickness
+        max_stem_thick[-1] = np.nanmax([max_stem_thick[-1], row.Stemdiam1, row.Stemdiam2, row.Stemdiam3])
+        # Update number of trees count
+        n_trees[-1] += 1
+        # Sum tree height (divide by final tree count later)
+        avg_tree_height[-1] += row.Treeheight
+
+# Remove first (dummy) elements used to avoid throw-away counting variables
+n_trees.pop(0)
+avg_tree_height.pop(0)
+
+# Sort into healthy and defoliated forest
+# TODO: NEED TO ADJUST THESE RULES AFTER DISCUSSION WITH ECOLOGISTS/EXPERTS
+for i_point in range(length(name_tree)):
+    # Check if Leaf Area Index is greater than threshold
+    if lai_point[i_point] > lai_threshold_live:
+        class_dict[name_tree[i_point]] = 'Live'
+    else:
+        class_dict[name_tree[i_point]] = 'Defoliated'
+
+# Return original order of points
+class_use = [class_dict[x] for x in gps_id]
+
+
+# Merge transect waypoint names and positions
+gps_points = list(zip(gps_id, pos_array))
+# Convert to numpy array
+#pos_array2 = np.asarray(pos_array)
+pos_array2 = np.asarray([item[1] for item in gps_points])
+gps_id2 = [item[0] for item in gps_points]
+
+
+# ADD SATELLITE DATA
 # Loop through all satellite images
 for dataset_use in dataset_list:
-    
-    # Get data for classification (LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER)
     
     # Set name of output object
     #dataset_use = 'Coh-C'
@@ -55,7 +222,6 @@ for dataset_use in dataset_list:
     with open(os.path.join(dirname, 'data', 'band_dicts'), 'rb') as input:
         sar_bands_dict, opt_bands_dict, geo_bands_dict = pickle.load(input)
                               
-    # PARAMETERS
     # Geo bands
     lat_band = geo_bands_dict[dataset_use]['lat']
     lon_band = geo_bands_dict[dataset_use]['lon']
@@ -65,173 +231,6 @@ for dataset_use in dataset_list:
     opt_bands_use = []
     for key in opt_bands_include:
         opt_bands_use.append(opt_bands_dict[dataset_use][key])
-    
-        
-    # Read Excel file with vegetation types
-    try:
-        # Read predefined file
-        with open(os.path.join(dirname, "data", "vegetation-data-path")) as infile:
-            veg_file = infile.readline().strip()
-            logit('Read file: ' + veg_file, log_type = 'default')
-        
-        # Load data
-        xls_veg = pd.ExcelFile(veg_file)
-    except:      
-        logit('Error, promt user for file.', log_type = 'default')
-        # Predefined file failed for some reason, promt user
-        root = tkinter.Tk() # GUI for file selection
-        root.withdraw()
-        veg_file = tkinter.filedialog.askopenfilename(title='Select input .csv/.xls(x) file')
-        xls_veg = pd.ExcelFile(veg_file)
-    
-    # Go through all sheets in Excel file for vegetation
-    point_info = []
-    class_veg = []
-    name_veg = []
-    for i_sheet in range(1,7):
-        # Get pandas dataframe
-        df = pd.read_excel(xls_veg, str(i_sheet))
-        point_id = list(df['GPSwaypoint'])
-        # Go through the list of points
-        for id in point_id:
-            name_veg.append(id) # Point name, e.g. 'N_6_159'
-            class_veg.append(df['LCT1_2017'][point_id.index(id)]) # Terrain type, e.g. 'Forest'
-    
-    
-    # Read .gpx file with coordinates of transect points
-    try:
-        # Read predefined file
-        with open(os.path.join(dirname, "data", "gps-data-path")) as infile:
-            gps_file = infile.readline().strip()
-            logit('Read file: ' + gps_file, log_type = 'default')
-        
-        # Load data
-        tree = ET.parse(gps_file)
-    except:      
-        logit('Error, promt user for file.', log_type = 'default')
-        # Predefined file failed for some reason, promt user
-        root = tkinter.Tk() # GUI for file selection
-        root.withdraw()
-        gps_file = tkinter.filedialog.askopenfilename(title='Select input .gpx file')
-        # Load data
-        tree = ET.parse(gps_file)
-    
-    # Get lat and long
-    pos_array = []
-    for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
-        lon, lat = elem.attrib['lon'], elem.attrib['lat']
-        pos_array.append((float(lat), float(lon)))
-    # Get name of waypoints
-    gps_id = []
-    for elem in tree.findall("//{http://www.topografix.com/GPX/1/1}name"):
-        gps_id.append(elem.text)
-    
-    
-    # Read Excel file with tree data
-    try:
-        # Read predefined tree data file
-        with open(os.path.join(dirname, "data", "tree-data-path")) as infile:
-            tree_file = infile.readline().strip()
-            logit('Read file: ' + tree_file, log_type = 'default')
-        
-        # Load data
-        xls_tree = pd.ExcelFile(tree_file)
-    except:      
-        logit('Error, promt user for file.', log_type = 'default')
-        # Predefined file failed for some reason, promt user
-        root = tkinter.Tk() # GUI for file selection
-        root.withdraw()
-        tree_file = tkinter.filedialog.askopenfilename(title='Select input .csv/.xls(x) file')
-        xls_tree = pd.ExcelFile(tree_file)
-    
-    
-    # Store class as dict with GPSwaypoint as ID
-    class_dict = dict(zip(gps_id, class_veg))
-    
-    # Initialize output lists and temporary variables
-    point_info = []
-    class_tree = []
-    name_tree = []
-    lai_point = []
-    dai_point = [] # "Defoliated" Area Index (tree crown area without leaves)
-    n_stems_live = []
-    n_stems_dead = []
-    max_stem_thick = []
-    avg_tree_height = [0]
-    n_trees = [1]
-    prev_id = 'dummy'
-    # Go through all sheets in Excel file with tree data
-    for i_sheet in range(1,7):
-        # Get pandas dataframe
-        df = pd.read_excel(xls_tree, str(i_sheet))
-        point_id = list(df['ID']) # Country
-        # Go through the list of points
-        for row in df.itertuples(index=True, name='Pandas'):
-            # Get ID of current point 
-            curr_id = str(row.Country) + '_' + str(row.Transect) + '_'  + str(row.ID)
-            # Check if the current tree is in a new transect point
-            if curr_id != prev_id:
-                prev_id = curr_id
-                # Add waypoint name to list of IDs
-                name_tree.append(curr_id)
-                # Calculate average tree height
-                avg_tree_height[-1] = avg_tree_height[-1]/n_trees[-1]
-                # Add new LAI to list
-                lai_point.append(0)
-                # Add new "DAI" to list
-                dai_point.append(0)
-                # Add new Stems_Live to list
-                n_stems_live.append(0)
-                # Add new Stems_Dead to list
-                n_stems_dead.append(0)
-                # Add new maximum stem thickness
-                max_stem_thick.append(0)
-                # Add new average tree height
-                avg_tree_height.append(0)
-                # Add new tree count
-                n_trees.append(0)
-            
-            # Add area of crown (based on DIAMETERS in m) to last point (ellipse*fraction_live)/total_point_area
-            lai_point[-1] += (np.pi/4*row.Crowndiam1*row.Crowndiam2*row.CrownPropLive/100)/transect_point_area
-            # Add area of defoliated crown (DIAMETERS in m) to last point (ellipse*fraction_dead)/total_point_area
-            dai_point[-1] += (np.pi/4*row.Crowndiam1*row.Crowndiam2*(100-row.CrownPropLive)/100)/transect_point_area
-            # Update number of live stems
-            n_stems_live[-1] += row.Stems_Live
-            # Update number of dead stems
-            n_stems_dead[-1] += row.Stems_Dead
-            # Maximum stem thickness
-            max_stem_thick[-1] = np.nanmax([max_stem_thick[-1], row.Stemdiam1, row.Stemdiam2, row.Stemdiam3])
-            # Update number of trees count
-            n_trees[-1] += 1
-            # Sum tree height (divide by final tree count later)
-            avg_tree_height[-1] += row.Treeheight
-    
-    # Remove first (dummy) elements used to avoid throw-away counting variables
-    n_trees.pop(0)
-    avg_tree_height.pop(0)
-    
-    # Sort into healthy and defoliated forest
-    # TODO: NEED TO ADJUST THESE RULES AFTER DISCUSSION WITH ECOLOGISTS/EXPERTS
-    for i_point in range(length(name_tree)):
-        # Check if Leaf Area Index is greater than threshold
-        if lai_point[i_point] > lai_threshold_live:
-            class_dict[name_tree[i_point]] = 'Live'
-        else:
-            class_dict[name_tree[i_point]] = 'Defoliated'
-    
-    # Return original order of points
-    class_use = [class_dict[x] for x in gps_id]
-    
-    
-    # Merge names and positions
-    gps_points = list(zip(gps_id, pos_array))
-    # Convert to numpy array
-    #pos_array2 = np.asarray(pos_array)
-    pos_array2 = np.asarray([item[1] for item in gps_points])
-    gps_id2 = [item[0] for item in gps_points]
-    
-    
-    # ADD SATELLITE DATA
     
     # Read satellite data
     try:
@@ -290,7 +289,6 @@ for dataset_use in dataset_list:
     all_data.add_modality(gps_id, 'quad_pol', sar_pixels.tolist(), **kw_sar)
     
     
-    ## Extract pixels from area - OPTICAL    
     # Get array with MULTISPECTRAL OPTICAL data
     opt_data_temp = raster_data_array[opt_bands_use,:,:]
     
