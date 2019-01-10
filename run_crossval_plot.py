@@ -35,12 +35,12 @@ rf_file = 'cross_validation_rf.pkl'
                           
 # Read result dicts - kNN
 # Read predefined file
-with open(os.path.join(dirname, 'data', knn_file )) as infile:
+with open(os.path.join(dirname, 'data', knn_file ), 'rb') as infile:
     knn_cv_all, knn_cv_sar, knn_cv_opt = pickle.load(infile)
     
 # Read or create reult dicts - Random Forest
 # Read predefined file
-with open(os.path.join(dirname, 'data', rf_file )) as infile:
+with open(os.path.join(dirname, 'data', rf_file ), 'rb') as infile:
     rf_cv_all, rf_cv_sar, rf_cv_opt = pickle.load(infile)
     
 
@@ -81,3 +81,6 @@ rf_scores_opt = rf_cv_opt[dataset_use]
 print('RF OPT - ' + dataset_use + ' :')
 print(rf_scores_opt)         
 
+fig = plt.figure()
+plt.errorbar([1,2], [np.mean(knn_scores_all), np.mean(knn_scores_sar)], [np.std(knn_scores_all), np.std(knn_scores_sar)], linestyle='None', marker='^')
+plt.show()

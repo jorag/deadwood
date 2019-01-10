@@ -33,6 +33,24 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # Output files
 knn_file = 'cross_validation_knn.pkl'
 rf_file = 'cross_validation_rf.pkl'
+
+# Read or create result dicts - kNN
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, 'data', knn_file), 'rb') as infile:
+        knn_cv_all, knn_cv_sar, knn_cv_opt = pickle.load(infile)
+        print('All ok!!')
+except:
+    knn_cv_all = dict(); knn_cv_sar = dict(); knn_cv_opt = dict()
+    
+# Read or create reult dicts - Random Forest
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, 'data', rf_file), 'rb') as infile:
+        rf_cv_all, rf_cv_sar, rf_cv_opt = pickle.load(infile)
+        print('All ok!!')
+except:
+    rf_cv_all = dict(); rf_cv_sar = dict(); rf_cv_opt = dict()
                           
 # Loop through all satellite images
 for dataset_use in dataset_list:
@@ -42,23 +60,6 @@ for dataset_use in dataset_list:
     obj_in_name = dataset_use + '.pkl'
     sat_pathfile_name = dataset_use + '-path'
     
-    
-                              
-    # Read or create reult dicts - kNN
-    try:
-        # Read predefined file
-        with open(os.path.join(dirname, 'data', knn_file )) as infile:
-            knn_cv_all, knn_cv_sar, knn_cv_opt = pickle.load(infile)
-    except:
-        knn_cv_all = dict(); knn_cv_sar = dict(); knn_cv_opt = dict()
-        
-    # Read or create reult dicts - Random Forest
-    try:
-        # Read predefined file
-        with open(os.path.join(dirname, 'data', rf_file )) as infile:
-            rf_cv_all, rf_cv_sar, rf_cv_opt = pickle.load(infile)
-    except:
-        rf_cv_all = dict(); rf_cv_sar = dict(); rf_cv_opt = dict()
     
     # Load DataModalities object
     with open(os.path.join(dirname, "data", obj_in_name), 'rb') as input:
