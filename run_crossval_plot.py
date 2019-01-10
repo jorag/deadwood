@@ -63,6 +63,17 @@ knn_opt_means = []
 knn_opt_stds = []
 knn_opt_idx = []
 
+# rf output lists (9)
+rf_all_means = []
+rf_all_stds = []
+rf_all_idx = []
+rf_sar_means = []
+rf_sar_stds = []
+rf_sar_idx = []
+rf_opt_means = []
+rf_opt_stds = []
+rf_opt_idx = []
+
 # Index
 idx_data = 0
 
@@ -99,22 +110,35 @@ for dataset_use in dataset_list:
     knn_opt_idx.append(idx_data-0.5)
     
     
-    # Cross validate - Random Forest - All data
+    # Cross validate - RF - All data
     rf_scores_all = rf_cv_all[dataset_use]
-    print('RF OPT+SAR - ' + dataset_use + ' :')
+    print('rf OPT+SAR - ' + dataset_use + ' :')
     print(rf_scores_all) 
+    # Add to list
+    rf_all_means.append(np.mean(rf_scores_all))
+    rf_all_stds.append(np.std(rf_scores_all))
+    rf_all_idx.append(idx_data)
     
-    # Cross validate - Random Forest - SAR data
+    # Cross validate - RF - SAR data
     rf_scores_sar = rf_cv_sar[dataset_use]
-    print('RF OPT+SAR - ' + dataset_use + ' :')
+    print('rf SAR only - ' + dataset_use + ' :')
     print(rf_scores_sar)
+    # Add to list
+    rf_sar_means.append(np.mean(rf_scores_sar))
+    rf_sar_stds.append(np.std(rf_scores_sar))
+    rf_sar_idx.append(idx_data+0.5)
     
-    # Cross validate - Random Forest - OPT data
+    # Cross validate - RF - OPT data
     rf_scores_opt = rf_cv_opt[dataset_use]
-    print('RF OPT - ' + dataset_use + ' :')
+    print('rf opt only - ' + dataset_use + ' :')
     print(rf_scores_opt)
+    # Add to list
+    rf_opt_means.append(np.mean(rf_scores_opt))
+    rf_opt_stds.append(np.std(rf_scores_opt))
+    rf_opt_idx.append(idx_data-0.5)
      
 
+# kNN cross-validation accuracy
 fig = plt.figure()
 plt.xticks(knn_all_idx, dataset_list)
 plt.errorbar(knn_all_idx, knn_all_means, knn_all_stds, linestyle='None', marker='^', capsize=3)
@@ -123,4 +147,18 @@ plt.errorbar(knn_opt_idx, knn_opt_means, knn_opt_stds, linestyle='None', marker=
 axes = plt.gca()
 axes.set_xlim([np.min(knn_all_idx)-1.0, np.max(knn_all_idx)+1.0])
 axes.set_ylim([0,1])
+plt.title('kNN cross-validation accuracy')
+plt.show()
+
+
+# RF cross-validation accuracy
+fig = plt.figure()
+plt.xticks(rf_all_idx, dataset_list)
+plt.errorbar(rf_all_idx, rf_all_means, rf_all_stds, linestyle='None', marker='^', capsize=3)
+plt.errorbar(rf_sar_idx, rf_sar_means, rf_sar_stds, linestyle='None', marker='^', capsize=3)
+plt.errorbar(rf_opt_idx, rf_opt_means, rf_opt_stds, linestyle='None', marker='^', capsize=3)
+axes = plt.gca()
+axes.set_xlim([np.min(rf_all_idx)-1.0, np.max(rf_all_idx)+1.0])
+axes.set_ylim([0,1])
+plt.title('RF cross-validation accuracy')
 plt.show()
