@@ -52,14 +52,23 @@ with open(os.path.join(dirname, 'data', rf_file ), 'rb') as infile:
 dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 # dataset_list = ['vanZyl-A']
 
+# kNN output lists (9)
 knn_all_means = []
 knn_all_stds = []
 knn_all_idx = []
+knn_sar_means = []
+knn_sar_stds = []
+knn_sar_idx = []
+knn_opt_means = []
+knn_opt_stds = []
+knn_opt_idx = []
+
+# Index
 idx_data = 0
 
 # Loop through all satellite images
 for dataset_use in dataset_list:
-    idx_data += 1
+    idx_data += 2
     # GET CROSS-VALIDATE RESULTS
     
     # Cross validate - kNN - All data
@@ -75,11 +84,19 @@ for dataset_use in dataset_list:
     knn_scores_sar = knn_cv_sar[dataset_use]
     print('kNN SAR only - ' + dataset_use + ' :')
     print(knn_scores_sar)
+    # Add to list
+    knn_sar_means.append(np.mean(knn_scores_sar))
+    knn_sar_stds.append(np.std(knn_scores_sar))
+    knn_sar_idx.append(idx_data+0.5)
     
     # Cross validate - kNN - OPT data
     knn_scores_opt = knn_cv_opt[dataset_use]
     print('kNN opt only - ' + dataset_use + ' :')
-    print(knn_scores_opt) 
+    print(knn_scores_opt)
+    # Add to list
+    knn_opt_means.append(np.mean(knn_scores_opt))
+    knn_opt_stds.append(np.std(knn_scores_opt))
+    knn_opt_idx.append(idx_data-0.5)
     
     
     # Cross validate - Random Forest - All data
@@ -101,7 +118,9 @@ for dataset_use in dataset_list:
 fig = plt.figure()
 plt.xticks(knn_all_idx, dataset_list)
 plt.errorbar(knn_all_idx, knn_all_means, knn_all_stds, linestyle='None', marker='^', capsize=3)
+plt.errorbar(knn_sar_idx, knn_sar_means, knn_sar_stds, linestyle='None', marker='^', capsize=3)
+plt.errorbar(knn_opt_idx, knn_opt_means, knn_opt_stds, linestyle='None', marker='^', capsize=3)
 axes = plt.gca()
-axes.set_xlim([np.min(knn_all_idx)-0.5, np.max(knn_all_idx)+0.5])
+axes.set_xlim([np.min(knn_all_idx)-1.0, np.max(knn_all_idx)+1.0])
 axes.set_ylim([0,1])
 plt.show()
