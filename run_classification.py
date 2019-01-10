@@ -49,6 +49,8 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # Output files
 knn_file =  datamod_fprefix + crossval_fprefix + 'cross_validation_knn.pkl'
 rf_file = datamod_fprefix + crossval_fprefix + 'cross_validation_rf.pkl'
+# Parameter save file
+classify_params_file = datamod_fprefix + crossval_fprefix + 'cross_validation_params.pkl' 
 
 # Read or create result dicts - kNN
 try:
@@ -172,11 +174,17 @@ for dataset_use in dataset_list:
 
 
 # SAVE RESULTS
+# kNN
 with open(os.path.join(dirname, 'data', knn_file), 'wb') as output:
     pickle.dump([knn_cv_all, knn_cv_sar, knn_cv_opt], output, pickle.HIGHEST_PROTOCOL)
-
+# RF
 with open(os.path.join(dirname, 'data', rf_file), 'wb') as output:
     pickle.dump([rf_cv_all, rf_cv_sar, rf_cv_opt], output, pickle.HIGHEST_PROTOCOL)
+
+# Save parameters
+with open(os.path.join(dirname, 'data', classify_params_file), 'wb') as output:
+    pickle.dump([knn_k, rf_ntrees], output, pickle.HIGHEST_PROTOCOL)
+
 
 # TEST ON COMPLETE IMAGE
 

@@ -27,26 +27,28 @@ datamod_fprefix = ''
 # Prefix for input cross validation object filename
 crossval_fprefix = ''
 
-# Name of input object and file with satellite data path string
-#dataset_use = 'vanZyl-B'
-#obj_in_name = datamod_fprefix + dataset_use + '.pkl'
-#sat_pathfile_name = dataset_use + '-path'
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 knn_file = datamod_fprefix + crossval_fprefix + 'cross_validation_knn.pkl'
 rf_file = datamod_fprefix + crossval_fprefix + 'cross_validation_rf.pkl'
+# Classification parameters save file
+classify_params_file = datamod_fprefix + crossval_fprefix + 'cross_validation_params.pkl'
                           
 # Read result dicts - kNN
 # Read predefined file
 with open(os.path.join(dirname, 'data', knn_file ), 'rb') as infile:
     knn_cv_all, knn_cv_sar, knn_cv_opt = pickle.load(infile)
     
-# Read or create reult dicts - Random Forest
-# Read predefined file
+# Read result dicts - Random Forest
 with open(os.path.join(dirname, 'data', rf_file ), 'rb') as infile:
     rf_cv_all, rf_cv_sar, rf_cv_opt = pickle.load(infile)
+    
+
+# Read result dicts - Random Forest
+with open(os.path.join(dirname, 'data', classify_params_file), 'rb') as infile:
+    knn_k, rf_ntrees = pickle.load(infile)
     
 # List of datasets to process
 dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
@@ -147,7 +149,7 @@ plt.errorbar(knn_opt_idx, knn_opt_means, knn_opt_stds, linestyle='None', marker=
 axes = plt.gca()
 axes.set_xlim([np.min(knn_all_idx)-1.0, np.max(knn_all_idx)+1.0])
 axes.set_ylim([0,1])
-plt.title('kNN cross-validation accuracy')
+plt.title('kNN cross-validation accuracy, k = ' + str(knn_k))
 plt.show()
 
 
@@ -160,5 +162,5 @@ plt.errorbar(rf_opt_idx, rf_opt_means, rf_opt_stds, linestyle='None', marker='^'
 axes = plt.gca()
 axes.set_xlim([np.min(rf_all_idx)-1.0, np.max(rf_all_idx)+1.0])
 axes.set_ylim([0,1])
-plt.title('RF cross-validation accuracy')
+plt.title('RF cross-validation accuracy, '+str(rf_ntrees)+' trees')
 plt.show()
