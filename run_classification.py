@@ -25,8 +25,17 @@ from dataclass import *
 
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
+# PROCESSING PARAMETERS
+crossval_kfold = 5
+knn_k = 3
+rf_ntrees = 20
+
+# Image plot parameter
+norm_type = 'local' # 'global' #
+
 # List of datasets to process
 dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
+# dataset_list = ['vanZyl-A']
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -56,7 +65,6 @@ except:
 for dataset_use in dataset_list:
     
     # Name of input object and file with satellite data path string
-    #dataset_use = 'vanZyl-B'
     obj_in_name = dataset_use + '.pkl'
     sat_pathfile_name = dataset_use + '-path'
     
@@ -93,7 +101,7 @@ for dataset_use in dataset_list:
     data_train, data_test, labels_train, labels_test = train_test_split(all_data, all_labels, test_size=0.2, random_state=0)  
     
     # Create kNN classifier
-    neigh = KNeighborsClassifier(n_neighbors=3)
+    neigh = KNeighborsClassifier(n_neighbors=knn_k)
     # Fit kNN
     neigh.fit(data_train, labels_train) 
     
@@ -103,24 +111,24 @@ for dataset_use in dataset_list:
     prediction_result = neigh.predict(data_test)
     
     # Cross validate - kNN - All data
-    knn_all = KNeighborsClassifier(n_neighbors=3)
-    knn_scores_all = cross_val_score(knn_all, all_data, all_labels, cv=5)
+    knn_all = KNeighborsClassifier(n_neighbors=knn_k)
+    knn_scores_all = cross_val_score(knn_all, all_data, all_labels, cv=crossval_kfold)
     # Add to output dict
     knn_cv_all[dataset_use] = knn_scores_all
     print('kNN OPT+SAR - ' + dataset_use + ' :')
     print(knn_scores_all) 
     
     # Cross validate - kNN - SAR data
-    knn_sar = KNeighborsClassifier(n_neighbors=3)
-    knn_scores_sar = cross_val_score(knn_sar, sar_data, sar_labels, cv=5)
+    knn_sar = KNeighborsClassifier(n_neighbors=knn_k)
+    knn_scores_sar = cross_val_score(knn_sar, sar_data, sar_labels, cv=crossval_kfold)
     # Add to output dict
     knn_cv_sar[dataset_use] = knn_scores_sar
     print('kNN SAR only - ' + dataset_use + ' :')
     print(knn_scores_sar)
     
     # Cross validate - kNN - OPT data
-    knn_opt = KNeighborsClassifier(n_neighbors=3)
-    knn_scores_opt = cross_val_score(knn_opt, opt_data, opt_labels, cv=5)
+    knn_opt = KNeighborsClassifier(n_neighbors=knn_k)
+    knn_scores_opt = cross_val_score(knn_opt, opt_data, opt_labels, cv=crossval_kfold)
     # Add to output dict
     knn_cv_opt[dataset_use] = knn_scores_opt
     print('kNN opt only - ' + dataset_use + ' :')
@@ -128,24 +136,24 @@ for dataset_use in dataset_list:
     
     
     # Cross validate - Random Forest - All data
-    rf_all = RandomForestClassifier(n_estimators=20, random_state=0)
-    rf_scores_all = cross_val_score(rf_all, all_data, all_labels, cv=5)
+    rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
+    rf_scores_all = cross_val_score(rf_all, all_data, all_labels, cv=crossval_kfold)
     # Add to output dict
     rf_cv_all[dataset_use] = rf_scores_all
     print('RF OPT+SAR - ' + dataset_use + ' :')
     print(rf_scores_all) 
     
     # Cross validate - Random Forest - SAR data
-    rf_sar = RandomForestClassifier(n_estimators=20, random_state=0)
-    rf_scores_sar = cross_val_score(rf_sar, sar_data, sar_labels, cv=5)
+    rf_sar = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
+    rf_scores_sar = cross_val_score(rf_sar, sar_data, sar_labels, cv=crossval_kfold)
     # Add to output dict
     rf_cv_sar[dataset_use] = rf_scores_sar
     print('RF OPT+SAR - ' + dataset_use + ' :')
     print(rf_scores_sar)
     
     # Cross validate - Random Forest - OPT data
-    rf_opt = RandomForestClassifier(n_estimators=20, random_state=0)
-    rf_scores_opt = cross_val_score(rf_opt, opt_data, opt_labels, cv=5)
+    rf_opt = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
+    rf_scores_opt = cross_val_score(rf_opt, opt_data, opt_labels, cv=crossval_kfold)
     # Add to output dict
     rf_cv_opt[dataset_use] = rf_scores_opt
     print('RF OPT - ' + dataset_use + ' :')
@@ -201,7 +209,7 @@ sat_im = all_sat_bands[bands_use_single , :, : ]
 sat_im_prediction, n_rows, n_cols = imtensor2array(sat_im)
 
 # NORMALIZE IMAGE - TODO: Change to 'local' both here and in get_sat_data??
-sat_im_prediction = norm01(sat_im_prediction, norm_type='global', log_type = 'print')
+sat_im_prediction = norm01(sat_im_prediction, norm_type=norm_type, log_type = 'print')
 
 # For colourbar: Get the list of unique class numbers  
 class_n_unique = np.unique(list(class_dict.values()))
