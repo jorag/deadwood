@@ -23,9 +23,9 @@ from dataclass import *
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
 # Prefix for input datamodalities object filename
-datamod_fprefix = ''
+datamod_fprefix = 'glob_norm'
 # Prefix for input cross validation object filename
-crossval_fprefix = ''
+crossval_fprefix = 'kNN5trees10'
 
 
 # Path to working directory 
@@ -150,6 +150,7 @@ axes = plt.gca()
 axes.set_xlim([np.min(knn_all_idx)-1.0, np.max(knn_all_idx)+1.0])
 axes.set_ylim([0,1])
 plt.title('kNN cross-validation accuracy, k = ' + str(knn_k))
+plt.legend(['All', 'SAR', 'Opt.'])
 plt.show()
 
 
@@ -163,4 +164,5 @@ axes = plt.gca()
 axes.set_xlim([np.min(rf_all_idx)-1.0, np.max(rf_all_idx)+1.0])
 axes.set_ylim([0,1])
 plt.title('RF cross-validation accuracy, '+str(rf_ntrees)+' trees')
+plt.legend(['All', 'SAR', 'Opt.'])
 plt.show()

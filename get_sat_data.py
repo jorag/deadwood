@@ -24,7 +24,7 @@ from dataclass import *
 dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 
 # Prefix for output datamodalities object filename
-datamod_fprefix = ''
+datamod_fprefix = 'glob_norm'
 
 # PARAMETERS
 # Ground truth info - TODO: Store this info and parameters in object!!
@@ -35,8 +35,8 @@ transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examin
 lai_threshold_live = 0.0125 # min Leaf Area Index to be assigned to Live class 
 
 # Normalization
-opt_norm_type = 'local' # 'global' # 
-sar_norm_type = 'local' # 'global' # 
+opt_norm_type = 'global' # 'local' #  
+sar_norm_type = 'global' # 'local' #  
 
 # Which Sentinel-2 bands to use
 opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']

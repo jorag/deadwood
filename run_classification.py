@@ -29,20 +29,20 @@ from dataclass import *
 # PROCESSING PARAMETERS
 crossval_split_k = 5
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
-knn_k = 3
-rf_ntrees = 20
+knn_k = 5
+rf_ntrees = 10
 
 # Image plot parameter
-norm_type = 'local' # 'global' #
+norm_type = 'global' # 'local' # 
 
 # List of datasets to process
 dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 # dataset_list = ['vanZyl-A']
 
 # Prefix for input datamodalities object filename
-datamod_fprefix = ''
+datamod_fprefix = 'glob_norm'
 # Prefix for output cross validation object filename
-crossval_fprefix = ''
+crossval_fprefix = 'kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
