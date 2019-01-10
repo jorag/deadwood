@@ -16,6 +16,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import StratifiedKFold # is deafault in cross-val?
 #import sys # To append paths
 # My moduels
 from mytools import *
@@ -26,7 +27,8 @@ from dataclass import *
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
 # PROCESSING PARAMETERS
-crossval_kfold = 5
+crossval_split_k = 5
+crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
 knn_k = 3
 rf_ntrees = 20
 
