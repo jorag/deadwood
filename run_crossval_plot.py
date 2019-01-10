@@ -22,16 +22,21 @@ from dataclass import *
 
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
+# Prefix for input datamodalities object filename
+datamod_fprefix = ''
+# Prefix for input cross validation object filename
+crossval_fprefix = ''
+
 # Name of input object and file with satellite data path string
 dataset_use = 'vanZyl-B'
-obj_in_name = dataset_use + '.pkl'
+obj_in_name = datamod_fprefix + dataset_use + '.pkl'
 sat_pathfile_name = dataset_use + '-path'
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
-knn_file = 'cross_validation_knn.pkl'
-rf_file = 'cross_validation_rf.pkl'
+knn_file = datamod_fprefix + crossval_fprefix + 'cross_validation_knn.pkl'
+rf_file = datamod_fprefix + crossval_fprefix + 'cross_validation_rf.pkl'
                           
 # Read result dicts - kNN
 # Read predefined file

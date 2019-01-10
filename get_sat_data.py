@@ -23,6 +23,8 @@ from dataclass import *
 # List of datasets to process
 dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 
+# Prefix for output datamodalities object filename
+datamod_fprefix = ''
 
 # PARAMETERS
 # Ground truth info - TODO: Store this info and parameters in object!!
@@ -215,7 +217,7 @@ for dataset_use in dataset_list:
     
     # Set name of output object
     #dataset_use = 'Coh-C'
-    obj_out_name = dataset_use + '.pkl'
+    obj_out_name = datamod_fprefix + dataset_use + '.pkl'
     sat_pathfile_name = dataset_use + '-path'
     
     # Load data bands dictionary object

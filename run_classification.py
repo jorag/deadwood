@@ -37,11 +37,16 @@ norm_type = 'local' # 'global' #
 dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 # dataset_list = ['vanZyl-A']
 
+# Prefix for input datamodalities object filename
+datamod_fprefix = ''
+# Prefix for output cross validation object filename
+crossval_fprefix = ''
+
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 # Output files
-knn_file = 'cross_validation_knn.pkl'
-rf_file = 'cross_validation_rf.pkl'
+knn_file =  datamod_fprefix + crossval_fprefix + 'cross_validation_knn.pkl'
+rf_file = datamod_fprefix + crossval_fprefix + 'cross_validation_rf.pkl'
 
 # Read or create result dicts - kNN
 try:
@@ -65,7 +70,7 @@ except:
 for dataset_use in dataset_list:
     
     # Name of input object and file with satellite data path string
-    obj_in_name = dataset_use + '.pkl'
+    obj_in_name = datamod_fprefix + dataset_use + '.pkl'
     sat_pathfile_name = dataset_use + '-path'
     
     
