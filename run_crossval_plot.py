@@ -99,5 +99,9 @@ for dataset_use in dataset_list:
      
 
 fig = plt.figure()
+plt.xticks(knn_all_idx, dataset_list)
 plt.errorbar(knn_all_idx, knn_all_means, knn_all_stds, linestyle='None', marker='^', capsize=3)
+axes = plt.gca()
+axes.set_xlim([np.min(knn_all_idx)-0.5, np.max(knn_all_idx)+0.5])
+axes.set_ylim([0,1])
 plt.show()
