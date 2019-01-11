@@ -33,17 +33,22 @@ crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
 knn_k = 5
 rf_ntrees = 10
 
-# Image plot parameter
-norm_type = 'global' # 'local' # 
+# Image plot parameter - TODO: Differentiate for SAR and optical data
+norm_type = 'local' # 'global' # 
 
 # List of datasets to process
-dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
-# dataset_list = ['vanZyl-A']
+# dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
+dataset_list = ['vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 
 # Prefix for input datamodalities object filename
 datamod_fprefix = 'glob_norm'
 # Prefix for output cross validation object filename
 crossval_fprefix = 'kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
+
+
+# Set class labels for dictionary - TODO: Consider moving this to get_stat_data
+class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
+n_classes = length(class_dict_in)
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -62,7 +67,7 @@ try:
 except:
     knn_cv_all = dict(); knn_cv_sar = dict(); knn_cv_opt = dict()
     
-# Read or create reult dicts - Random Forest
+# Read or create result dicts - Random Forest
 try:
     # Read predefined file
     with open(os.path.join(dirname, 'data', rf_file), 'rb') as infile:
@@ -85,9 +90,6 @@ for dataset_use in dataset_list:
         
     
     # TRAIN AND CROSS-VALIDATE
-    
-    # Set class labels for dictionary - TODO: Consider moving this to get_stat_data
-    class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
     
     # Get labels and class_dict (in case None is input, one is created)
     labels, class_dict = input_data.assign_labels(class_dict=class_dict_in)
@@ -133,13 +135,18 @@ for dataset_use in dataset_list:
     # Convert to numpy array
     labels = np.asarray(all_labels)
     skf.get_n_splits(all_data, all_labels)
+    # Initialize output confusion matrix
+    knn_all_confmat = np.zeros((n_classes , n_classes ))
 
     for train_index, test_index in skf.split(all_data, all_labels):
        y_train, y_test = labels[train_index], labels[test_index]
        X_train, X_test = all_data[train_index], all_data[test_index]
     
        knn_all.fit(X_train, y_train)
-       print(confusion_matrix(y_test, knn_all.predict(X_test)))
+       # Add contribution to overall confusion matrix
+       conf_mat_temp = confusion_matrix(y_test, knn_all.predict(X_test))
+       print(conf_mat_temp)
+       knn_all_confmat += conf_mat_temp/(np.sum(conf_mat_temp) * crossval_split_k) 
     
     # Cross validate - kNN - SAR data
     knn_sar = KNeighborsClassifier(n_neighbors=knn_k)
@@ -273,3 +280,5 @@ plt.imshow(sat_result_rf.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=c
 plt.colorbar(ticks=np.unique(list(class_dict.values())) )
 plt.title('Random Forest result, '+dataset_use)
 plt.show()  # display it
+
+print(knn_all_confmat)
