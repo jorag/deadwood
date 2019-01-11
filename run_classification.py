@@ -17,6 +17,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import StratifiedKFold # is deafault in cross-val?
+from sklearn.metrics import confusion_matrix
 #import sys # To append paths
 # My moduels
 from mytools import *
@@ -126,6 +127,19 @@ for dataset_use in dataset_list:
     knn_cv_all[dataset_use] = knn_scores_all
     print('kNN OPT+SAR - ' + dataset_use + ' :')
     print(knn_scores_all) 
+    
+
+    skf = StratifiedKFold(n_splits=crossval_split_k)
+    # Convert to numpy array
+    labels = np.asarray(all_labels)
+    skf.get_n_splits(all_data, all_labels)
+
+    for train_index, test_index in skf.split(all_data, all_labels):
+       y_train, y_test = labels[train_index], labels[test_index]
+       X_train, X_test = all_data[train_index], all_data[test_index]
+    
+       knn_all.fit(X_train, y_train)
+       print(confusion_matrix(y_test, knn_all.predict(X_test)))
     
     # Cross validate - kNN - SAR data
     knn_sar = KNeighborsClassifier(n_neighbors=knn_k)
