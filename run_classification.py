@@ -86,6 +86,8 @@ except:
     rf_cv_all = dict(); rf_cv_sar = dict(); rf_cv_opt = dict()
                           
 
+
+# TRAIN AND CROSS-VALIDATE
 # Loop through all satellite images
 for dataset_use in dataset_list:
     
@@ -98,24 +100,23 @@ for dataset_use in dataset_list:
     with open(os.path.join(dirname, "data", obj_in_name), 'rb') as input:
         input_data = pickle.load(input)
         
-    
-    # TRAIN AND CROSS-VALIDATE
-    
     # Get labels and class_dict (in case None is input, one is created)
-    labels, class_dict = input_data.assign_labels(class_dict=class_dict_in)
+    labels_out, class_dict = input_data.assign_labels(class_dict=class_dict_in)
     
     # Get all data
-    all_data, all_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
+    all_data, data_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
     # Get SAR data
-    sar_data, sar_labels = input_data.read_data_array(['quad_pol'], 'all') 
+    sar_data, data_labels = input_data.read_data_array(['quad_pol'], 'all') 
     # Get OPT data
-    opt_data, opt_labels = input_data.read_data_array(['optical'], 'all') 
+    opt_data, data_labels = input_data.read_data_array(['optical'], 'all') 
+    # Convert labels to numpy array
+    labels = np.asarray(data_labels)
     
     # Normalize data - should probably be done when data is stored in object...
     print(np.max(all_data,axis=0))
     
     # Split into training and test datasets
-    data_train, data_test, labels_train, labels_test = train_test_split(all_data, all_labels, test_size=0.2, random_state=0)  
+    data_train, data_test, labels_train, labels_test = train_test_split(all_data, data_labels, test_size=0.2, random_state=0)  
     
     # Create kNN classifier
     neigh = KNeighborsClassifier(n_neighbors=knn_k)
@@ -129,22 +130,20 @@ for dataset_use in dataset_list:
     
     # Cross validate - kNN - All data
     knn_all = KNeighborsClassifier(n_neighbors=knn_k)
-    knn_scores_all = cross_val_score(knn_all, all_data, all_labels, cv=crossval_kfold)
+    knn_scores_all = cross_val_score(knn_all, all_data, data_labels, cv=crossval_kfold)
     # Add to output dict
     knn_cv_all[dataset_use] = knn_scores_all
     print('kNN OPT+SAR - ' + dataset_use + ' :')
-    print(knn_scores_all) 
-    
+    print(np.mean(knn_scores_all)) 
 
-    # Convert labels to numpy array
-    labels = np.asarray(all_labels)
+
     # Get split for cofusion matrix calculation
     skf = StratifiedKFold(n_splits=crossval_split_k)
-    skf.get_n_splits(all_data, all_labels)
+    skf.get_n_splits(all_data, labels)
     # Initialize output confusion matrix
     knn_all_confmat = np.zeros((n_classes , n_classes ))
-    # Use plit
-    for train_index, test_index in skf.split(all_data, all_labels):
+    # Use split
+    for train_index, test_index in skf.split(all_data, labels):
        # Split into training and test set
        y_train, y_test = labels[train_index], labels[test_index]
        X_train, X_test = all_data[train_index], all_data[test_index]
@@ -152,53 +151,53 @@ for dataset_use in dataset_list:
        knn_all.fit(X_train, y_train)
        # Calculate confusion matrix
        conf_mat_temp = confusion_matrix(y_test, knn_all.predict(X_test))
-       print(conf_mat_temp)
        # Add contribution to overall confusion matrix
        knn_all_confmat += conf_mat_temp/(np.sum(conf_mat_temp) * crossval_split_k)
        
     # Add to output dict
     knn_confmat_all[dataset_use] = knn_all_confmat
-    
+    print(knn_all_confmat)
+                   
     # Cross validate - kNN - SAR data
     knn_sar = KNeighborsClassifier(n_neighbors=knn_k)
-    knn_scores_sar = cross_val_score(knn_sar, sar_data, sar_labels, cv=crossval_kfold)
+    knn_scores_sar = cross_val_score(knn_sar, sar_data, data_labels, cv=crossval_kfold)
     # Add to output dict
     knn_cv_sar[dataset_use] = knn_scores_sar
     print('kNN SAR only - ' + dataset_use + ' :')
-    print(knn_scores_sar)
+    print(np.mean(knn_scores_sar))
     
     # Cross validate - kNN - OPT data
     knn_opt = KNeighborsClassifier(n_neighbors=knn_k)
-    knn_scores_opt = cross_val_score(knn_opt, opt_data, opt_labels, cv=crossval_kfold)
+    knn_scores_opt = cross_val_score(knn_opt, opt_data, data_labels, cv=crossval_kfold)
     # Add to output dict
     knn_cv_opt[dataset_use] = knn_scores_opt
     print('kNN opt only - ' + dataset_use + ' :')
-    print(knn_scores_opt) 
+    print(np.mean(knn_scores_opt)) 
     
     
     # Cross validate - Random Forest - All data
     rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
-    rf_scores_all = cross_val_score(rf_all, all_data, all_labels, cv=crossval_kfold)
+    rf_scores_all = cross_val_score(rf_all, all_data, data_labels, cv=crossval_kfold)
     # Add to output dict
     rf_cv_all[dataset_use] = rf_scores_all
     print('RF OPT+SAR - ' + dataset_use + ' :')
-    print(rf_scores_all) 
+    print(np.mean(rf_scores_all)) 
     
     # Cross validate - Random Forest - SAR data
     rf_sar = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
-    rf_scores_sar = cross_val_score(rf_sar, sar_data, sar_labels, cv=crossval_kfold)
+    rf_scores_sar = cross_val_score(rf_sar, sar_data, data_labels, cv=crossval_kfold)
     # Add to output dict
     rf_cv_sar[dataset_use] = rf_scores_sar
     print('RF OPT+SAR - ' + dataset_use + ' :')
-    print(rf_scores_sar)
+    print(np.mean(rf_scores_sar))
     
     # Cross validate - Random Forest - OPT data
     rf_opt = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
-    rf_scores_opt = cross_val_score(rf_opt, opt_data, opt_labels, cv=crossval_kfold)
+    rf_scores_opt = cross_val_score(rf_opt, opt_data, data_labels, cv=crossval_kfold)
     # Add to output dict
     rf_cv_opt[dataset_use] = rf_scores_opt
     print('RF OPT - ' + dataset_use + ' :')
-    print(rf_scores_opt)         
+    print(np.mean(rf_scores_opt))         
     
     
     rf_all.fit(data_train, labels_train) 
