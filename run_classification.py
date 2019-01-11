@@ -54,6 +54,7 @@ n_classes = length(class_dict_in)
 dirname = os.path.realpath('.') # For parent directory use '..'
 # Output files
 knn_file =  datamod_fprefix + crossval_fprefix + 'cross_validation_knn.pkl'
+knn_confmat_file =  datamod_fprefix + crossval_fprefix + 'conf_mat_knn.pkl'
 rf_file = datamod_fprefix + crossval_fprefix + 'cross_validation_rf.pkl'
 # Parameter save file
 classify_params_file = datamod_fprefix + crossval_fprefix + 'cross_validation_params.pkl' 
@@ -63,19 +64,28 @@ try:
     # Read predefined file
     with open(os.path.join(dirname, 'data', knn_file), 'rb') as infile:
         knn_cv_all, knn_cv_sar, knn_cv_opt = pickle.load(infile)
-        print('All ok!!')
 except:
     knn_cv_all = dict(); knn_cv_sar = dict(); knn_cv_opt = dict()
-    
+
+# Read or create result dicts - kNN
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, 'data', knn_confmat_file), 'rb') as infile:
+        knn_confmat_all, knn_confmat_sar, knn_confmat_opt = pickle.load(infile)
+        print('CONF MATS LOADED')
+except:
+    knn_confmat_all = dict(); knn_confmat_sar = dict(); knn_confmat_opt = dict()
+
+
 # Read or create result dicts - Random Forest
 try:
     # Read predefined file
     with open(os.path.join(dirname, 'data', rf_file), 'rb') as infile:
         rf_cv_all, rf_cv_sar, rf_cv_opt = pickle.load(infile)
-        print('All ok!!')
 except:
     rf_cv_all = dict(); rf_cv_sar = dict(); rf_cv_opt = dict()
                           
+
 # Loop through all satellite images
 for dataset_use in dataset_list:
     
@@ -93,11 +103,6 @@ for dataset_use in dataset_list:
     
     # Get labels and class_dict (in case None is input, one is created)
     labels, class_dict = input_data.assign_labels(class_dict=class_dict_in)
-    
-    
-    # Split into training, validation, and test sets
-    #input_data.split(split_type = 'weighted', train_pct = 0.9, test_pct = 0.1, val_pct = 0.0)
-    #print(length(input_data.set_train)/165, length(input_data.set_test)/165, length(input_data.set_val)/165)
     
     # Get all data
     all_data, all_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
@@ -131,22 +136,28 @@ for dataset_use in dataset_list:
     print(knn_scores_all) 
     
 
-    skf = StratifiedKFold(n_splits=crossval_split_k)
-    # Convert to numpy array
+    # Convert labels to numpy array
     labels = np.asarray(all_labels)
+    # Get split for cofusion matrix calculation
+    skf = StratifiedKFold(n_splits=crossval_split_k)
     skf.get_n_splits(all_data, all_labels)
     # Initialize output confusion matrix
     knn_all_confmat = np.zeros((n_classes , n_classes ))
-
+    # Use plit
     for train_index, test_index in skf.split(all_data, all_labels):
+       # Split into training and test set
        y_train, y_test = labels[train_index], labels[test_index]
        X_train, X_test = all_data[train_index], all_data[test_index]
-    
+       # Fit classifier
        knn_all.fit(X_train, y_train)
-       # Add contribution to overall confusion matrix
+       # Calculate confusion matrix
        conf_mat_temp = confusion_matrix(y_test, knn_all.predict(X_test))
        print(conf_mat_temp)
-       knn_all_confmat += conf_mat_temp/(np.sum(conf_mat_temp) * crossval_split_k) 
+       # Add contribution to overall confusion matrix
+       knn_all_confmat += conf_mat_temp/(np.sum(conf_mat_temp) * crossval_split_k)
+       
+    # Add to output dict
+    knn_confmat_all[dataset_use] = knn_all_confmat
     
     # Cross validate - kNN - SAR data
     knn_sar = KNeighborsClassifier(n_neighbors=knn_k)
@@ -195,9 +206,12 @@ for dataset_use in dataset_list:
 
 
 # SAVE RESULTS
-# kNN
+# kNN - cross validation
 with open(os.path.join(dirname, 'data', knn_file), 'wb') as output:
     pickle.dump([knn_cv_all, knn_cv_sar, knn_cv_opt], output, pickle.HIGHEST_PROTOCOL)
+# kNN - confusion matrices   
+with open(os.path.join(dirname, 'data', knn_confmat_file), 'wb') as output:
+    pickle.dump([knn_confmat_all, knn_confmat_sar, knn_confmat_opt], output, pickle.HIGHEST_PROTOCOL)
 # RF
 with open(os.path.join(dirname, 'data', rf_file), 'wb') as output:
     pickle.dump([rf_cv_all, rf_cv_sar, rf_cv_opt], output, pickle.HIGHEST_PROTOCOL)
