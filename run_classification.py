@@ -349,7 +349,7 @@ if plot_image_result:
     ## Read satellite data
     try:
         # Read predefined file
-        with open(os.path.join(dirname, 'data', sat_pathfile_name)) as infile:
+        with open(os.path.join(dirname, 'input-paths', sat_pathfile_name)) as infile:
             sat_file = infile.readline().strip()
             logit('Read file: ' + sat_file, log_type = 'default')
         

@@ -51,7 +51,7 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # Read Excel file with vegetation types
 try:
     # Read predefined file
-    with open(os.path.join(dirname, 'data', 'vegetation-data-path')) as infile:
+    with open(os.path.join(dirname, 'input-paths', 'vegetation-data-path')) as infile:
         veg_file = infile.readline().strip()
         logit('Read file: ' + veg_file, log_type = 'default')
     
@@ -82,7 +82,7 @@ for i_sheet in range(1,7):
 # Read .gpx file with coordinates of transect points
 try:
     # Read predefined file
-    with open(os.path.join(dirname, 'data', 'gps-data-path')) as infile:
+    with open(os.path.join(dirname, 'input-paths', 'gps-data-path')) as infile:
         gps_file = infile.readline().strip()
         logit('Read file: ' + gps_file, log_type = 'default')
     
@@ -111,7 +111,7 @@ for elem in tree.findall('//{http://www.topografix.com/GPX/1/1}name'):
 # Read Excel file with tree data
 try:
     # Read predefined tree data file
-    with open(os.path.join(dirname, 'data', 'tree-data-path')) as infile:
+    with open(os.path.join(dirname, 'input-paths', 'tree-data-path')) as infile:
         tree_file = infile.readline().strip()
         logit('Read file: ' + tree_file, log_type = 'default')
     
@@ -241,7 +241,7 @@ for dataset_use in dataset_list:
     # Read satellite data
     try:
         # Read predefined file
-        with open(os.path.join(dirname, 'data', sat_pathfile_name)) as infile:
+        with open(os.path.join(dirname, 'input-paths', sat_pathfile_name)) as infile:
             sat_file = infile.readline().strip()
             logit('Read file: ' + sat_file, log_type = 'default')
         
