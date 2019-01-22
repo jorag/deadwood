@@ -24,7 +24,7 @@ from dataclass import *
 dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 
 # Prefix for output datamodalities object filename
-datamod_fprefix = 'glob_norm'
+datamod_fprefix = 'rule3m2_lai_globloc'
 
 # PARAMETERS
 # Ground truth info - TODO: Store this info and parameters in object!!
@@ -32,11 +32,13 @@ transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examin
 
 # Processing parameters - minimum of X * 100 m^2 LAI to be in 'Live' class
 # TODO: NEED TO ADJUST THESE THRESHOLDS AFTER DISCUSSION WITH ECOLOGISTS/EXPERTS
-lai_threshold_live = 0.0125 # min Leaf Area Index to be assigned to Live class 
+lai_min_live = 0.03 # min Leaf Area Index to be assigned to Live class 
+maxstem_min_defo = 2.5 # min registered max stem thickness for defoliated class
+ntrees_min_defo = 3 # min number of trees for defoliated class
 
 # Normalization
-opt_norm_type = 'global' # 'local' #  
-sar_norm_type = 'global' # 'local' #  
+opt_norm_type = 'local' #  'none' # 
+sar_norm_type = 'global'  # 'local' #    
 
 # Which Sentinel-2 bands to use
 opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
@@ -49,7 +51,7 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # Read Excel file with vegetation types
 try:
     # Read predefined file
-    with open(os.path.join(dirname, "data", "vegetation-data-path")) as infile:
+    with open(os.path.join(dirname, 'data', 'vegetation-data-path')) as infile:
         veg_file = infile.readline().strip()
         logit('Read file: ' + veg_file, log_type = 'default')
     
@@ -80,7 +82,7 @@ for i_sheet in range(1,7):
 # Read .gpx file with coordinates of transect points
 try:
     # Read predefined file
-    with open(os.path.join(dirname, "data", "gps-data-path")) as infile:
+    with open(os.path.join(dirname, 'data', 'gps-data-path')) as infile:
         gps_file = infile.readline().strip()
         logit('Read file: ' + gps_file, log_type = 'default')
     
@@ -97,19 +99,19 @@ except:
 
 # Get lat and long
 pos_array = []
-for elem in tree.findall("{http://www.topografix.com/GPX/1/1}wpt"):
+for elem in tree.findall('{http://www.topografix.com/GPX/1/1}wpt'):
     lon, lat = elem.attrib['lon'], elem.attrib['lat']
     pos_array.append((float(lat), float(lon)))
 # Get name of waypoints
 gps_id = []
-for elem in tree.findall("//{http://www.topografix.com/GPX/1/1}name"):
+for elem in tree.findall('//{http://www.topografix.com/GPX/1/1}name'):
     gps_id.append(elem.text)
 
 
 # Read Excel file with tree data
 try:
     # Read predefined tree data file
-    with open(os.path.join(dirname, "data", "tree-data-path")) as infile:
+    with open(os.path.join(dirname, 'data', 'tree-data-path')) as infile:
         tree_file = infile.readline().strip()
         logit('Read file: ' + tree_file, log_type = 'default')
     
@@ -194,10 +196,12 @@ avg_tree_height.pop(0)
 # TODO: NEED TO ADJUST THESE RULES AFTER DISCUSSION WITH ECOLOGISTS/EXPERTS
 for i_point in range(length(name_tree)):
     # Check if Leaf Area Index is greater than threshold
-    if lai_point[i_point] > lai_threshold_live:
-        class_dict[name_tree[i_point]] = 'Live'
-    else:
-        class_dict[name_tree[i_point]] = 'Defoliated'
+    if lai_point[i_point] > lai_min_live: # dai_point[i_point]:  #
+        if lai_point[i_point] > lai_min_live:
+            class_dict[name_tree[i_point]] = 'Live'
+    elif lai_point[i_point] < dai_point[i_point]:  #:
+        if max_stem_thick[i_point] > maxstem_min_defo  and n_trees[i_point] >= ntrees_min_defo:
+            class_dict[name_tree[i_point]] = 'Defoliated'
 
 # Return original order of points
 class_use = [class_dict[x] for x in gps_id]
@@ -319,5 +323,5 @@ for dataset_use in dataset_list:
     #all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.3, val_pct = 0.0)
     
     # Save DataModalities object
-    with open(os.path.join(dirname, "data", obj_out_name), 'wb') as output:
+    with open(os.path.join(dirname, 'data', obj_out_name), 'wb') as output:
         pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)

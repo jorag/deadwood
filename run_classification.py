@@ -37,11 +37,11 @@ rf_ntrees = 10
 norm_type = 'local' # 'global' # 
 
 # List of datasets to process
-# dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
-dataset_list = ['vanZyl-A', 'vanZyl-B', 'vanZyl-C']
+dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
+#dataset_list = ['vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 
 # Prefix for input datamodalities object filename
-datamod_fprefix = 'glob_norm'
+datamod_fprefix = 'rule3m2_lai_globloc'
 # Prefix for output cross validation object filename
 crossval_fprefix = 'kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
 
@@ -51,7 +51,7 @@ class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 n_classes = length(class_dict_in)
 
 # Plot classifier result for entire image
-plot_image_result = False
+plot_image_result = True
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -273,7 +273,7 @@ for dataset_use in dataset_list:
     rf_scores_sar = cross_val_score(rf_sar, sar_data, data_labels, cv=crossval_kfold)
     # Add to output dict
     rf_cv_sar[dataset_use] = rf_scores_sar
-    print('RF OPT+SAR - ' + dataset_use + ' :')
+    print('RF SAR - ' + dataset_use + ' :')
     print(np.mean(rf_scores_sar))
     
     # Get split for cofusion matrix calculation

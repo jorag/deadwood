@@ -23,7 +23,7 @@ from dataclass import *
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
 # Prefix for input datamodalities object filename
-datamod_fprefix = 'glob_norm'
+datamod_fprefix = 'newrule_global'
 # Prefix for input cross validation object filename
 crossval_fprefix = 'kNN5trees10'
 
