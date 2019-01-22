@@ -4,6 +4,7 @@
 
 # My .gitignore list
 data/
+input-paths/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
