@@ -22,7 +22,8 @@ from dataclass import *
 
 # List of datasets to process
 #dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
-dataset_list = ['19-vanZyl-A', '19-Coh-A']
+#dataset_list = ['19-vanZyl-A', '19-Coh-A']
+dataset_list = ['19-Quad-A']
 
 # Prefix for output datamodalities object filename
 datamod_fprefix = '19_globloc'

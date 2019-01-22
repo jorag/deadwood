@@ -25,6 +25,7 @@ class DataModalities:
         # Two most important attributes, name and path to dataset
         self.name = name
         self.data_paths = dict() # Keys generated when data points are added
+        self.classdef_params = dict() # Params for splitting forest class into live/defoliated 
         # Set default values
         # Class settings
         self.meta_missing_value = None
