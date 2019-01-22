@@ -37,11 +37,11 @@ rf_ntrees = 10
 norm_type = 'local' # 'global' # 
 
 # List of datasets to process
-dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
-#dataset_list = ['vanZyl-A', 'vanZyl-B', 'vanZyl-C']
+#dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
+dataset_list = ['19-vanZyl-A', '19-Coh-A']
 
 # Prefix for input datamodalities object filename
-datamod_fprefix = 'rule3m2_lai_globloc'
+datamod_fprefix = '19_globloc'
 # Prefix for output cross validation object filename
 crossval_fprefix = 'kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
 
