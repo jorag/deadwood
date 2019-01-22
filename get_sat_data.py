@@ -267,6 +267,11 @@ for dataset_use in dataset_list:
     ## Intialize data object
     # TODO - add meta information here as kwargs, such as year, area, etc.
     all_data = DataModalities(dataset_use)
+    # Store processing parameters
+    all_data.classdef_params['lai_min_live'] = lai_min_live 
+    all_data.classdef_params['maxstem_min_defo'] = maxstem_min_defo
+    all_data.classdef_params['ntrees_min_defo'] = ntrees_min_defo
+    
     # Add points
     all_data.add_points(name_veg, class_use, dataset_id = 'SAR-B', dataset_path = sat_file)
     # Add GPS points

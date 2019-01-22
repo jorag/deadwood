@@ -30,8 +30,8 @@ from dataclass import *
 # PROCESSING PARAMETERS
 crossval_split_k = 5
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
-knn_k = 5
-rf_ntrees = 10
+knn_k = 3
+rf_ntrees = 20
 
 # Image plot parameter - TODO: Differentiate for SAR and optical data
 norm_type = 'local' # 'global' # 
