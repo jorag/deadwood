@@ -59,7 +59,7 @@ def showallbands(dataset_array):
     return
 
 
-def modalitypoints3d(modality_type, dataset_array, labels_array):
+def modalitypoints3d(modality_type, dataset_array, labels_array, labels_dict=None):
     """Show all (transect) points in a 3D plot with colour and annotation
     
     Different annotations and channels used for different modalities.
@@ -90,7 +90,18 @@ def modalitypoints3d(modality_type, dataset_array, labels_array):
     ax.set_zlabel(zlabel)
     
     ax.set_title(modality_type)
-    
+    # TODO: Check if dict instead
+    if labels_dict is not None:
+        # Get legend text
+        legend_text = []
+        vals = list(labels_dict.values())
+        # Go through them in sorted order
+        for i_class in np.unique(vals):
+            print(i_class)
+            print(list(labels_dict.keys())[vals.index(i_class)])
+            legend_text.append(list(labels_dict.keys())[vals.index(i_class)])
+        plt.legend(legend_text)
+        
     plt.show()
     
     return

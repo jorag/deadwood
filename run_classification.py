@@ -127,7 +127,7 @@ for dataset_use in dataset_list:
     labels = np.asarray(data_labels)
     
     # Plot in 3D
-    modalitypoints3d('sar_quad', sar_data, labels)
+    modalitypoints3d('sar_quad', sar_data, labels, labels_dict=class_dict)
     
     a = dummy 
     # Print number of instances for each class
