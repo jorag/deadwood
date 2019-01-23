@@ -126,6 +126,10 @@ for dataset_use in dataset_list:
     # Convert labels to numpy array
     labels = np.asarray(data_labels)
     
+    # Plot in 3D
+    showpoints3d(sar_data, labels)
+    
+    
     # Print number of instances for each class
     for key in class_dict.keys():
         val = class_dict[key]

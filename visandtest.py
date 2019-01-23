@@ -70,12 +70,14 @@ def showpoints3d(dataset_array, labels_array):
     ax = Axes3D(fig)
     
     # TODO: Use mytools.py to define a standard colour/plotstyle vector
+    colour_vec = mycolourvec()
     
-    for c, m, zlow, zhigh in [('r', 'o', -50, -25), ('b', '^', -30, -5)]:
-        xs = randrange(n, 23, 32)
-        ys = randrange(n, 0, 100)
-        zs = randrange(n, zlow, zhigh)
-        ax.scatter(xs, ys, zs, c=c, marker=m)
+    ax.scatter(dataset_array[:,0], dataset_array[:,1], dataset_array[:,3], c='r', marker='o')
+#    for c, m, zlow, zhigh in [('r', 'o', -50, -25), ('b', '^', -30, -5)]:
+#        xs = randrange(n, 23, 32)
+#        ys = randrange(n, 0, 100)
+#        zs = randrange(n, zlow, zhigh)
+#        ax.scatter(xs, ys, zs, c=c, marker=m)
     
     ax.set_xlabel('X Label')
     ax.set_ylabel('Y Label')
