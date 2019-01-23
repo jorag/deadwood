@@ -9,6 +9,8 @@ Created on Wed Oct  3 12:58:32 2018
 
 import numpy as np
 import matplotlib.pyplot as plt
+# This import registers the 3D projection, but is otherwise unused.
+from mpl_toolkits.mplot3d import Axes3D # noqa: F401 unused import
 from mytools import *
 from geopixpos import *
 
@@ -54,6 +56,31 @@ def showallbands(dataset_array):
         plt.imshow(im_generate[:,:,i_band])
         plt.title('BAND '+ str(i_band) +' Min = '+str(band_min)+' Mean = '+str(band_mean)+' Max = '+str(band_max))
         plt.show()  # display it
-        
-                
+    
+    return
+
+
+def showpoints3d(dataset_array, labels_array):
+    # Show all (transect) points in a 3D plot with colour and annotation
+    # Sources:
+        # https://matplotlib.org/gallery/mplot3d/scatter3d.html
+        # https://stackoverflow.com/questions/1985856/how-to-make-a-3d-scatter-plot-in-python
+    
+    fig = plt.figure()
+    ax = Axes3D(fig)
+    
+    # TODO: Use mytools.py to define a standard colour/plotstyle vector
+    
+    for c, m, zlow, zhigh in [('r', 'o', -50, -25), ('b', '^', -30, -5)]:
+        xs = randrange(n, 23, 32)
+        ys = randrange(n, 0, 100)
+        zs = randrange(n, zlow, zhigh)
+        ax.scatter(xs, ys, zs, c=c, marker=m)
+    
+    ax.set_xlabel('X Label')
+    ax.set_ylabel('Y Label')
+    ax.set_zlabel('Z Label')
+    
+    plt.show()
+    
     return
