@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-visandtest - Visualize and Test
+"""visandtest - Visualize and Test
 Created on Wed Oct  3 12:58:32 2018
 
 @author: jorag
@@ -42,7 +41,7 @@ def showimage(all_data, bands=[0,1,2]):
 
 
 def showallbands(dataset_array):
-    # Show all bands in GDAL image array
+    """Show all bands in GDAL image array"""
     
     # Rearrage dimensions to x,y,channel format
     im_generate = np.transpose(dataset_array, (1,2,0))
@@ -60,28 +59,37 @@ def showallbands(dataset_array):
     return
 
 
-def showpoints3d(dataset_array, labels_array):
-    # Show all (transect) points in a 3D plot with colour and annotation
-    # Sources:
+def modalitypoints3d(modality_type, dataset_array, labels_array):
+    """Show all (transect) points in a 3D plot with colour and annotation
+    
+    Different annotations and channels used for different modalities.
+    Sources:
         # https://matplotlib.org/gallery/mplot3d/scatter3d.html
         # https://stackoverflow.com/questions/1985856/how-to-make-a-3d-scatter-plot-in-python
+    """
     
+    if modality_type.lower() in ['sar_quad', 'quad', 'hhhvvv']:
+        xlabel = 'HH'; xs = dataset_array[:,0]
+        ylabel = 'HV'; ys = dataset_array[:,1]
+        zlabel = 'VV'; zs = dataset_array[:,3]
+    
+    
+    # Get standard colour/plotstyle vector
+    colour_vec = mycolourvec()
+    # Convert to numpy array for indexation
+    colour_vec = np.asarray(colour_vec)
+    
+    # Plot
     fig = plt.figure()
     ax = Axes3D(fig)
     
-    # TODO: Use mytools.py to define a standard colour/plotstyle vector
-    colour_vec = mycolourvec()
+    ax.scatter(xs, ys, zs, c=colour_vec[labels_array], marker='o')
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_zlabel(zlabel)
     
-    ax.scatter(dataset_array[:,0], dataset_array[:,1], dataset_array[:,3], c='r', marker='o')
-#    for c, m, zlow, zhigh in [('r', 'o', -50, -25), ('b', '^', -30, -5)]:
-#        xs = randrange(n, 23, 32)
-#        ys = randrange(n, 0, 100)
-#        zs = randrange(n, zlow, zhigh)
-#        ax.scatter(xs, ys, zs, c=c, marker=m)
-    
-    ax.set_xlabel('X Label')
-    ax.set_ylabel('Y Label')
-    ax.set_zlabel('Z Label')
+    ax.set_title(modality_type)
     
     plt.show()
     
