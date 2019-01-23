@@ -129,9 +129,15 @@ def imtensor2array(input_im):
 
 
 def norm01(input_array, norm_type='global', min_cap=None, max_cap=None, min_cap_value=np.NaN, max_cap_value=np.NaN, log_type=None):
-    """Normalize.
+    """Normalize data.
     
-    Use for normalization
+    Parameters:
+    norm_type:
+        'none' - return input array (might print min, max and mean)
+        'local' - min and max of each variable (column) is 0 and 1
+        'global' - min of array is 0, max is 1
+    min_cap: Truncate values below this value to min_cap_value before normalizing
+    max_cap: Truncate values above this value to max_cap_value before normalizing
     """
     
     # Replace values outside envolope/cap with NaNs (or specifie value)
@@ -143,7 +149,7 @@ def norm01(input_array, norm_type='global', min_cap=None, max_cap=None, min_cap_
     
     # Normalize data for selected normalization option
     if norm_type.lower() in ['none']:
-        # Return input (might print min, max, and min)
+        # No normalization (do not return yet, might print min, max, and mean)
         output_array = input_array
     elif norm_type.lower() in ['global', 'all', 'set']:
         # Normalize to 0-1 (globally)
@@ -169,3 +175,19 @@ def norm01(input_array, norm_type='global', min_cap=None, max_cap=None, min_cap_
         logit(np.nanmin(output_array, axis=0), log_type)
         
     return output_array
+
+
+def mycolourvec(shuffle=False):
+    """Get a standardized colour vector (list) for plotting.
+    
+    Shorthand to avoid defining it for every plot that needs different colours 
+    to distinguish between classes etc.
+    """
+    # Define vector with colours
+    colour_vec = ['r', 'g', 'b', 'm', 'c', 'y', 'k']
+    
+    # Randomize order?
+    if shuffle:
+        np.random.shuffle(colour_vec)
+        
+    return colour_vec
