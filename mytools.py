@@ -191,3 +191,17 @@ def mycolourvec(shuffle=False):
         np.random.shuffle(colour_vec)
         
     return colour_vec
+
+
+def dB(x, ref=1, input_type='power'):
+    """Return result, x, in decibels (dB) relative to reference, ref."""    
+    if input_type.lower() in ['power', 'pwr']:
+        a = 10
+    elif input_type.lower() in ['aplitude', 'amp']:
+        a = 20
+    return a*(np.log10(x) - np.log10(ref))
+
+
+def identity(x, **kwargs):
+    """Identity function that ignores extra arguments."""    
+    return x 
