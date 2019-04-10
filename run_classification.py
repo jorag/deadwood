@@ -14,7 +14,7 @@ import pickle # To load object
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split # train/test set split
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import StratifiedKFold # is deafault in cross-val?
 from sklearn.metrics import confusion_matrix
@@ -31,25 +31,26 @@ from dataclass import *
 crossval_split_k = 5
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
 knn_k = 3
-rf_ntrees = 20
+rf_ntrees = 20 # Number of trees in the Random Forest algorithm
 
 # Image plot parameter - TODO: Differentiate for SAR and optical data
 norm_type = 'local' # 'global' # 
 
 # List of datasets to process
 #dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
-#dataset_list = ['19-vanZyl-A', '19-Coh-A']
-dataset_list = ['19-Quad-A']
+#dataset_list = ['19-vanZyl-A', '19-Coh-A', '19-Quad-A']
+dataset_list = ['19-vanZyl-A']
 
 # Prefix for input datamodalities object filename
-datamod_fprefix = '19_globloc'
+datamod_fprefix = 'rule3m2_lai_globloc'
+datamod_fprefix = '19_nonorm'
 # Prefix for output cross validation object filename
 crossval_fprefix = 'kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
 
 
 # Set class labels for dictionary - TODO: Consider moving this to get_stat_data
 class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
-n_classes = length(class_dict_in)
+#class_dict_in = None
 
 # Plot classifier result for entire image
 plot_image_result = True
@@ -116,6 +117,7 @@ for dataset_use in dataset_list:
         
     # Get labels and class_dict (in case None is input, one is created)
     labels_out, class_dict = input_data.assign_labels(class_dict=class_dict_in)
+    n_classes = length(class_dict)
     
     # Get all data
     all_data, data_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
@@ -127,9 +129,9 @@ for dataset_use in dataset_list:
     labels = np.asarray(data_labels)
     
     # Plot in 3D
-    modalitypoints3d('sar_quad', sar_data, labels, labels_dict=class_dict)
+    modalitypoints3d('van_zyl', sar_data, labels, labels_dict=class_dict)
     
-    a = dummy 
+    breakpoint = dummy 
     # Print number of instances for each class
     for key in class_dict.keys():
         val = class_dict[key]

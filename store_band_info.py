@@ -23,18 +23,23 @@ sar_bands_dict = dict()
 opt_bands_dict = dict()
 geo_bands_dict = dict()
 
+# NOTE: WHEN ALL BANDS ARE READ, PYTHON'S 0 BASED INDEXING MUST BE USED IN ARRAY
+
 # Add SAR bands
 sar_bands_dict['vanZyl-A'] = [0, 1, 2]
 sar_bands_dict['vanZyl-B'] = [0, 1, 2]
 sar_bands_dict['vanZyl-C'] = [0, 1, 2]
 sar_bands_dict['19-vanZyl-A'] = [0, 1, 2]
 # SAR bands: t11 = 11, t22 = 16, t33 = 19
-# NOTE: WHEN ALL BANDS ARE READ, PYTHON'S 0 BASED INDEXING MUST BE USED IN ARRAY
 sar_bands_dict['Coh-A'] = [34,35,36,37,38,39,40,41,42] # [34, 39, 42] # 
 sar_bands_dict['Coh-B'] = [10,11,12,13,14,15,16,17,18] # [10, 15, 18] # 
 sar_bands_dict['Coh-C'] = [10,11,12,13,14,15,16,17,18] # [10, 15, 18] # 
 sar_bands_dict['19-Coh-A'] = [0,1,2,3,4,5,6,7,8] # [34, 39, 42] # 
 sar_bands_dict['19-Quad-A'] = [0, 1, 2, 3]
+# Filtered and raw HH/HV/VH/VV
+sar_bands_dict['GNML-A'] = [0, 1, 2, 3, 17, 18, 19, 20]
+sar_bands_dict['GNML-B'] = [0, 1, 2, 3, 17, 18, 19, 20]
+
 
 # List of optical band names (added zero for correct alphabetical sorting)
 opt_band_names = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
@@ -49,6 +54,8 @@ opt_bands_dict['Coh-B'] = dict(zip(opt_band_names , [0,1,2,3,4,5,6,7,8,9]))
 opt_bands_dict['Coh-C'] = dict(zip(opt_band_names , [0,1,2,3,4,5,6,7,8,9]))
 opt_bands_dict['19-Coh-A'] = dict(zip(opt_band_names , [0,1,2,3,4,5,6,7,8,0])) # CHANGE THIS WHEN OPT BANDS ADDED TO PRODUCT
 opt_bands_dict['19-Quad-A'] = dict(zip(opt_band_names , [0,0,0,1,1,1,2,2,3,3])) # CHANGE THIS WHEN OPT BANDS ADDED TO PRODUCT
+opt_bands_dict['GNML-A'] = dict(zip(opt_band_names , [6,7,8,9,10,11,12,13,14,15]))
+opt_bands_dict['GNML-B'] = dict(zip(opt_band_names , [6,7,8,9,10,11,12,13,14,15]))
               
 # Add GEO bands
 geo_bands_dict['vanZyl-A'] = dict(zip(['lat', 'lon'], [38, 39]))
@@ -60,6 +67,8 @@ geo_bands_dict['Coh-B'] = dict(zip(['lat', 'lon'], [20, 21]))
 geo_bands_dict['Coh-C'] = dict(zip(['lat', 'lon'], [20, 21]))
 geo_bands_dict['19-Coh-A'] = dict(zip(['lat', 'lon'], [9, 10]))
 geo_bands_dict['19-Quad-A'] = dict(zip(['lat', 'lon'], [4, 5]))
+geo_bands_dict['GNML-A'] = dict(zip(['lat', 'lon'], [4, 5]))
+geo_bands_dict['GNML-B'] = dict(zip(['lat', 'lon'], [4, 5]))
 
 # Save DataModalities object
 with open(os.path.join(dirname, 'data', 'band_dicts'), 'wb') as output:

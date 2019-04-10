@@ -29,6 +29,7 @@ def showimpoint(all_data, geotransform, lat, lon, n_pixel_x=500, n_pixel_y=500, 
     return
 
 def showimage(all_data, bands=[0,1,2]):
+    """Show image in tensor with the shape (channel,x,y)"""
     # Extract pixels from area
     im_generate = all_data[bands, :, :]
     
@@ -72,6 +73,11 @@ def modalitypoints3d(modality_type, dataset_array, labels_array, labels_dict=Non
         xlabel = 'HH'; xs = dataset_array[:,0]
         ylabel = 'HV'; ys = dataset_array[:,1]
         zlabel = 'VV'; zs = dataset_array[:,3]
+    elif modality_type.lower() in ['vanzyl', 'van zyl', 'van_zyl']:
+        xlabel = 'Surface'; xs = dataset_array[:,0]
+        ylabel = 'Volume'; ys = dataset_array[:,1]
+        zlabel = 'Double bounce'; zs = dataset_array[:,2]    
+    
     
     
     # Get standard colour/plotstyle vector
@@ -101,7 +107,10 @@ def modalitypoints3d(modality_type, dataset_array, labels_array, labels_dict=Non
             print(list(labels_dict.keys())[vals.index(i_class)])
             legend_text.append(list(labels_dict.keys())[vals.index(i_class)])
         plt.legend(legend_text)
-        
+    
+    # TODO: Fix scaling og plot
+    # https://stackoverflow.com/questions/13685386/matplotlib-equal-unit-length-with-equal-aspect-ratio-z-axis-is-not-equal-to?noredirect=1&lq=1
+    #plt.axis('scaled')
     plt.show()
     
     return
