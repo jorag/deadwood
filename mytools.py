@@ -161,8 +161,13 @@ def norm01(input_array, norm_type='global', min_cap=None, max_cap=None, min_cap_
         output_array = output_array/np.nanmax(output_array, axis=0)
     elif norm_type.lower() in ['band', 'channel']:
         # Normalize to 0-1 for each channel (assumed to be last index)
-        output_array = input_array - np.nanmin(input_array, axis=2)
-        output_array = output_array/np.nanmax(output_array, axis=2)
+        # Get shape of input
+        input_shape = input_array.shape
+        output_array = np.zeros(input_shape)
+        # Normalize each channel
+        for i_channel in range(0, input_shape[2]):
+            output_array[:,:,i_channel] = input_array[:,:,i_channel] - np.nanmin(input_array[:,:,i_channel])
+            output_array[:,:,i_channel] = output_array[:,:,i_channel]/np.nanmax(output_array[:,:,i_channel])
     
     # Log / print results
     if log_type is not None:
