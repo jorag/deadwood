@@ -155,10 +155,14 @@ def norm01(input_array, norm_type='global', min_cap=None, max_cap=None, min_cap_
         # Normalize to 0-1 (globally)
         output_array = input_array - np.nanmin(input_array)
         output_array = output_array/np.nanmax(output_array)
-    elif norm_type.lower() in ['local', 'separate', 'channel']:
+    elif norm_type.lower() in ['local', 'separate']:
         # Normalize to 0-1 for each column
         output_array = input_array - np.nanmin(input_array, axis=0)
         output_array = output_array/np.nanmax(output_array, axis=0)
+    elif norm_type.lower() in ['band', 'channel']:
+        # Normalize to 0-1 for each channel (assumed to be last index)
+        output_array = input_array - np.nanmin(input_array, axis=2)
+        output_array = output_array/np.nanmax(output_array, axis=2)
     
     # Log / print results
     if log_type is not None:
