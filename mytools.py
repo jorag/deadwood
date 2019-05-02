@@ -216,10 +216,14 @@ def identity(x, **kwargs):
     return x 
 
 
-def pauli_rgb(x, **kwargs):
-    """Create the Pauli RGB image from input."""
-    # TODO: Check if complex?
-    # TODO: Currently assumed to be in amplitude format
+def pauli_rgb(x):
+    """Create the Pauli RGB image from input.
+    
+    If the number of channels in is 3 or 4, the input is assumed to be complex.
+    If the number of channels in is 6 or 8, the input is assumed to be I and Q.
+    (Inphase and Quadrature components in sequential band order.)
+    Either way, the values are assumed to represent amplitude (not intensity).
+    """
     shape_in = x.shape
     # Initialize output
     rgb_out = np.zeros((shape_in[0], shape_in[1], 3))
@@ -230,7 +234,7 @@ def pauli_rgb(x, **kwargs):
         rgb_out[:,:,0] = 0.5*np.abs(x[:,:,0] - x[:,:,3])**2 # R
         rgb_out[:,:,2] = 0.5*np.abs(x[:,:,0] + x[:,:,3])**2 # B
     elif shape_in[2] == 3:
-        # Form is complex arrays: HH, HV, VV  (reciprocety assumed) 
+        # Form is complex arrays: HH, HV, VV  (reciprocity assumed) 
         rgb_out[:,:,1] = 0.5*np.abs(x[:,:,1])**2 # G
         rgb_out[:,:,0] = 0.5*np.abs(x[:,:,0] - x[:,:,2])**2 # R
         rgb_out[:,:,2] = 0.5*np.abs(x[:,:,0] + x[:,:,2])**2 # B
@@ -240,9 +244,43 @@ def pauli_rgb(x, **kwargs):
         rgb_out[:,:,0] = 0.5*((x[:,:,0]-x[:,:,6])**2 + (x[:,:,1]-x[:,:,7])**2) # R
         rgb_out[:,:,2] = 0.5*((x[:,:,0]+x[:,:,6])**2 + (x[:,:,1]+x[:,:,7])**2) # B
     elif shape_in[2] == 6:
-        # Form is real arrays: i_HH, q_HH, i_HV, q_HV, i_VV, q_VV (reciprocety assumed) 
+        # Form is real arrays: i_HH, q_HH, i_HV, q_HV, i_VV, q_VV (reciprocity assumed) 
         rgb_out[:,:,1] = 0.5*((x[:,:,2])**2 + (x[:,:,3])**2) # G
         rgb_out[:,:,0] = 0.5*((x[:,:,0]-x[:,:,4])**2 + (x[:,:,1]-x[:,:,5])**2) # R
         rgb_out[:,:,2] = 0.5*((x[:,:,0]+x[:,:,4])**2 + (x[:,:,1]+x[:,:,5])**2) # B
                
     return rgb_out 
+
+
+def iq2complex(x, reciprocity=False):
+    """Merge I and Q bands to complex valued array.
+    
+    Create an array with complex values from separate, real-vauled Inphase and 
+    Quadrature components.
+    """
+    shape_in = x.shape
+    # Number of bands determines form of expression
+    if reciprocity and shape_in[2] == 8:
+        # Initialize output
+        array_out = np.zeros((shape_in[0], shape_in[1], 3), dtype=complex)
+        # Input is real arrays: i_HH, q_HH, i_HV, q_HV, i_VH, q_VH, i_VV, q_VV
+        array_out[:,:,0] = x[:,:,0] + 1j * x[:,:,1] # HH
+        array_out[:,:,1] = (x[:,:,2] + 1j*x[:,:,3] + x[:,:,4] + 1j*x[:,:,5])/2 # HV (=VH)
+        array_out[:,:,2] = x[:,:,6] + 1j * x[:,:,7] # VV
+    elif not reciprocity and shape_in[2] == 8:
+        # Initialize output
+        array_out = np.zeros((shape_in[0], shape_in[1], 4), dtype=complex)
+        # Input is real arrays: i_HH, q_HH, i_HV, q_HV, i_VH, q_VH, i_VV, q_VV
+        array_out[:,:,0] = x[:,:,0] + 1j * x[:,:,1] # HH
+        array_out[:,:,1] = x[:,:,2] + 1j * x[:,:,3] # HV
+        array_out[:,:,2] = x[:,:,4] + 1j * x[:,:,5] # VH
+        array_out[:,:,3] = x[:,:,6] + 1j * x[:,:,7] # VV
+    elif shape_in[2] == 6:
+        # Initialize output
+        array_out = np.zeros((shape_in[0], shape_in[1], 3), dtype=complex)
+        # Input is real arrays: i_HH, q_HH, i_HV, q_HV, i_VV, q_VV (reciprocity assumed) 
+        array_out[:,:,0] = x[:,:,0] + 1j * x[:,:,1] # HH
+        array_out[:,:,1] = x[:,:,2] + 1j * x[:,:,3] # HV (=VH)
+        array_out[:,:,2] = x[:,:,4] + 1j * x[:,:,5] # VH
+               
+    return array_out 
