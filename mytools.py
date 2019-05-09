@@ -252,6 +252,42 @@ def pauli_rgb(x):
     return rgb_out 
 
 
+def lexi_rgb(x):
+    """Create the lexicographical RGB image from input.
+    
+    If the number of channels in is 3 or 4, the input is assumed to be complex.
+    If the number of channels in is 6 or 8, the input is assumed to be I and Q.
+    (Inphase and Quadrature components in sequential band order.)
+    Either way, the values are assumed to represent amplitude (not intensity).
+    """
+    shape_in = x.shape
+    # Initialize output
+    rgb_out = np.zeros((shape_in[0], shape_in[1], 3))
+    # Number of bands determines form of expression
+    if shape_in[2] == 4:
+        # Form is complex arrays: HH, HV, VH, VV
+        rgb_out[:,:,0] = np.abs(x[:,:,0]) # R
+        rgb_out[:,:,1] = 0.5*np.abs(x[:,:,1]) + np.abs(x[:,:,2]) # G
+        rgb_out[:,:,2] = np.abs(x[:,:,3])**2 # B
+    elif shape_in[2] == 3:
+        # Form is complex arrays: HH, HV, VV  (reciprocity assumed) 
+        rgb_out[:,:,0] = np.abs(x[:,:,0])# R
+        rgb_out[:,:,1] = np.abs(x[:,:,1]) # G
+        rgb_out[:,:,2] = np.abs(x[:,:,2])**2 # B
+    elif shape_in[2] == 8:
+        # Form is real arrays: i_HH, q_HH, i_HV, q_HV, i_VH, q_VH, i_VV, q_VV
+        rgb_out[:,:,0] = np.sqrt((x[:,:,0])**2 + (x[:,:,1])**2) # R
+        rgb_out[:,:,1] = np.sqrt( (0.5*(x[:,:,2]+x[:,:,4]))**2 + (0.5*(x[:,:,3]+x[:,:,5]))**2) # G
+        rgb_out[:,:,2] = np.sqrt((x[:,:,6])**2 + (x[:,:,7])**2) # B
+    elif shape_in[2] == 6:
+        # Form is real arrays: i_HH, q_HH, i_HV, q_HV, i_VV, q_VV (reciprocity assumed) 
+        rgb_out[:,:,0] = np.sqrt((x[:,:,0])**2 + (x[:,:,1])**2) # R
+        rgb_out[:,:,1] = np.sqrt((x[:,:,1])**2 + (x[:,:,2])**2) # G
+        rgb_out[:,:,2] = np.sqrt((x[:,:,4])**2 + (x[:,:,5])**2) # B
+               
+    return rgb_out 
+
+
 def iq2complex(x, reciprocity=False):
     """Merge I and Q bands to complex valued array.
     
