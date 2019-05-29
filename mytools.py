@@ -320,3 +320,14 @@ def iq2complex(x, reciprocity=False):
         array_out[:,:,2] = x[:,:,4] + 1j * x[:,:,5] # VH
                
     return array_out 
+
+
+def polar2complex(amp_in, ang_in):
+    """Create complex valued array from amplitude and angle"""
+
+    array_out = np.zeros(amp_in.shape, dtype=complex)
+    array_out = amp_in * np.exp(1j * ang_in)
+               
+    return array_out 
+
+
