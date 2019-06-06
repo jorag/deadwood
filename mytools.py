@@ -267,13 +267,13 @@ def lexi_rgb(x):
     if shape_in[2] == 4:
         # Form is complex arrays: HH, HV, VH, VV
         rgb_out[:,:,0] = np.abs(x[:,:,0]) # R
-        rgb_out[:,:,1] = 0.5*np.abs(x[:,:,1]) + np.abs(x[:,:,2]) # G
-        rgb_out[:,:,2] = np.abs(x[:,:,3])**2 # B
+        rgb_out[:,:,1] = 0.5*(np.abs(x[:,:,1]) + np.abs(x[:,:,2])) # G
+        rgb_out[:,:,2] = np.abs(x[:,:,3]) # B
     elif shape_in[2] == 3:
         # Form is complex arrays: HH, HV, VV  (reciprocity assumed) 
         rgb_out[:,:,0] = np.abs(x[:,:,0])# R
         rgb_out[:,:,1] = np.abs(x[:,:,1]) # G
-        rgb_out[:,:,2] = np.abs(x[:,:,2])**2 # B
+        rgb_out[:,:,2] = np.abs(x[:,:,2]) # B
     elif shape_in[2] == 8:
         # Form is real arrays: i_HH, q_HH, i_HV, q_HV, i_VH, q_VH, i_VV, q_VV
         rgb_out[:,:,0] = np.sqrt((x[:,:,0])**2 + (x[:,:,1])**2) # R
