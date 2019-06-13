@@ -7,6 +7,8 @@
 import numpy as np
 from mytools import *
 import matplotlib.pyplot as plt
+import xml.etree.ElementTree as ET # For reading .gpx files
+from math import radians, cos, sin, asin, sqrt # for Haversine function - TODO, rewrite using numpy!
 
 
 def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', verbose=True):
@@ -336,7 +338,6 @@ def haversine(lon1, lat1, lon2, lat2):
     
     From: https://stackoverflow.com/questions/4913349/
     """
-    from math import radians, cos, sin, asin, sqrt
     # convert decimal degrees to radians
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
 
@@ -347,3 +348,24 @@ def haversine(lon1, lat1, lon2, lat2):
     c = 2 * asin(sqrt(a))
     r = 6371  # Radius of earth in kilometers. Use 3956 for miles
     return c * r
+
+
+def gpxgeobox(gpx_in, margin=(0,0), log_type='default'):
+    """Get indices for GeoTIFF product bounding box from .gpx file bounds.
+    
+    Input: gpx_in
+    """
+    # Check optional margin argument?
+    
+    # Load .gpx data
+    xml_tree = ET.parse(gpx_in)
+    # Get <metadata><bounds> element
+    bounds = xml_tree.findall('//{http://www.topografix.com/GPX/1/1}bounds')[0]
+    # Find bounds
+    minlat = bounds.attrib['minlat']
+    minlon = bounds.attrib['minlon']
+    maxlat = bounds.attrib['maxlat']
+    maxlon = bounds.attrib['maxlon']
+    
+    # Get pixel positions from my geopixpos module
+    pix_lat, pix_long = geocoords2pix(raster_data_array[lat_band,:,:], raster_data_array[lon_band,:,:], lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
