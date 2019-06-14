@@ -83,7 +83,7 @@ def geocoords2pix(lat_band, lon_band, lat='default', lon='default', pixels_out =
     coord_band = np.dstack((lat_band, lon_band))
     
     # Check input - TODO, check that lengths equal?
-    if numel(lat) < 2 or numel(lon) <2:
+    if numel(lat) < 2 or numel(lon) < 2:
         lat = make_list(lat)
         lon = make_list(lon)
         
@@ -129,6 +129,7 @@ def geocoords2pix(lat_band, lon_band, lat='default', lon='default', pixels_out =
 def geobands2pix(lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False):
     """Find pixel position by from latitude and longitude bands.
     
+    TODO: Remove this?
     Input: lat_band, lon_band, lat='default', lon='default', pixels_out = 'single', verbose=False
     """
     # Check input
@@ -252,7 +253,6 @@ def refinepos(a):
     Use mean(abs(diff)) as sanity check, shuld be much smaller than 1 if correct (lat/long) band
     
     Needs GDAL (import). 
-    Needs numpy as np
     Needs indice of lat/long bands.
     """
     lat_band = dataset.GetRasterBand(lat_band_i)
@@ -279,7 +279,7 @@ def refinepos(a):
     # Or should perhaps both be considered?
     
     print(data[a]) 
-    # Does not work for b - this is because of how armin works in Python:
+    # Does not work for b - this is because of how argmin works in Python:
     # In case of multiple occurrences of the minimum values, the indices corresponding to the first occurrence are returned.
     
     
@@ -350,10 +350,10 @@ def haversine(lon1, lat1, lon2, lat2):
     return c * r
 
 
-def gpxgeobox(gpx_in, margin=(0,0), log_type='default'):
+def gpxgeobox(gpx_in, lat_band, lon_band, margin=(0,0), log_type='default'):
     """Get indices for GeoTIFF product bounding box from .gpx file bounds.
     
-    Input: gpx_in
+    Input: gpx_in, lat_band, lon_band
     """
     # Check optional margin argument?
     
@@ -367,5 +367,15 @@ def gpxgeobox(gpx_in, margin=(0,0), log_type='default'):
     maxlat = bounds.attrib['maxlat']
     maxlon = bounds.attrib['maxlon']
     
+    lat_bounds = [minlat, maxlat]
+    lon_bounds = [minlon, maxlon]
+    
+    # Go through all combinations and find row and column indices
+    for lat in lat_bounds:
+        for lon in lon_bounds_:
+            row_ind, col_ind = geocoords2pix(lat_band, lon_band, lat=lat, lon=lon, pixels_out = 'npsingle')
+    
     # Get pixel positions from my geopixpos module
-    pix_lat, pix_long = geocoords2pix(raster_data_array[lat_band,:,:], raster_data_array[lon_band,:,:], lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
+    pix_lat, pix_long = geocoords2pix(lat_band, lon_band, lat=minlat, lon=minlon, pixels_out = 'npsingle')
+    
+    
