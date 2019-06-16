@@ -350,7 +350,7 @@ def haversine(lon1, lat1, lon2, lat2):
     return c * r
 
 
-def gpxgeobox(gpx_in, lat_band, lon_band, margin=(0,0), log_type='default'):
+def gpxgeobox(gpx_in, lat=lat_band, lon=lon_band, margin=(0,0), log_type='default'):
     """Get indices for GeoTIFF product bounding box from .gpx file bounds.
     
     Input: gpx_in, lat_band, lon_band
@@ -361,21 +361,25 @@ def gpxgeobox(gpx_in, lat_band, lon_band, margin=(0,0), log_type='default'):
     xml_tree = ET.parse(gpx_in)
     # Get <metadata><bounds> element
     bounds = xml_tree.findall('//{http://www.topografix.com/GPX/1/1}bounds')[0]
-    # Find bounds
-    minlat = bounds.attrib['minlat']
-    minlon = bounds.attrib['minlon']
-    maxlat = bounds.attrib['maxlat']
-    maxlon = bounds.attrib['maxlon']
-    
-    lat_bounds = [minlat, maxlat]
-    lon_bounds = [minlon, maxlon]
-    
+    # Read bounds
+    lat_bounds = [bounds.attrib['minlat'], bounds.attrib['maxlat']]
+    lon_bounds = [bounds.attrib['minlon'], bounds.attrib['maxlon']]
+        
     # Go through all combinations and find row and column indices
+    row_ind = []
+    col_ind = []
     for lat in lat_bounds:
         for lon in lon_bounds_:
-            row_ind, col_ind = geocoords2pix(lat_band, lon_band, lat=lat, lon=lon, pixels_out = 'npsingle')
+            row, col = geocoords2pix(lat_band, lon_band, lat=lat, lon=lon, pixels_out = 'npsingle')
+            row_ind.append(row)
+            col_ind.append(col)
+            
     
-    # Get pixel positions from my geopixpos module
-    pix_lat, pix_long = geocoords2pix(lat_band, lon_band, lat=minlat, lon=minlon, pixels_out = 'npsingle')
+    # Find indices for rectangle
+    r_min = np.min(row_ind)
+    r_max = np.max(row_ind)
+    c_min = np.min(col_ind)
+    c_max = np.max(col_ind)
     
+    return (r_min,r_max), (c_min,c_max)
     
