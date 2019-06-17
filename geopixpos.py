@@ -374,12 +374,13 @@ def gpxgeobox(gpx_in, lat_band, lon_band, margin=(0,0), log_type='default'):
             row_ind.append(row)
             col_ind.append(col)
             
-    
-    # Find indices for rectangle
-    r_min = np.min(row_ind)
-    r_max = np.max(row_ind)
-    c_min = np.min(col_ind)
-    c_max = np.max(col_ind)
-    
+
+    # Find indices for rectangle, add margin and ensure it is within the range 
+    r_min = max(np.min(row_ind) - margin[0], 0)
+    r_max = min(np.max(row_ind) + margin[0], lat_band.shape[0])
+    c_min = max(np.min(col_ind) - margin[1], 0)
+    c_max = min(np.max(col_ind) + margin[1], lat_band.shape[1])
+
     return (r_min,r_max), (c_min,c_max)
+
     
