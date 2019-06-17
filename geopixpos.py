@@ -350,7 +350,7 @@ def haversine(lon1, lat1, lon2, lat2):
     return c * r
 
 
-def gpxgeobox(gpx_in, lat=lat_band, lon=lon_band, margin=(0,0), log_type='default'):
+def gpxgeobox(gpx_in, lat_band, lon_band, margin=(0,0), log_type='default'):
     """Get indices for GeoTIFF product bounding box from .gpx file bounds.
     
     Input: gpx_in, lat_band, lon_band
@@ -369,7 +369,7 @@ def gpxgeobox(gpx_in, lat=lat_band, lon=lon_band, margin=(0,0), log_type='defaul
     row_ind = []
     col_ind = []
     for lat in lat_bounds:
-        for lon in lon_bounds_:
+        for lon in lon_bounds:
             row, col = geocoords2pix(lat_band, lon_band, lat=lat, lon=lon, pixels_out = 'npsingle')
             row_ind.append(row)
             col_ind.append(col)
