@@ -39,6 +39,8 @@ sar_bands_dict['19-Quad-A'] = [0, 1, 2, 3]
 # Filtered and raw HH/HV/VH/VV
 sar_bands_dict['GNML-A'] = [0, 1, 2, 3, 17, 18, 19, 20]
 sar_bands_dict['GNML-B'] = [0, 1, 2, 3, 17, 18, 19, 20]
+# PGNLM test
+sar_bands_dict['PGNLM1-C'] = [0, 1, 2]
 
 
 # List of optical band names (added zero for correct alphabetical sorting)
@@ -56,7 +58,8 @@ opt_bands_dict['19-Coh-A'] = dict(zip(opt_band_names , [0,1,2,3,4,5,6,7,8,0])) #
 opt_bands_dict['19-Quad-A'] = dict(zip(opt_band_names , [0,0,0,1,1,1,2,2,3,3])) # CHANGE THIS WHEN OPT BANDS ADDED TO PRODUCT
 opt_bands_dict['GNML-A'] = dict(zip(opt_band_names , [6,7,8,9,10,11,12,13,14,15]))
 opt_bands_dict['GNML-B'] = dict(zip(opt_band_names , [6,7,8,9,10,11,12,13,14,15]))
-              
+opt_bands_dict['PGNLM1-C'] = dict(zip(opt_band_names , [3,4,5,3,4,5,3,4,5,5])) # CHANGE THIS WHEN all OPT BANDS ADDED TO PRODUCT
+             
 # Add GEO bands
 geo_bands_dict['vanZyl-A'] = dict(zip(['lat', 'lon'], [38, 39]))
 geo_bands_dict['vanZyl-B'] = dict(zip(['lat', 'lon'], [14, 15]))
@@ -69,6 +72,7 @@ geo_bands_dict['19-Coh-A'] = dict(zip(['lat', 'lon'], [9, 10]))
 geo_bands_dict['19-Quad-A'] = dict(zip(['lat', 'lon'], [4, 5]))
 geo_bands_dict['GNML-A'] = dict(zip(['lat', 'lon'], [4, 5]))
 geo_bands_dict['GNML-B'] = dict(zip(['lat', 'lon'], [4, 5]))
+geo_bands_dict['PGNLM1-C'] = dict(zip(['lat', 'lon'], [6, 7]))
 
 # Save DataModalities object
 with open(os.path.join(dirname, 'data', 'band_dicts'), 'wb') as output:

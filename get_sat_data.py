@@ -22,8 +22,9 @@ from dataclass import *
 
 # List of datasets to process
 #dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
-dataset_list = ['19-vanZyl-A', '19-Coh-A', '19-Quad-A']
+#dataset_list = ['19-vanZyl-A', '19-Coh-A', '19-Quad-A']
 #dataset_list = ['19-Quad-A']
+dataset_list = ['PGNLM1-C']
 
 # Prefix for output datamodalities object filename
 datamod_fprefix = '19_nonorm'
@@ -43,8 +44,8 @@ opt_norm_type = 'none' # 'local' #
 sar_norm_type = 'none' # 'global'  #     
 
 # Which Sentinel-2 bands to use
-opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
-
+#opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
+opt_bands_include = ['b02','b03','b04']
     
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
