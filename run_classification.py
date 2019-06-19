@@ -30,8 +30,8 @@ from dataclass import *
 # PROCESSING PARAMETERS
 crossval_split_k = 5
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
-knn_k = 3
-rf_ntrees = 20 # Number of trees in the Random Forest algorithm
+knn_k = 4
+rf_ntrees = 25 # Number of trees in the Random Forest algorithm
 
 # Image plot parameter - TODO: Differentiate for SAR and optical data
 norm_type = 'local' # 'global' # 
@@ -96,13 +96,11 @@ try:
     # Read predefined file
     with open(os.path.join(dirname, 'data', rf_confmat_file), 'rb') as infile:
         rf_confmat_all, rf_confmat_sar, rf_confmat_opt = pickle.load(infile)
-        print('CONF MATS LOADED')
+        logit('CONF MATS LOADED')
 except:
     rf_confmat_all = dict(); rf_confmat_sar = dict(); rf_confmat_opt = dict()
 
                           
-
-
 # TRAIN AND CROSS-VALIDATE
 # Loop through all satellite images
 for dataset_use in dataset_list:
@@ -113,7 +111,7 @@ for dataset_use in dataset_list:
     
     
     # Load DataModalities object
-    with open(os.path.join(dirname, "data", obj_in_name), 'rb') as input:
+    with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
         input_data = pickle.load(input)
         
     # Get labels and class_dict (in case None is input, one is created)
@@ -131,6 +129,7 @@ for dataset_use in dataset_list:
     
     # Plot in 3D
     modalitypoints3d('van_zyl', sar_data, labels, labels_dict=class_dict)
+    modalitypoints3d('opt', opt_data, labels, labels_dict=class_dict)
     
     #breakpoint = dummy 
     # Print number of instances for each class

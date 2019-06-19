@@ -73,13 +73,19 @@ def modalitypoints3d(modality_type, dataset_array, labels_array, labels_dict=Non
         xlabel = 'HH'; xs = dataset_array[:,0]
         ylabel = 'HV'; ys = dataset_array[:,1]
         zlabel = 'VV'; zs = dataset_array[:,3]
+    elif modality_type.lower() in ['sar_rec', 'reciprocity', 'hhhvvhvv']:
+        xlabel = 'HH'; xs = dataset_array[:,0]
+        ylabel = 'HV/VH'; ys = dataset_array[:,1]
+        zlabel = 'VV'; zs = dataset_array[:,2]
     elif modality_type.lower() in ['vanzyl', 'van zyl', 'van_zyl']:
         xlabel = 'Surface'; xs = dataset_array[:,0]
         ylabel = 'Volume'; ys = dataset_array[:,1]
         zlabel = 'Double bounce'; zs = dataset_array[:,2]    
-    
-    
-    
+    else :
+        xlabel = 'x'; xs = dataset_array[:,0]
+        ylabel = 'y'; ys = dataset_array[:,1]
+        zlabel = 'z'; zs = dataset_array[:,2]
+      
     # Get standard colour/plotstyle vector
     colour_vec = mycolourvec()
     # Convert to numpy array for indexation
