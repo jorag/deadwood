@@ -39,10 +39,11 @@ norm_type = 'local' # 'global' #
 # List of datasets to process
 #dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 #dataset_list = ['19-vanZyl-A', '19-Coh-A', '19-Quad-A']
-dataset_list = ['19-vanZyl-A']
+#dataset_list = ['19-vanZyl-A']
+dataset_list = ['PGNLM3-C']
 
 # Prefix for input datamodalities object filename
-datamod_fprefix = 'rule3m2_lai_globloc'
+#datamod_fprefix = 'rule3m2_lai_globloc'
 datamod_fprefix = '19_nonorm'
 # Prefix for output cross validation object filename
 crossval_fprefix = 'kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
@@ -131,7 +132,7 @@ for dataset_use in dataset_list:
     # Plot in 3D
     modalitypoints3d('van_zyl', sar_data, labels, labels_dict=class_dict)
     
-    breakpoint = dummy 
+    #breakpoint = dummy 
     # Print number of instances for each class
     for key in class_dict.keys():
         val = class_dict[key]

@@ -24,7 +24,7 @@ from dataclass import *
 #dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 #dataset_list = ['19-vanZyl-A', '19-Coh-A', '19-Quad-A']
 #dataset_list = ['19-Quad-A']
-dataset_list = ['PGNLM1-C']
+dataset_list = ['PGNLM3-C']
 
 # Prefix for output datamodalities object filename
 datamod_fprefix = '19_nonorm'
