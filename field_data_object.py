@@ -204,18 +204,18 @@ gps_id2 = [item[0] for item in gps_points]
 
     
 # Set name of output object
-obj_out_name = datamod_fprefix + dataset_use + '.pkl'
+obj_out_name = 'TEST_FIELD_DATA' + '.pkl'
 
 ## Intialize data object
 # TODO - add meta information here as kwargs, such as year, area, etc.
-all_data = DataModalities(dataset_use)
+all_data = DataModalities('Field data only')
 # Store processing parameters
 all_data.classdef_params['lai_min_live'] = lai_min_live 
 all_data.classdef_params['maxstem_min_defo'] = maxstem_min_defo
 all_data.classdef_params['ntrees_min_defo'] = ntrees_min_defo
 
 # Add points
-all_data.add_points(name_veg, class_use, dataset_id = 'SAR-B', dataset_path = sat_file)
+all_data.add_points(name_veg, class_use, dataset_id = 'SAR-B', dataset_path = 'test')
 # Add GPS points
 all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
 
