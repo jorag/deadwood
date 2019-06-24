@@ -215,7 +215,7 @@ all_data.classdef_params['maxstem_min_defo'] = maxstem_min_defo
 all_data.classdef_params['ntrees_min_defo'] = ntrees_min_defo
 
 # Add points
-all_data.add_points(name_veg, class_use, dataset_id = 'SAR-B', dataset_path = 'test')
+all_data.add_points(name_veg, dataset_id = 'SAR-B', dataset_path = 'test')
 # Add GPS points
 all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
 
