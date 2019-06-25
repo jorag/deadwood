@@ -35,16 +35,11 @@ ntrees_min_defo = 3 # min number of trees for defoliated class
 all_data = DataModalities('Field data only')
 
 
-
 # Set class labels for dictionary
 #class_dict = None
 #labels = all_data.assign_labels(class_dict=class_dict)
 # Split into training, validation, and test sets
 #all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.3, val_pct = 0.0)
-
-# Save DataModalities object
-with open(os.path.join(dirname, 'data', obj_out_name), 'wb') as output:
-    pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
 
     
 # Path to working directory 
@@ -85,7 +80,7 @@ for i_sheet in range(1,7):
         # Add info to point
         for attr in header:
             # TODO: Consider "translating" some column names using a dict
-            all_data.add_to_point(id, attr, df[attr][point_id.index(id)], 'meta')
+            all_data.add_to_point(id, attr, [df[attr][point_id.index(id)]], 'meta')
 
 
 
