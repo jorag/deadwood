@@ -171,6 +171,8 @@ class DataModalities:
             self.point_name.append(point_name[i_point])
             # Create DataPoint object and append to data_points list, point has some inheritance from parent DataModalities obj.
             self.data_points.append(DataPoint(self.__last_idx, self))
+            # Add dataset ID
+            self.data_points[self.__last_idx].update('meta', n_trees = 0)
             
             
     def add_to_point(self, point_name, update_key, update_value, update_type):
@@ -230,6 +232,13 @@ class DataModalities:
                 setattr(self, key, value) # TODO: remove this?
         # Add to each point
         self.add_to_point(point_name, modality_type, modality_data, 'modality')
+        
+        
+    def add_tree(self, point_name):
+        # Wrapper for add_to_point - meta information
+        i_point = self.point_name.index(point_name)
+        kw_update = dict([['n_trees', self.data_points[i_point].n_trees+1]])
+        self.data_points[i_point].update('meta', **kw_update)
         
         
     def assign_labels(self, class_dict = None):
@@ -310,7 +319,12 @@ class DataModalities:
         # Check if all points or a subset should be printed
         if point_name == None:
             point_name = self.point_name
-            
+        
+        # Ensure that point names appear as a list
+        if numel(point_name) == 1:
+            if not isinstance(point_name, list):
+                point_name = make_list(point_name)
+        
         # Add data points to DataModalities list
         for point in point_name:
             # Read from DataPoint class by keeping list of attributes of all points and loop over using getattrb

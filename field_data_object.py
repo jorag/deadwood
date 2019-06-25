@@ -156,6 +156,11 @@ for i_sheet in range(1,7):
     for row in df.itertuples(index=True, name='Pandas'):
         # Get ID of current point 
         curr_id = str(row.Country) + '_' + str(row.Transect) + '_'  + str(row.ID)
+        
+        # New version 
+        header = list(df.columns.values)
+        all_data.add_tree(curr_id)
+        
         # Check if the current tree is in a new transect point
         if curr_id != prev_id:
             prev_id = curr_id
@@ -238,8 +243,8 @@ all_data2.add_meta(gps_id, 'gps_coordinates', pos_array)
 
 
 ## Print points
-all_data.print_points()
-all_data2.print_points()
+all_data.print_points(['N_4_89', 'N_4_90'])
+all_data2.print_points(['N_4_89', 'N_4_90'])
 
 # Set class labels for dictionary
 #class_dict = None
