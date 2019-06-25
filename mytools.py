@@ -15,7 +15,7 @@ def length(x):
     
     Mimics MATLAB's length function.
     """
-    if isinstance(x, (int, float, complex)):
+    if isinstance(x, (int, float, complex, np.int64)):
         return 1
     elif isinstance(x, np.ndarray):
         return max(x.shape)
@@ -45,7 +45,7 @@ def make_list(x):
     Currently only for inputs with one element.
     """
     if numel(x) == 1:
-        if isinstance(x, (int, float, complex, str)):
+        if isinstance(x, (int, float, complex, str, np.int64)):
             return [x]
         elif isinstance(x, np.ndarray):
             raise NotImplementedError('Implement support for numpy arrays in mytools.makelist(x)!')

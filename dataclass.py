@@ -155,16 +155,12 @@ class DataModalities:
                 self.data_points[i_point].set = 'val'
 
             
-    def add_points(self, point_name, dataset_id = None, dataset_path = None):
+    def add_points(self, point_name):
         # Check that lengths match
         # Check if it is more than one element, if not, make sure it is wrapped in a list
         if numel(point_name) == 1:
             if not isinstance(point_name, list):
                 point_name = make_list(point_name)
-        
-        # Store the dataset path
-        if dataset_id is not None:
-            self.data_paths[dataset_id] = dataset_path  
         
         # Add data points to DataModalities list
         for i_point in range(length(point_name)):
@@ -175,8 +171,6 @@ class DataModalities:
             self.point_name.append(point_name[i_point])
             # Create DataPoint object and append to data_points list, point has some inheritance from parent DataModalities obj.
             self.data_points.append(DataPoint(self.__last_idx, self))
-            # Add dataset ID
-            self.data_points[self.__last_idx].update('meta', dataset_id = dataset_id)
             
             
     def add_to_point(self, point_name, update_key, update_value, update_type):

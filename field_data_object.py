@@ -31,6 +31,21 @@ lai_min_live = 0.03 # min Leaf Area Index to be assigned to Live class
 maxstem_min_defo = 2.5 # min registered max stem thickness for defoliated class
 ntrees_min_defo = 3 # min number of trees for defoliated class
 
+## Intialize data object
+all_data = DataModalities('Field data only')
+
+
+
+# Set class labels for dictionary
+#class_dict = None
+#labels = all_data.assign_labels(class_dict=class_dict)
+# Split into training, validation, and test sets
+#all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.3, val_pct = 0.0)
+
+# Save DataModalities object
+with open(os.path.join(dirname, 'data', obj_out_name), 'wb') as output:
+    pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
+
     
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -58,13 +73,20 @@ point_info = []
 class_veg = []
 name_veg = []
 for i_sheet in range(1,7):
-    # Get pandas dataframe
+    # Get pandas dataframe, all IDs and column (header)
     df = pd.read_excel(xls_veg, str(i_sheet))
     point_id = list(df['GPSwaypoint'])
+    header = list(df.columns.values)
     # Go through the list of points
     for id in point_id:
         name_veg.append(id) # Point name, e.g. 'N_6_159'
+        all_data.add_points(id) # Create point with name, e.g. 'N_6_159'
         class_veg.append(df['LCT1_2017'][point_id.index(id)]) # Terrain type, e.g. 'Forest'
+        # Add info to point
+        for attr in header:
+            # TODO: Consider "translating" some column names using a dict
+            all_data.add_to_point(id, attr, df[attr][point_id.index(id)], 'meta')
+
 
 
 # Read .gpx file with coordinates of transect points
@@ -208,20 +230,21 @@ obj_out_name = 'TEST_FIELD_DATA' + '.pkl'
 
 ## Intialize data object
 # TODO - add meta information here as kwargs, such as year, area, etc.
-all_data = DataModalities('Field data only')
+all_data2 = DataModalities('Field data only')
 # Store processing parameters
-all_data.classdef_params['lai_min_live'] = lai_min_live 
-all_data.classdef_params['maxstem_min_defo'] = maxstem_min_defo
-all_data.classdef_params['ntrees_min_defo'] = ntrees_min_defo
+all_data2.classdef_params['lai_min_live'] = lai_min_live 
+all_data2.classdef_params['maxstem_min_defo'] = maxstem_min_defo
+all_data2.classdef_params['ntrees_min_defo'] = ntrees_min_defo
 
 # Add points
-all_data.add_points(name_veg, dataset_id = 'SAR-B', dataset_path = 'test')
+all_data2.add_points(name_veg)
 # Add GPS points
-all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
+all_data2.add_meta(gps_id, 'gps_coordinates', pos_array)
 
 
 ## Print points
 all_data.print_points()
+all_data2.print_points()
 
 # Set class labels for dictionary
 #class_dict = None
