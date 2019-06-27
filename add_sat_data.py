@@ -20,6 +20,16 @@ from geopixpos import *
 from visandtest import *
 from dataclass import *
 
+# New structure:
+    #-read field data object (perhaps try to read object with other sat data already added first)
+    #-read satellite data
+    #-loop through with: for point in DataModalities.point_name:
+        #--read GPS coords
+        #--get sat data for that coord
+        #--store in DataModalities object for that point
+    #-save updated object 
+
+
 # List of datasets to process
 #dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 #dataset_list = ['19-vanZyl-A', '19-Coh-A', '19-Quad-A']

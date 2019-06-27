@@ -402,6 +402,7 @@ class DataPoint:
     def tree_update(self, col, val):
         # Update list of tree measurements
         if self.n_trees == 0: # Initialize, to store keys in list (for printing)
+            #setattr(self, col, []) # To "hide" key to avoid printing
             self.update('meta', **dict([[col, [] ]]))
         
         # Append measurement to list
