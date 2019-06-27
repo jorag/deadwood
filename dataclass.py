@@ -234,11 +234,18 @@ class DataModalities:
         self.add_to_point(point_name, modality_type, modality_data, 'modality')
         
         
-    def add_tree(self, point_name):
+    def add_tree(self, point_name, row):
         # Wrapper for add_to_point - meta information
         i_point = self.point_name.index(point_name)
-        kw_update = dict([['n_trees', self.data_points[i_point].n_trees+1]])
+        # Get current number of trees
+        n_trees = self.data_points[i_point].n_trees
+        if n_trees == 0:
+            kw_update = dict([['trees', [] ]])
+            self.data_points[i_point].update('meta', **kw_update)
+        
+        kw_update = dict([['n_trees', n_trees+1]])
         self.data_points[i_point].update('meta', **kw_update)
+        self.data_points[i_point].trees.append(row)
         
         
     def assign_labels(self, class_dict = None):
