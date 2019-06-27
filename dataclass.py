@@ -171,8 +171,6 @@ class DataModalities:
             self.point_name.append(point_name[i_point])
             # Create DataPoint object and append to data_points list, point has some inheritance from parent DataModalities obj.
             self.data_points.append(DataPoint(self.__last_idx, self))
-            # Add number of trees (MOVED INSIDE point create)
-            #self.data_points[self.__last_idx].update('meta', n_trees = 0)
             
             
     def add_to_point(self, point_name, update_key, update_value, update_type):
@@ -237,16 +235,16 @@ class DataModalities:
     def add_tree(self, point_name, row, header, exclude_list = []):
         # Find current point
         i_point = self.point_name.index(point_name)
-        
+        # Add all values from col to tree
         for col in header:
-            print(col)
-            if not col in exclude_list: # TODO: Convert both to .lower()
+            # To avoid duplicate fields found in vegetation data file
+            # TODO: Consider renaming fields here, and add to tree info anyway?
+            if not col in exclude_list: # TODO: Convert both to .lower() ??
                 self.data_points[i_point].tree_update(col, getattr(row, col))
         
         # Update current number of trees
         n_trees = self.data_points[i_point].n_trees
         self.data_points[i_point].update('meta', **dict([['n_trees', n_trees+1]]))
-        #self.data_points[i_point].trees.append(row)
         
         
     def assign_labels(self, class_dict = None):
@@ -357,7 +355,7 @@ class DataPoint:
         self.modality_types = parent.modality_types
         self.label = None # Numeric label 
         self.n_trees = 0 # Number of trees
-        # List of keys
+        # List of keys - TODO: Consider a 'tree' key
         self.all_keys = []
         self.meta_keys = ['n_trees']
         self.modality_keys = []
@@ -409,8 +407,6 @@ class DataPoint:
         # Append measurement to list
         curr_list = getattr(self, col)
         curr_list.append(val)
-        print(col, curr_list)
-        print(val)
         setattr(self, col, curr_list)
 
                 
