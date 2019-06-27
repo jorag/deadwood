@@ -171,8 +171,8 @@ class DataModalities:
             self.point_name.append(point_name[i_point])
             # Create DataPoint object and append to data_points list, point has some inheritance from parent DataModalities obj.
             self.data_points.append(DataPoint(self.__last_idx, self))
-            # Add dataset ID
-            self.data_points[self.__last_idx].update('meta', n_trees = 0)
+            # Add number of trees (MOVED INSIDE point create)
+            #self.data_points[self.__last_idx].update('meta', n_trees = 0)
             
             
     def add_to_point(self, point_name, update_key, update_value, update_type):
@@ -234,18 +234,19 @@ class DataModalities:
         self.add_to_point(point_name, modality_type, modality_data, 'modality')
         
         
-    def add_tree(self, point_name, row):
-        # Wrapper for add_to_point - meta information
+    def add_tree(self, point_name, row, header, exclude_list = []):
+        # Find current point
         i_point = self.point_name.index(point_name)
-        # Get current number of trees
-        n_trees = self.data_points[i_point].n_trees
-        if n_trees == 0:
-            kw_update = dict([['trees', [] ]])
-            self.data_points[i_point].update('meta', **kw_update)
         
-        kw_update = dict([['n_trees', n_trees+1]])
-        self.data_points[i_point].update('meta', **kw_update)
-        self.data_points[i_point].trees.append(row)
+        for col in header:
+            print(col)
+            if not col in exclude_list: # TODO: Convert both to .lower()
+                self.data_points[i_point].tree_update(col, getattr(row, col))
+        
+        # Update current number of trees
+        n_trees = self.data_points[i_point].n_trees
+        self.data_points[i_point].update('meta', **dict([['n_trees', n_trees+1]]))
+        #self.data_points[i_point].trees.append(row)
         
         
     def assign_labels(self, class_dict = None):
@@ -355,10 +356,10 @@ class DataPoint:
         self.modality_missing_value = parent.modality_missing_value
         self.modality_types = parent.modality_types
         self.label = None # Numeric label 
-        
+        self.n_trees = 0 # Number of trees
         # List of keys
         self.all_keys = []
-        self.meta_keys = []
+        self.meta_keys = ['n_trees']
         self.modality_keys = []
         
         # Set assignment (training, validation, test)
@@ -399,7 +400,20 @@ class DataPoint:
                 if input_type in self.modality_types:
                     self.modality_keys.append(key)
                     
-                    
+    
+    def tree_update(self, col, val):
+        # Update list of tree measurements
+        if self.n_trees == 0: # Initialize, to store keys in list (for printing)
+            self.update('meta', **dict([[col, [] ]]))
+        
+        # Append measurement to list
+        curr_list = getattr(self, col)
+        curr_list.append(val)
+        print(col, curr_list)
+        print(val)
+        setattr(self, col, curr_list)
+
+                
     def read_data(self, modalities):
         # Read data modalities
         data_out = []
@@ -422,20 +436,3 @@ class DataPoint:
         for key in self.all_keys:
             print(key, ' : ', getattr(self, key))
             
-            
-class Tree:
-    """Store information about a single tree.
-    
-    A typical tree in the study area may have multiple stems, but is still 
-    cinsidered a single "functional tree".
-    Functions:
-        __init__()
-     """
-    def __init__(self, id, parent, **kwargs):
-        # Initialize variables
-        self.id = id
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-        
-       

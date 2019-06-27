@@ -71,14 +71,14 @@ for i_sheet in range(1,7):
     # Get pandas dataframe, all IDs and column (header)
     df = pd.read_excel(xls_veg, str(i_sheet))
     point_id = list(df['GPSwaypoint'])
-    header = list(df.columns.values)
+    veg_header = list(df.columns.values)
     # Go through the list of points
     for id in point_id:
         name_veg.append(id) # Point name, e.g. 'N_6_159'
         all_data.add_points(id) # Create point with name, e.g. 'N_6_159'
         class_veg.append(df['LCT1_2017'][point_id.index(id)]) # Terrain type, e.g. 'Forest'
         # Add info to point
-        for attr in header:
+        for attr in veg_header:
             # TODO: Consider "translating" some column names using a dict
             all_data.add_to_point(id, attr, [df[attr][point_id.index(id)]], 'meta')
 
@@ -158,8 +158,8 @@ for i_sheet in range(1,7):
         curr_id = str(row.Country) + '_' + str(row.Transect) + '_'  + str(row.ID)
         
         # New version 
-        header = list(df.columns.values)
-        all_data.add_tree(curr_id, row)
+        tree_header = list(df.columns.values)
+        all_data.add_tree(curr_id, row, tree_header, exclude_list=veg_header)
         
         # Check if the current tree is in a new transect point
         if curr_id != prev_id:
