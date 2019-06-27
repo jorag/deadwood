@@ -159,7 +159,7 @@ for i_sheet in range(1,7):
         
         # New version 
         header = list(df.columns.values)
-        all_data.add_tree(curr_id)
+        all_data.add_tree(curr_id, row)
         
         # Check if the current tree is in a new transect point
         if curr_id != prev_id:

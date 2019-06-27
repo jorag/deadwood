@@ -357,7 +357,7 @@ class DataPoint:
         # Set assignment (training, validation, test)
         self.set = None
         
-        # Add option to specify  parameter with keywordargs (overwirte default values)
+        # Add option to specify  parameter with keywordargs (overwrite default values)
         # May be useful for loading object
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -414,9 +414,21 @@ class DataPoint:
         print('Point id: ', self.id)
         for key in self.all_keys:
             print(key, ' : ', getattr(self, key))
+            
+            
+class Tree:
+    """Store information about a single tree.
+    
+    A typical tree in the study area may have multiple stems, but is still 
+    cinsidered a single "functional tree".
+    Functions:
+        __init__()
+     """
+    def __init__(self, id, parent, **kwargs):
+        # Initialize variables
+        self.id = id
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
-        
-        
-        
         
        
