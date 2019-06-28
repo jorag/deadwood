@@ -45,7 +45,7 @@ sar_norm_type = 'none' # 'global'  #
 
 # Which Sentinel-2 bands to use
 #opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
-opt_bands_include = ['b02','b03','b04']
+opt_bands_include = ['b02','b03','b04']# Load DataModalities object
     
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -53,8 +53,7 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # Name of input object and file with satellite data path string
 obj_in_name = 'TEST_FIELD_DATA' + '.pkl'
                           
-## Read data object
-# Load DataModalities object
+## Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
                       
@@ -73,13 +72,11 @@ for dataset_use in dataset_list:
     with open(os.path.join(dirname, 'data', 'band_dicts'), 'rb') as input:
         sar_bands_dict, opt_bands_dict, geo_bands_dict = pickle.load(input)
                               
-    # Geo bands
+    # Get indices for bands, lat, lon, SAR, and optical
     lat_band = geo_bands_dict[dataset_use]['lat']
     lon_band = geo_bands_dict[dataset_use]['lon']
-    # SAR bands
     sar_bands_use = sar_bands_dict[dataset_use]
-    # OPT bands
-    opt_bands_use = []
+    opt_bands_use = [] # Check which of the available bands should be included 
     for key in opt_bands_include:
         opt_bands_use.append(opt_bands_dict[dataset_use][key])
     
@@ -117,7 +114,6 @@ for dataset_use in dataset_list:
     # SAR info to add to object
     kw_sar = dict([['bands_use', sar_bands_use]])
     
-    
     # Get array with MULTISPECTRAL OPTICAL data
     opt_data_temp = raster_data_array[opt_bands_use,:,:]
     # Convert to 2D array
@@ -126,32 +122,30 @@ for dataset_use in dataset_list:
     opt_data_temp = norm01(opt_data_temp, norm_type=opt_norm_type, log_type='print')
     # Reshape to 3D image tensor (3 channels)
     opt_data_temp = np.reshape(opt_data_temp, (n_rows, n_cols, opt_data_temp.shape[1]))
-
-    
     # OPT info to add to object
     kw_opt = dict([['bands_use', opt_bands_use]])
         
-    # Read GPS coord
+    
+    # Read GPS coord and add data from that coordinate
     for point in all_data.point_name:
         coord = all_data.read_point(point, 'gps_coordinates')
-        print(coord)
         # Get pixel positions from my geopixpos module
         x_p, y_p = geocoords2pix(raster_data_array[lat_band,:,:], 
                                  raster_data_array[lon_band,:,:], 
                                  lat=coord[0], lon=coord[1], pixels_out ='npsingle')
-        print(x_p, y_p)
+
         # Get SAR pixels
-        sar_pixels = sar_data_temp[x_p.T, y_p.T, :] 
+        sar_pixels = sar_data_temp[x_p, y_p, :] 
         # Add SAR modality
         all_data.add_modality(point, 'quad_pol', sar_pixels.tolist(), **kw_sar)
         
         # Get OPT pixels
-        opt_pixels = opt_data_temp[x_p.T, y_p.T, :] 
+        opt_pixels = opt_data_temp[x_p, y_p, :] 
         # Add OPT modality
         all_data.add_modality(point, 'optical', opt_pixels.tolist(), **kw_opt)
     
     ## Print points
-    all_data.print_points()
+    #all_data.print_points()
     
     # Save DataModalities object
     with open(os.path.join(dirname, 'data', obj_out_name), 'wb') as output:
