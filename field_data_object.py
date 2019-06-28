@@ -107,6 +107,7 @@ pos_array = []
 for elem in tree.findall('{http://www.topografix.com/GPX/1/1}wpt'):
     lon, lat = elem.attrib['lon'], elem.attrib['lat']
     pos_array.append((float(lat), float(lon)))
+
 # Get name of waypoints
 gps_id = []
 for elem in tree.findall('//{http://www.topografix.com/GPX/1/1}name'):
@@ -228,29 +229,13 @@ gps_id2 = [item[0] for item in gps_points]
 # Set name of output object
 obj_out_name = 'TEST_FIELD_DATA' + '.pkl'
 
-## Intialize data object
-# TODO - add meta information here as kwargs, such as year, area, etc.
-all_data2 = DataModalities('Field data only')
-# Store processing parameters
-all_data2.classdef_params['lai_min_live'] = lai_min_live 
-all_data2.classdef_params['maxstem_min_defo'] = maxstem_min_defo
-all_data2.classdef_params['ntrees_min_defo'] = ntrees_min_defo
 
-# Add points
-all_data2.add_points(name_veg)
 # Add GPS points
-all_data2.add_meta(gps_id, 'gps_coordinates', pos_array)
+all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
 
 
 ## Print points
 all_data.print_points(['N_4_89', 'N_4_90'])
-all_data2.print_points(['N_4_89', 'N_4_90'])
-
-# Set class labels for dictionary
-#class_dict = None
-#labels = all_data.assign_labels(class_dict=class_dict)
-# Split into training, validation, and test sets
-#all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.3, val_pct = 0.0)
 
 # Save DataModalities object
 with open(os.path.join(dirname, 'data', obj_out_name), 'wb') as output:
