@@ -39,16 +39,6 @@ dataset_list = ['PGNLM3-C']
 # Prefix for output datamodalities object filename
 datamod_fprefix = '19_nonorm'
 
-# PARAMETERS
-# Ground truth info - TODO: Store this info and parameters in object!!
-transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examined)
-
-# Processing parameters - minimum of X * 100 m^2 LAI to be in 'Live' class
-# TODO: NEED TO ADJUST THESE THRESHOLDS AFTER DISCUSSION WITH ECOLOGISTS/EXPERTS
-lai_min_live = 0.03 # min Leaf Area Index to be assigned to Live class 
-maxstem_min_defo = 2.5 # min registered max stem thickness for defoliated class
-ntrees_min_defo = 3 # min number of trees for defoliated class
-
 # Normalization
 opt_norm_type = 'none' # 'local' #   
 sar_norm_type = 'none' # 'global'  #     
@@ -74,7 +64,8 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 for dataset_use in dataset_list:
     
     # Set name of output object
-    #dataset_use = 'Coh-C'
+    # TODO: 20190628 Should objects now contain multiple different SAR data
+    # - or, should each object contain only one data type?
     obj_out_name = datamod_fprefix + dataset_use + '.pkl'
     sat_pathfile_name = dataset_use + '-path'
     
@@ -111,68 +102,56 @@ for dataset_use in dataset_list:
         # Load data
         dataset = gdal.Open(sat_file)
         gdalinfo_log(dataset, log_type='default')
-                
-        
+    
     # Read ALL bands - note that it will be zero indexed
     raster_data_array = dataset.ReadAsArray()
     
-    
-
-    # Read GPS coord
-    for point in all_data.point_name:
-        a = all_data.read_point(point, 'Obs')
-        print(a)
-    
-    
-    # Get pixel positions from my geopixpos module
-    pix_lat, pix_long = geocoords2pix(raster_data_array[lat_band,:,:], raster_data_array[lon_band,:,:], lon=pos_array2[:,1], lat=pos_array2[:,0], pixels_out = 'npsingle')
-    
-    
     # Get array with SAR data
-    sar_data_temp = raster_data_array[sar_bands_use,:,:]
-    
+    sar_data_temp = raster_data_array[sar_bands_use,:,:]   
     # Convert to 2D array
     sar_data_temp, n_rows, n_cols = imtensor2array(sar_data_temp)
     # Normalize data
     sar_data_temp = norm01(sar_data_temp, norm_type=sar_norm_type, log_type='print')
     # Reshape to 3D image tensor (3 channels)
     sar_data_temp = np.reshape(sar_data_temp, (n_rows, n_cols, sar_data_temp.shape[1]))
-    # Get pixels
-    sar_pixels = sar_data_temp[pix_lat.T, pix_long.T, :] 
-    
     # SAR info to add to object
     kw_sar = dict([['bands_use', sar_bands_use]])
-    
-    # Add SAR modality
-    all_data.add_modality(gps_id, 'quad_pol', sar_pixels.tolist(), **kw_sar)
     
     
     # Get array with MULTISPECTRAL OPTICAL data
     opt_data_temp = raster_data_array[opt_bands_use,:,:]
-    
     # Convert to 2D array
     opt_data_temp, n_rows, n_cols = imtensor2array(opt_data_temp)
     # Normalize data
     opt_data_temp = norm01(opt_data_temp, norm_type=opt_norm_type, log_type='print')
     # Reshape to 3D image tensor (3 channels)
     opt_data_temp = np.reshape(opt_data_temp, (n_rows, n_cols, opt_data_temp.shape[1]))
-    # Get pixels
-    opt_pixels = opt_data_temp[pix_lat.T, pix_long.T, :] 
+
     
     # OPT info to add to object
     kw_opt = dict([['bands_use', opt_bands_use]])
-    
-    # Add OPT modality
-    all_data.add_modality(gps_id, 'optical', opt_pixels.tolist(), **kw_opt)
+        
+    # Read GPS coord
+    for point in all_data.point_name:
+        coord = all_data.read_point(point, 'gps_coordinates')
+        print(coord)
+        # Get pixel positions from my geopixpos module
+        x_p, y_p = geocoords2pix(raster_data_array[lat_band,:,:], 
+                                 raster_data_array[lon_band,:,:], 
+                                 lat=coord[0], lon=coord[1], pixels_out ='npsingle')
+        print(x_p, y_p)
+        # Get SAR pixels
+        sar_pixels = sar_data_temp[x_p.T, y_p.T, :] 
+        # Add SAR modality
+        all_data.add_modality(point, 'quad_pol', sar_pixels.tolist(), **kw_sar)
+        
+        # Get OPT pixels
+        opt_pixels = opt_data_temp[x_p.T, y_p.T, :] 
+        # Add OPT modality
+        all_data.add_modality(point, 'optical', opt_pixels.tolist(), **kw_opt)
     
     ## Print points
-    #all_data.print_points()
-    
-    # Set class labels for dictionary
-    #class_dict = None
-    #labels = all_data.assign_labels(class_dict=class_dict)
-    # Split into training, validation, and test sets
-    #all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.3, val_pct = 0.0)
+    all_data.print_points()
     
     # Save DataModalities object
     with open(os.path.join(dirname, 'data', obj_out_name), 'wb') as output:
