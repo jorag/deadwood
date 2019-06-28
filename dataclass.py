@@ -321,6 +321,14 @@ class DataModalities:
         return array_out, label_array
         
     
+    def read_point(self, point_name, attr):
+        # Read an attribute from a single point
+        
+        # Find point
+        i_point = self.point_name.index(point_name)
+        return getattr(self.data_points[i_point], attr)
+            
+    
     def print_points(self, point_name = None):
         # Check if all points or a subset should be printed
         if point_name == None:

@@ -120,7 +120,8 @@ for dataset_use in dataset_list:
 
     # Read GPS coord
     for point in all_data.point_name:
-        all_data.print_points(point)
+        a = all_data.read_point(point, 'Obs')
+        print(a)
     
     
     # Get pixel positions from my geopixpos module
