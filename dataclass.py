@@ -295,50 +295,15 @@ class DataModalities:
         # Loop over points in each set, and update set membership
         for i_point in self.idx_list:
             data_array.append(self.data_points[i_point].read_key(data_type)) 
+            #label_array.append(self.data_points[i_point].label)
         
         # Convert to numpy array
         array_out = np.asarray(data_array)
         return array_out
-    
-    
-    
-    def read_data_array(self, modalities, set_type):
-        # TODO: 20190731- replace with read_data_points
-        # Read out dataset as array
-        # TODO: Read out different arrays by which data is available? I.E. Read out SAR only area or SAR+OPT area
-        
-        # Ensure that modalities appear as a list
-        if numel(modalities) == 1:
-            if not isinstance(modalities, list):
-                modalities = make_list(modalities)
-        
-        # Check which set we should read (training/test/val)
-        if set_type is None:
-            set_use = self.idx_list
-        elif set_type.lower() in ['all', 'data']:
-            set_use = self.idx_list
-        elif set_type.lower() in ['train', 'training']:
-            set_use = self.set_train
-        elif set_type.lower() in ['test', 'testing']:
-            set_use = self.set_test
-        elif set_type.lower() in ['val', 'validation']:
-            set_use = self.set_val
-
-        # Initialize numpy output array - or read as list?
-        data_array = []
-        label_array = []
-        # Loop over points in each set, and update set membership
-        for i_point in set_use:
-            data_array.append(self.data_points[i_point].read_data(modalities)) 
-            label_array.append(self.data_points[i_point].label)
-        
-        # Convert to numpy array
-        array_out = np.asarray(data_array)
-        return array_out, label_array
         
     
     def read_point(self, point_name, attr):
-        # TODO: 20190731 - IS THIS USED??
+        # TODO: 20190731 - IS THIS USED?? - Yes, from outside the object
         # Read an attribute from a single point
         
         # Find point
@@ -434,24 +399,6 @@ class DataPoint:
         curr_list = getattr(self, col)
         curr_list.append(val)
         setattr(self, col, curr_list)
-
-                
-    def read_data(self, modalities):
-        # TODO: 20190731 - DELETE THIS? HAS SEVERAL ISSUES 
-        # Read data modalities
-        data_out = []
-        for key in modalities:
-            # Check that key is a valid data modality (else add empty value??) 
-            if key in self.modality_keys:  # Use .lower() for improved ruggedness
-                # Get values and add to list
-                data_add = getattr(self, key)
-                if not isinstance(data_add, list):
-                    data_add = make_list(data_add)
-                data_out += getattr(self, key)
-                
-        # Return data
-        return data_out
-
 
     def read_key(self, key): 
         # Return data

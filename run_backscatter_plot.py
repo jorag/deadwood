@@ -37,13 +37,18 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 # Print points
 #all_data.print_points()
 
-# Get SAR data
-sar_data, labels = all_data.read_data_array(['quad_pol'], 'all') 
-# Get OPT data
-opt_data, labels = all_data.read_data_array(['optical'], 'all') 
+## Get SAR data
+#sar_data, labels = all_data.read_data_array(['quad_pol'], 'all') 
+## Get OPT data
+#opt_data, labels = all_data.read_data_array(['optical'], 'all') 
 
 # Get n_trees data
 n_trees = all_data.read_data_points('n_trees') 
+
+# Get SAR data 2
+sar_data = all_data.read_data_points('quad_pol') 
+# Get OPT data
+opt_data = all_data.read_data_points('optical') 
 
 fig = plt.figure()
 plt.scatter(n_trees, sar_data[:,0])
