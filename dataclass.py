@@ -287,7 +287,23 @@ class DataModalities:
         return self.point_label, self.class_dict
         
     
+    def read_data_points(self, data_type):
+        # Read out data_type of dataset as array
+        
+        # Initialize numpy output array - or read as list?
+        data_array = []
+        # Loop over points in each set, and update set membership
+        for i_point in self.idx_list:
+            data_array.append(self.data_points[i_point].read_key(data_type)) 
+        
+        # Convert to numpy array
+        array_out = np.asarray(data_array)
+        return array_out
+    
+    
+    
     def read_data_array(self, modalities, set_type):
+        # TODO: 20190731- replace with read_data_points
         # Read out dataset as array
         # TODO: Read out different arrays by which data is available? I.E. Read out SAR only area or SAR+OPT area
         
@@ -322,6 +338,7 @@ class DataModalities:
         
     
     def read_point(self, point_name, attr):
+        # TODO: 20190731 - IS THIS USED??
         # Read an attribute from a single point
         
         # Find point
@@ -420,6 +437,7 @@ class DataPoint:
 
                 
     def read_data(self, modalities):
+        # TODO: 20190731 - DELETE THIS? HAS SEVERAL ISSUES 
         # Read data modalities
         data_out = []
         for key in modalities:
@@ -433,6 +451,11 @@ class DataPoint:
                 
         # Return data
         return data_out
+
+
+    def read_key(self, key): 
+        # Return data
+        return getattr(self, key)
 
             
     def print_point(self):

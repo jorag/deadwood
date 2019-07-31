@@ -8,8 +8,6 @@ Created on Wed Jul 31 16:33:15 2019
 
 import matplotlib.pyplot as plt
 import numpy as np
-import tkinter
-from tkinter import filedialog
 import pandas as pd
 import os # Necessary for relative paths
 import xml.etree.ElementTree as ET
@@ -37,4 +35,15 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
         
 # Print points
-all_data.print_points()
+#all_data.print_points()
+
+# Get SAR data
+sar_data, labels = all_data.read_data_array(['quad_pol'], 'all') 
+# Get OPT data
+opt_data, labels = all_data.read_data_array(['optical'], 'all') 
+
+# Get n_trees data
+n_trees = all_data.read_data_points('n_trees') 
+
+fig = plt.figure()
+plt.scatter(n_trees, sar_data[:,0])
