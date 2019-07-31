@@ -303,8 +303,7 @@ class DataModalities:
         
     
     def read_point(self, point_name, attr):
-        # TODO: 20190731 - IS THIS USED?? - Yes, from outside the object
-        # Read an attribute from a single point
+        # Read an attribute from a single point (used from top level)
         
         # Find point
         i_point = self.point_name.index(point_name)
@@ -333,7 +332,7 @@ class DataPoint:
     Functions:
         update(input_type, **kwargs) - set variables to input given in keywordargs
         soft_update(input_type, **kwargs) - as update(), but don't overwrite valid data with None/NaN
-        read_data(modalities) - read specified data modalities
+        read_key(key) - read specified data field
         print_point() - print all meta and modality keys
      """
     def __init__(self, id, parent, **kwargs):
@@ -399,6 +398,7 @@ class DataPoint:
         curr_list = getattr(self, col)
         curr_list.append(val)
         setattr(self, col, curr_list)
+
 
     def read_key(self, key): 
         # Return data
