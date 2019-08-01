@@ -37,7 +37,7 @@ from dataclass import *
 dataset_list = ['PGNLM3-C']
 
 # Prefix for output datamodalities object filename
-datamod_fprefix = '19_nonorm'
+datamod_fprefix = 'Aug1-19'
 
 # Normalization
 opt_norm_type = 'none' # 'local' #   
@@ -51,7 +51,7 @@ opt_bands_include = ['b02','b03','b04']# Load DataModalities object
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Name of input object and file with satellite data path string
-obj_in_name = 'TEST_FIELD_DATA' + '.pkl'
+obj_in_name = 'NEW_FIELD_DATA' + '.pkl'
                           
 ## Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
@@ -137,12 +137,12 @@ for dataset_use in dataset_list:
         # Get SAR pixels
         sar_pixels = sar_data_temp[x_p, y_p, :] 
         # Add SAR modality
-        all_data.add_modality(point, 'quad_pol', sar_pixels.tolist(), **kw_sar)
+        all_data.add_modality(point, 'quad_pol', sar_pixels.tolist(), dataset_use, **kw_sar)
         
         # Get OPT pixels
         opt_pixels = opt_data_temp[x_p, y_p, :] 
         # Add OPT modality
-        all_data.add_modality(point, 'optical', opt_pixels.tolist(), **kw_opt)
+        all_data.add_modality(point, 'optical', opt_pixels.tolist(), dataset_use, **kw_opt)
     
     ## Print points
     #all_data.print_points()

@@ -227,7 +227,7 @@ gps_id2 = [item[0] for item in gps_points]
 
     
 # Set name of output object
-obj_out_name = 'TEST_FIELD_DATA' + '.pkl'
+obj_out_name = 'NEW_FIELD_DATA' + '.pkl'
 
 
 # Add GPS points

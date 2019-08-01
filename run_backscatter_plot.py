@@ -25,7 +25,7 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Prefix for object filename
 dataset_use = 'PGNLM3-C'
-datamod_fprefix = '19_nonorm'
+datamod_fprefix = 'Aug1-19'
                           
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix + dataset_use + '.pkl'
@@ -41,9 +41,15 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 n_trees = all_data.read_data_points('n_trees') 
 
 # Get SAR data 
-sar_data = all_data.read_data_points('quad_pol') 
+sar_data = all_data.read_data_points(dataset_use, modality_type='quad_pol') 
 # Get OPT data
-opt_data = all_data.read_data_points('optical') 
+opt_data = all_data.read_data_points(dataset_use, modality_type='optical') 
 
 fig = plt.figure()
-plt.scatter(n_trees, sar_data[:,0])
+plt.scatter(n_trees, sar_data[:,0], c='r')
+
+fig = plt.figure()
+plt.scatter(n_trees, sar_data[:,1], c='b')
+
+fig = plt.figure()
+plt.scatter(n_trees, sar_data[:,2], c='g')

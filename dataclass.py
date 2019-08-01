@@ -32,8 +32,7 @@ class DataModalities:
         self.meta_types = 'meta'
         self.modality_missing_value = np.NaN
         self.modality_types = 'modality'
-        self.modality_bands = dict()
-        self.modality_order = [] # TODO - change band storage implementation to dict with dataset ID as key?
+        #self.modality_order = [] # TODO - change band storage implementation to dict with dataset ID as key? 20190801: yes
         self.label_missing_value = -1 # For np.unique to count number of classes
         # Misc settings
         self.log_type = 'default'
@@ -187,8 +186,7 @@ class DataModalities:
             
         # Make sure DataModalities object has points
         if self.__last_idx < 0:
-            print('Warning! Object contains no data points!')
-            return
+            raise ValueError('Error! Object contains no data points!')
         
         # Default values to use when data is missing (different for data modalities and meta info)
         if update_type in self.meta_types:
@@ -198,6 +196,7 @@ class DataModalities:
         else:
             raise ValueError('Unkown update_type in DataModalities add_to_point')
         
+
         # Loop over all points in object and add metadata fields to ALL points,
         # regardless of a value is given or not (omitted points get None as value)
         for i_point in range(self.__last_idx + 1):
@@ -218,18 +217,32 @@ class DataModalities:
         self.add_to_point(point_name, meta_type, point_meta, 'meta')
         
         
-    def add_modality(self, point_name, modality_type, modality_data, **kwargs):
-        # Wrapper for add_to_point - data modality values
-        # Store order of modalities, for getting correct band order etc.
-        self.modality_order.append(modality_type)
-        # Add to modality_bands - potentially also to other fields?
-        for key, value in kwargs.items():
-            if key.lower() in 'bands_use': 
-                self.modality_bands[modality_type] = value
+    def add_modality(self, point_name, modality_type, modality_data, sat_data_id, **kwargs):
+        # Check that lengths match
+        if numel(point_name) != numel(modality_data):
+            raise AssertionError('DataModalities: Lenght of point names and point metadata do not match!', length(point_name), length(modality_data))
+        # Check if it is more than one element, if not, make sure it is wrapped in a list
+        if numel(point_name) == 1:
+            if not isinstance(point_name, list):
+                point_name = make_list(point_name)
+            if not isinstance(modality_data, list):
+                modality_data = make_list(modality_data)
+            
+        # Make sure DataModalities object has points
+        if self.__last_idx < 0:
+            raise ValueError('Error! Object contains no data points!')
+        
+        # Loop over all points in object and add metadata fields to ALL points,
+        # regardless of a value is given or not (omitted points get None as value)
+        for i_point in range(self.__last_idx + 1):
+            # Check if point should be updated
+            if self.point_name[i_point] in point_name:
+                # Get value for update ((.index crashes if value is not in list))
+                current_val = modality_data[point_name.index(self.point_name[i_point])]
+                self.data_points[i_point].add_data(sat_data_id, modality_type, modality_data)
             else:
-                setattr(self, key, value) # TODO: remove this?
-        # Add to each point
-        self.add_to_point(point_name, modality_type, modality_data, 'modality')
+                # Set default missing value
+                self.data_points[i_point].add_data(sat_data_id, modality_type, None)
         
         
     def add_tree(self, point_name, row, header, exclude_list = []):
@@ -287,14 +300,17 @@ class DataModalities:
         return self.point_label, self.class_dict
         
     
-    def read_data_points(self, data_type):
+    def read_data_points(self, data_type, modality_type=None):
         # Read out data_type of dataset as array
         
         # Initialize numpy output array - or read as list?
         data_array = []
         # Loop over points in each set, and update set membership
         for i_point in self.idx_list:
-            data_array.append(self.data_points[i_point].read_key(data_type)) 
+            if modality_type is None:
+                data_array.append(self.data_points[i_point].read_key(data_type))
+            else:
+                data_array.append(self.data_points[i_point].read_key(data_type, modality_type))
             #label_array.append(self.data_points[i_point].label)
         
         # Convert to numpy array
@@ -348,6 +364,7 @@ class DataPoint:
         self.all_keys = []
         self.meta_keys = ['n_trees']
         self.modality_keys = []
+        self.data_keys = []
         
         # Set assignment (training, validation, test)
         self.set = None
@@ -385,8 +402,16 @@ class DataPoint:
                 if input_type in self.meta_types:
                     self.meta_keys.append(key)
                 if input_type in self.modality_types:
-                    self.modality_keys.append(key)
-                    
+                    self.modality_keys.append(key) 
+    
+    
+    def add_data(self, sat_data_id, update_type, update_value):
+        setattr(self, sat_data_id, dict([[update_type, update_value]])) 
+        # Update all values, potentially overwriting real data with null values
+        if not sat_data_id in self.all_keys:
+            self.all_keys.append(sat_data_id)
+            self.data_keys.append(sat_data_id)
+    
     
     def tree_update(self, col, val):
         # Update list of tree measurements
@@ -400,9 +425,13 @@ class DataPoint:
         setattr(self, col, curr_list)
 
 
-    def read_key(self, key): 
-        # Return data
-        return getattr(self, key)
+    def read_key(self, key1, key2=None): 
+        value = getattr(self, key1)
+        if key1 is not None:
+            # Return data
+            return value
+        else:
+            return value[key2]
 
             
     def print_point(self):
