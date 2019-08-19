@@ -242,7 +242,10 @@ class DataModalities:
                 self.data_points[i_point].add_data(sat_data_id, modality_type, modality_data)
             else:
                 # Set default missing value
-                self.data_points[i_point].add_data(sat_data_id, modality_type, None)
+                # TODO: 20190819 - this currently overwrites legit values, make soft update function, or simply skip this step?
+                # - maybe just remove this as this function is currently called for one point at a time!
+                # self.data_points[i_point].add_data(sat_data_id, modality_type, None)
+                pass
         
         
     def add_tree(self, point_name, row, header, exclude_list = []):
@@ -406,8 +409,18 @@ class DataPoint:
     
     
     def add_data(self, sat_data_id, update_type, update_value):
-        setattr(self, sat_data_id, dict([[update_type, update_value]])) 
-        # Update all values, potentially overwriting real data with null values
+        # Get previous values (if any)
+        try:
+            data_dict = getattr(self, sat_data_id)
+            # Add new value to dict
+            data_dict[update_type] = update_value
+        except:
+            data_dict = dict([[update_type, update_value]])
+        
+        # Update dict
+        setattr(self, sat_data_id, data_dict) 
+        
+        # Update keys
         if not sat_data_id in self.all_keys:
             self.all_keys.append(sat_data_id)
             self.data_keys.append(sat_data_id)
