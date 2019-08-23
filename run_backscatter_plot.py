@@ -45,6 +45,10 @@ sar_data = all_data.read_data_points(dataset_use, modality_type='quad_pol')
 # Get OPT data
 opt_data = all_data.read_data_points(dataset_use, modality_type='optical') 
 
+# Remove singelton dimensions
+sar_data = np.squeeze(sar_data)
+opt_data = np.squeeze(opt_data)
+
 fig = plt.figure()
 plt.scatter(n_trees, sar_data[:,0], c='r')
 
