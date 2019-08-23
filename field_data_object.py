@@ -156,6 +156,7 @@ for i_sheet in range(1,7):
     # Go through the list of points
     for row in df.itertuples(index=True, name='Pandas'):
         # Get ID of current point 
+        # TODO: 20190823 - CHANGE THIS FOR 2019 DATA??
         curr_id = str(row.Country) + '_' + str(row.Transect) + '_'  + str(row.ID)
         
         # New version 
@@ -164,7 +165,10 @@ for i_sheet in range(1,7):
         
         # Check if the current tree is in a new transect point
         if curr_id != prev_id:
-            prev_id = curr_id
+            # TODO: 20190823 - add LAI here?
+            if prev_id is not 'dummy':
+                all_data.add_to_point(prev_id, 'lai', lai_point[-1], 'meta')
+                all_data.add_to_point(prev_id, 'dai', dai_point[-1], 'meta')
             # Add waypoint name to list of IDs
             name_tree.append(curr_id)
             # Calculate average tree height
@@ -183,6 +187,8 @@ for i_sheet in range(1,7):
             avg_tree_height.append(0)
             # Add new tree count
             n_trees.append(0)
+            # Keep adding trees to curren point
+            prev_id = curr_id
         
         # Add area of crown (based on DIAMETERS in m) to last point (ellipse*fraction_live)/total_point_area
         lai_point[-1] += (np.pi/4*row.Crowndiam1*row.Crowndiam2*row.CrownPropLive/100)/transect_point_area
