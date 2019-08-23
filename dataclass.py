@@ -440,11 +440,11 @@ class DataPoint:
 
     def read_key(self, key1, key2=None): 
         value = getattr(self, key1)
-        if key1 is not None:
+        if key2 is not None:
             # Return data
-            return value
-        else:
             return value[key2]
+        else:
+            return value
 
             
     def print_point(self):
