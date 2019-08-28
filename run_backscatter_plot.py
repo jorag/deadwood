@@ -39,6 +39,10 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 
 # Get n_trees 
 n_trees = all_data.read_data_points('n_trees') 
+lai = all_data.read_data_points('lai') 
+dai = all_data.read_data_points('dai') 
+
+#trees = all_data.read_data_points('Tree') # Fails due to to all points having trees and hence no "Tree" attribute
 
 # Get SAR data 
 sar_data = all_data.read_data_points(dataset_use, modality_type='quad_pol') 
@@ -57,3 +61,24 @@ plt.scatter(n_trees, sar_data[:,1], c='b')
 
 fig = plt.figure()
 plt.scatter(n_trees, sar_data[:,2], c='g')
+
+
+fig = plt.figure()
+plt.scatter(np.log(lai.astype(float)), sar_data[:,0], c='r')
+
+fig = plt.figure()
+plt.scatter(np.log(lai.astype(float)), sar_data[:,1], c='b')
+
+fig = plt.figure()
+plt.scatter(np.log(lai.astype(float)), sar_data[:,2], c='g')
+
+
+
+fig = plt.figure()
+plt.scatter(lai, sar_data[:,0], c='r')
+
+fig = plt.figure()
+plt.scatter(lai, sar_data[:,1], c='b')
+
+fig = plt.figure()
+plt.scatter(lai, sar_data[:,2], c='g')
