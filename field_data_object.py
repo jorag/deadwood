@@ -25,9 +25,9 @@ from dataclass import *
 # Ground truth info - TODO: Store this info and parameters in object!!
 transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examined)
 
-# Processing parameters - minimum of X * 100 m^2 LAI to be in 'Live' class
+# Processing parameters - minimum of X * 100 m^2 plc to be in 'Live' class
 # TODO: NEED TO ADJUST THESE THRESHOLDS AFTER DISCUSSION WITH ECOLOGISTS/EXPERTS
-lai_min_live = 0.03 # min Leaf Area Index to be assigned to Live class 
+plc_min_live = 0.03 # min Leaf Area Index to be assigned to Live class 
 maxstem_min_defo = 2.5 # min registered max stem thickness for defoliated class
 ntrees_min_defo = 3 # min number of trees for defoliated class
 
@@ -64,7 +64,6 @@ except:
     xls_veg = pd.ExcelFile(veg_file)
 
 # Go through all sheets in Excel file for vegetation
-#point_info = []
 class_veg = []
 name_veg = []
 for i_sheet in range(1,7):
@@ -137,11 +136,10 @@ class_dict = dict(zip(gps_id, class_veg))
 
 # Read tree data
 # Initialize output lists and temporary variables
-#point_info = []
 class_tree = []
 name_tree = []
-lai_point = []
-dai_point = [] # "Defoliated" Area Index (tree crown area without leaves)
+plc_point = [] # Proportion Live Canopy (PLC) 
+pdc_point = [] # Proportion Defoliated Canopy (PDC) (tree crown area without leaves)
 n_stems_live = []
 n_stems_dead = []
 max_stem_thick = []
@@ -165,10 +163,10 @@ for i_sheet in range(1,7):
         
         # Check if the current tree is in a new transect point
         if curr_id != prev_id:
-            # TODO: 20190823 - add LAI here?
+            # TODO: 20190823 - add plc here?
             if prev_id is not 'dummy':
-                all_data.add_to_point(prev_id, 'lai', lai_point[-1], 'meta')
-                all_data.add_to_point(prev_id, 'dai', dai_point[-1], 'meta')
+                all_data.add_to_point(prev_id, 'plc', plc_point[-1], 'meta')
+                all_data.add_to_point(prev_id, 'pdc', pdc_point[-1], 'meta')
                 all_data.add_to_point(prev_id, 'max_stem_thick', max_stem_thick[-1], 'meta')
                 all_data.add_to_point(prev_id, 'avg_tree_height', avg_tree_height[-1], 'meta')
                 all_data.add_to_point(prev_id, 'n_stems_live', n_stems_live[-1], 'meta')
@@ -178,10 +176,10 @@ for i_sheet in range(1,7):
             name_tree.append(curr_id)
             # Calculate average tree height
             avg_tree_height[-1] = avg_tree_height[-1]/n_trees[-1]
-            # Add new LAI to list
-            lai_point.append(0)
-            # Add new "DAI" to list
-            dai_point.append(0)
+            # Add new plc to list
+            plc_point.append(0)
+            # Add new "pdc" to list
+            pdc_point.append(0)
             # Add new Stems_Live to list
             n_stems_live.append(0)
             # Add new Stems_Dead to list
@@ -196,9 +194,9 @@ for i_sheet in range(1,7):
             prev_id = curr_id
         
         # Add area of crown (based on DIAMETERS in m) to last point (ellipse*fraction_live)/total_point_area
-        lai_point[-1] += (np.pi/4*row.Crowndiam1*row.Crowndiam2*row.CrownPropLive/100)/transect_point_area
+        plc_point[-1] += (np.pi/4*row.Crowndiam1*row.Crowndiam2*row.CrownPropLive/100)/transect_point_area
         # Add area of defoliated crown (DIAMETERS in m) to last point (ellipse*fraction_dead)/total_point_area
-        dai_point[-1] += (np.pi/4*row.Crowndiam1*row.Crowndiam2*(100-row.CrownPropLive)/100)/transect_point_area
+        pdc_point[-1] += (np.pi/4*row.Crowndiam1*row.Crowndiam2*(100-row.CrownPropLive)/100)/transect_point_area
         # Update number of live stems
         n_stems_live[-1] += row.Stems_Live
         # Update number of dead stems
@@ -218,10 +216,10 @@ avg_tree_height.pop(0)
 # TODO: NEED TO ADJUST THESE RULES AFTER DISCUSSION WITH ECOLOGISTS/EXPERTS
 for i_point in range(length(name_tree)):
     # Check if Leaf Area Index is greater than threshold
-    if lai_point[i_point] > lai_min_live: # dai_point[i_point]:  #
-        if lai_point[i_point] > lai_min_live:
+    if plc_point[i_point] > plc_min_live: # pdc_point[i_point]:  #
+        if plc_point[i_point] > plc_min_live:
             class_dict[name_tree[i_point]] = 'Live'
-    elif lai_point[i_point] < dai_point[i_point]:  #:
+    elif plc_point[i_point] < pdc_point[i_point]:  #:
         if max_stem_thick[i_point] > maxstem_min_defo  and n_trees[i_point] >= ntrees_min_defo:
             class_dict[name_tree[i_point]] = 'Defoliated'
 

@@ -39,8 +39,8 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 
 # Get n_trees 
 n_trees = all_data.read_data_points('n_trees') 
-lai = all_data.read_data_points('lai') 
-dai = all_data.read_data_points('dai') 
+lai = all_data.read_data_points('plc') 
+dai = all_data.read_data_points('pdc') 
 
 #trees = all_data.read_data_points('Tree') # Fails due to to all points having trees and hence no "Tree" attribute
 
