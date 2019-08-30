@@ -64,7 +64,7 @@ except:
     xls_veg = pd.ExcelFile(veg_file)
 
 # Go through all sheets in Excel file for vegetation
-point_info = []
+#point_info = []
 class_veg = []
 name_veg = []
 for i_sheet in range(1,7):
@@ -137,7 +137,7 @@ class_dict = dict(zip(gps_id, class_veg))
 
 # Read tree data
 # Initialize output lists and temporary variables
-point_info = []
+#point_info = []
 class_tree = []
 name_tree = []
 lai_point = []
@@ -169,6 +169,11 @@ for i_sheet in range(1,7):
             if prev_id is not 'dummy':
                 all_data.add_to_point(prev_id, 'lai', lai_point[-1], 'meta')
                 all_data.add_to_point(prev_id, 'dai', dai_point[-1], 'meta')
+                all_data.add_to_point(prev_id, 'max_stem_thick', max_stem_thick[-1], 'meta')
+                all_data.add_to_point(prev_id, 'avg_tree_height', avg_tree_height[-1], 'meta')
+                all_data.add_to_point(prev_id, 'n_stems_live', n_stems_live[-1], 'meta')
+                all_data.add_to_point(prev_id, 'n_stems_dead', n_stems_dead[-1], 'meta')
+                
             # Add waypoint name to list of IDs
             name_tree.append(curr_id)
             # Calculate average tree height
