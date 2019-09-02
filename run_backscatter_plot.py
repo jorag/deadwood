@@ -39,8 +39,12 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 
 # Get n_trees 
 n_trees = all_data.read_data_points('n_trees') 
-lai = all_data.read_data_points('plc') 
-dai = all_data.read_data_points('pdc') 
+plc = all_data.read_data_points('plc') 
+pdc = all_data.read_data_points('pdc') 
+
+# Convert to float
+plc = plc.astype(float)
+pdc = pdc.astype(float)
 
 #trees = all_data.read_data_points('Tree') # Fails due to to all points having trees and hence no "Tree" attribute
 
@@ -53,6 +57,7 @@ opt_data = all_data.read_data_points(dataset_use, modality_type='optical')
 sar_data = np.squeeze(sar_data)
 opt_data = np.squeeze(opt_data)
 
+# Plot number of trees vs. backscatter values
 fig = plt.figure()
 plt.scatter(n_trees, sar_data[:,0], c='r')
 
@@ -62,23 +67,26 @@ plt.scatter(n_trees, sar_data[:,1], c='b')
 fig = plt.figure()
 plt.scatter(n_trees, sar_data[:,2], c='g')
 
+# Plot Proportion Live Crown (PLC) vs. backscatter values
+fig = plt.figure()
+plt.scatter(np.log(plc), sar_data[:,0], c='r')
 
 fig = plt.figure()
-plt.scatter(np.log(lai.astype(float)), sar_data[:,0], c='r')
+plt.scatter(np.log(plc), sar_data[:,1], c='b')
 
 fig = plt.figure()
-plt.scatter(np.log(lai.astype(float)), sar_data[:,1], c='b')
+plt.scatter(np.log(plc), sar_data[:,2], c='g')
+
+# Plot a combination of PLC and Proportion Defoliated Crown vs. backscatter values
+#combo_plot = plc-pdc # Proportion difference 
+#combo_plot = (plc-pdc)/(1-plc-pdc) # Proportion difference normalized by the total proportion of area covered with tree crown 
+combo_plot = np.log((plc-pdc)/(1-0.9*plc-0.9*pdc)) # Proportion difference normalized by the total proportion of area covered with tree crown 
 
 fig = plt.figure()
-plt.scatter(np.log(lai.astype(float)), sar_data[:,2], c='g')
-
-
+plt.scatter(combo_plot, sar_data[:,0], c='r')
 
 fig = plt.figure()
-plt.scatter(lai, sar_data[:,0], c='r')
+plt.scatter(combo_plot, sar_data[:,1], c='b')
 
 fig = plt.figure()
-plt.scatter(lai, sar_data[:,1], c='b')
-
-fig = plt.figure()
-plt.scatter(lai, sar_data[:,2], c='g')
+plt.scatter(combo_plot, sar_data[:,2], c='g')
