@@ -67,26 +67,17 @@ plt.scatter(n_trees, sar_data[:,1], c='b')
 fig = plt.figure()
 plt.scatter(n_trees, sar_data[:,2], c='g')
 
-# Plot Proportion Live Crown (PLC) vs. backscatter values
+# Plot a combination of Proportion Live Crown (PLC) and Proportion Defoliated Crown (PDC) vs. backscatter values
+#plot_x = plc-pdc # Proportion difference 
+#plot_x = (plc-pdc)/(1-plc-pdc) # Proportion difference normalized by the total proportion of area covered with tree crown 
+# plot_x = np.log((plc-pdc)/(1-0.9*plc-0.9*pdc)) # Proportion difference normalized by the total proportion of area covered with tree crown 
+plot_x = np.log(plc)
+               
 fig = plt.figure()
-plt.scatter(np.log(plc), sar_data[:,0], c='r')
+plt.scatter(plot_x, sar_data[:,0], c='r')
 
 fig = plt.figure()
-plt.scatter(np.log(plc), sar_data[:,1], c='b')
+plt.scatter(plot_x, sar_data[:,1], c='b')
 
 fig = plt.figure()
-plt.scatter(np.log(plc), sar_data[:,2], c='g')
-
-# Plot a combination of PLC and Proportion Defoliated Crown vs. backscatter values
-#combo_plot = plc-pdc # Proportion difference 
-#combo_plot = (plc-pdc)/(1-plc-pdc) # Proportion difference normalized by the total proportion of area covered with tree crown 
-combo_plot = np.log((plc-pdc)/(1-0.9*plc-0.9*pdc)) # Proportion difference normalized by the total proportion of area covered with tree crown 
-
-fig = plt.figure()
-plt.scatter(combo_plot, sar_data[:,0], c='r')
-
-fig = plt.figure()
-plt.scatter(combo_plot, sar_data[:,1], c='b')
-
-fig = plt.figure()
-plt.scatter(combo_plot, sar_data[:,2], c='g')
+plt.scatter(plot_x, sar_data[:,2], c='g')
