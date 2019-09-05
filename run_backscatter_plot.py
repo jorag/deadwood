@@ -12,6 +12,7 @@ import pandas as pd
 import os # Necessary for relative paths
 import xml.etree.ElementTree as ET
 import pickle
+from sklearn.cross_decomposition import CCA
 #import sys # To append paths
 # My moduels
 from mytools import *
@@ -37,6 +38,19 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 # Print points
 #all_data.print_points()
 
+# Read ground truth point measurements into a matrix
+y_var_read = ['n_trees', 'plc', 'pdc']
+n_obs_y = length(all_data.idx_list) # Number of observations
+n_var_y = length(y_var_read) # Number of ecological variables read 
+y_data = np.empty((n_obs_y, n_var_y))
+# Loop through list of variables and add to Y mat out
+for i_var_y in range(n_var_y):
+    y = all_data.read_data_points(y_var_read[i_var_y])
+    # Ensure that the data has the correct format and remove NaNs
+    y = y.astype(float)
+    y[np.isnan(y)] = 0
+    y_data[:,i_var_y] = y
+
 # Get n_trees 
 n_trees = all_data.read_data_points('n_trees') 
 plc = all_data.read_data_points('plc') 
@@ -46,6 +60,7 @@ pdc = all_data.read_data_points('pdc')
 plc = plc.astype(float)
 pdc = pdc.astype(float)
 
+# for iter in range(length(plc)): print(plc[iter]) # print all values
 #trees = all_data.read_data_points('Tree') # Fails due to to all points having trees and hence no "Tree" attribute
 
 # Get SAR data 
@@ -56,6 +71,20 @@ opt_data = all_data.read_data_points(dataset_use, modality_type='optical')
 # Remove singelton dimensions
 sar_data = np.squeeze(sar_data)
 opt_data = np.squeeze(opt_data)
+
+
+# Try canonical-correlation analysis (CCA)
+cca = CCA(n_components=1)
+cca.fit(sar_data, y_data )
+# Print weights and scores
+print(cca.x_scores_, cca.y_scores_)
+print(cca.x_weights_, cca.y_weights_)
+print(np.allclose(cca.x_scores_, np.matmul(sar_data, cca.x_weights_)))
+print((cca.x_scores_ - np.matmul(sar_data, cca.x_loadings_))**2)
+
+X_c, Y_c = cca.transform(sar_data, y_data )
+
+
 
 # Plot number of trees vs. backscatter values
 fig = plt.figure()
@@ -68,11 +97,8 @@ fig = plt.figure()
 plt.scatter(n_trees, sar_data[:,2], c='g')
 
 # Plot a combination of Proportion Live Crown (PLC) and Proportion Defoliated Crown (PDC) vs. backscatter values
-#plot_x = plc-pdc # Proportion difference 
-#plot_x = (plc-pdc)/(1-plc-pdc) # Proportion difference normalized by the total proportion of area covered with tree crown 
-# plot_x = np.log((plc-pdc)/(1-0.9*plc-0.9*pdc)) # Proportion difference normalized by the total proportion of area covered with tree crown 
 plot_x = np.log(plc)
-               
+
 fig = plt.figure()
 plt.scatter(plot_x, sar_data[:,0], c='r')
 
@@ -81,3 +107,14 @@ plt.scatter(plot_x, sar_data[:,1], c='b')
 
 fig = plt.figure()
 plt.scatter(plot_x, sar_data[:,2], c='g')
+
+
+# Plot Y
+plot_x = pdc
+plot_y = 2*sar_data[:,1]/(sar_data[:,0]+sar_data[:,2])
+
+fig = plt.figure()
+plt.scatter(plot_x, plot_y, c='b')
+
+fig = plt.figure()
+plt.scatter(plot_y, plot_x, c='g')
