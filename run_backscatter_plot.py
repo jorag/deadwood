@@ -74,7 +74,8 @@ opt_data = np.squeeze(opt_data)
 
 
 # Try canonical-correlation analysis (CCA)
-cca = CCA(n_components=2)
+n_comp = 2
+cca = CCA(n_components=n_comp)
 cca.fit(sar_data, y_data )
 # Print weights and scores
 print(cca.x_scores_, cca.y_scores_)
@@ -87,9 +88,11 @@ X_c, Y_c = cca.transform(sar_data, y_data )
 
 
 # Plot number of trees vs. backscatter values
+c_vec = mycolourvec()
 fig = plt.figure()
-plt.scatter(X_c[:,0], Y_c[:,0], c='r')
-plt.scatter(X_c[:,1], Y_c[:,1], c='b')
+for i_comp in range(n_comp):
+    plt.scatter(X_c[:,i_comp], Y_c[:,i_comp], c=c_vec[i_comp])
+
 
 # Plot a combination of Proportion Live Crown (PLC) and Proportion Defoliated Crown (PDC) vs. backscatter values
 plot_x = np.log(plc)
