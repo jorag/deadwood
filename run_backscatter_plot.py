@@ -39,7 +39,7 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 #all_data.print_points()
 
 # Read ground truth point measurements into a matrix
-y_var_read = ['n_trees', 'plc', 'pdc']
+y_var_read = ['n_trees', 'plc', 'pdc', 'Height_GrassHerb', 'Height_Tallshrub', 'Height_Drfshrub']
 n_obs_y = length(all_data.idx_list) # Number of observations
 n_var_y = length(y_var_read) # Number of ecological variables read 
 y_data = np.empty((n_obs_y, n_var_y))
@@ -74,7 +74,7 @@ opt_data = np.squeeze(opt_data)
 
 
 # Try canonical-correlation analysis (CCA)
-cca = CCA(n_components=1)
+cca = CCA(n_components=2)
 cca.fit(sar_data, y_data )
 # Print weights and scores
 print(cca.x_scores_, cca.y_scores_)
@@ -88,13 +88,8 @@ X_c, Y_c = cca.transform(sar_data, y_data )
 
 # Plot number of trees vs. backscatter values
 fig = plt.figure()
-plt.scatter(n_trees, sar_data[:,0], c='r')
-
-fig = plt.figure()
-plt.scatter(n_trees, sar_data[:,1], c='b')
-
-fig = plt.figure()
-plt.scatter(n_trees, sar_data[:,2], c='g')
+plt.scatter(X_c[:,0], Y_c[:,0], c='r')
+plt.scatter(X_c[:,1], Y_c[:,1], c='b')
 
 # Plot a combination of Proportion Live Crown (PLC) and Proportion Defoliated Crown (PDC) vs. backscatter values
 plot_x = np.log(plc)
