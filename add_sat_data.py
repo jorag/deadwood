@@ -31,10 +31,12 @@ from dataclass import *
 
 
 # List of datasets to process
-dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
+#dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 #dataset_list = ['19-vanZyl-A', '19-Coh-A', '19-Quad-A']
 #dataset_list = ['19-Quad-A']
 #dataset_list = ['PGNLM3-C']
+dataset_list = ['PGNLM3', 'Coh', 'vanZyl']
+dataset_id = 'C' # TODO: 20190909 Consider changing this a date string
 
 # Prefix for output datamodalities object filename
 datamod_fprefix = 'Sept1-19'
@@ -60,12 +62,13 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 
 # ADD SATELLITE DATA
 # Loop through all satellite images
-for dataset_use in dataset_list:
+for dataset_in in dataset_list:
     
     # Set name of output object
     # TODO: 20190628 Should objects now contain multiple different SAR data
     # - or, should each object contain only one data type?
-    obj_out_name = datamod_fprefix + dataset_use + '.pkl'
+    #obj_out_name = datamod_fprefix + dataset_use + '.pkl'
+    dataset_use = dataset_in + '-' + dataset_id 
     sat_pathfile_name = dataset_use + '-path'
     
     # Load data bands dictionary object
@@ -137,7 +140,7 @@ for dataset_use in dataset_list:
         # Get SAR pixels
         sar_pixels = sar_data_temp[x_p, y_p, :] 
         # Add SAR modality
-        all_data.add_modality(point, 'quad_pol', sar_pixels.tolist(), dataset_use, **kw_sar)
+        all_data.add_modality(point, dataset_in, sar_pixels.tolist(), dataset_use, **kw_sar)
         
         # Get OPT pixels
         opt_pixels = opt_data_temp[x_p, y_p, :] 
@@ -146,7 +149,9 @@ for dataset_use in dataset_list:
     
     ## Print points
     #all_data.print_points()
-    
-    # Save DataModalities object
-    with open(os.path.join(dirname, 'data', obj_out_name), 'wb') as output:
-        pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
+
+#
+obj_out_name = datamod_fprefix + '-' + dataset_id + '.pkl'  
+# Save DataModalities object
+with open(os.path.join(dirname, 'data', obj_out_name), 'wb') as output:
+    pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
