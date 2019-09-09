@@ -32,7 +32,7 @@ class DataModalities:
         self.meta_types = 'meta'
         self.modality_missing_value = np.NaN
         self.modality_types = 'modality'
-        #self.modality_order = [] # TODO - change band storage implementation to dict with dataset ID as key? 20190801: yes
+        self.all_modalities = [] # List of all data modalities in object
         self.label_missing_value = -1 # For np.unique to count number of classes
         # Misc settings
         self.log_type = 'default'
@@ -231,6 +231,10 @@ class DataModalities:
         # Make sure DataModalities object has points
         if self.__last_idx < 0:
             raise ValueError('Error! Object contains no data points!')
+        
+        # Add modality type to list of modalities for object
+        if not modality_type in self.all_modalities:
+            self.all_modalities.append(modality_type)
         
         # Loop over all points in object and add metadata fields to ALL points,
         # regardless of a value is given or not (omitted points get None as value)

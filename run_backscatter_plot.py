@@ -25,8 +25,9 @@ from dataclass import *
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Prefix for object filename
-dataset_use = 'PGNLM3-C'
-datamod_fprefix = 'Aug1-19'
+#dataset_use = 'PGNLM3-C'
+dataset_use = 'Coh-A'
+datamod_fprefix = 'Sept1-19'
                           
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix + dataset_use + '.pkl'
@@ -76,7 +77,8 @@ opt_data = np.squeeze(opt_data)
 # Try canonical-correlation analysis (CCA)
 n_comp = 2
 cca = CCA(n_components=n_comp)
-cca.fit(sar_data, y_data )
+cca.fit(sar_data, y_data)
+
 # Print weights and scores
 print(cca.x_scores_, cca.y_scores_)
 print(cca.x_weights_, cca.y_weights_)
@@ -85,6 +87,7 @@ print((cca.x_scores_ - np.matmul(sar_data, cca.x_loadings_))**2)
 
 X_c, Y_c = cca.transform(sar_data, y_data )
 
+print((X_c - np.matmul(sar_data, cca.x_loadings_)))
 
 
 # Plot number of trees vs. backscatter values
@@ -116,3 +119,8 @@ plt.scatter(plot_x, plot_y, c='b')
 
 fig = plt.figure()
 plt.scatter(plot_y, plot_x, c='g')
+
+# For analysing all datasets in object
+
+# for dataset_use in dataset_list:
+    # Calculate single number
