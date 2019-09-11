@@ -35,7 +35,7 @@ from dataclass import *
 #dataset_list = ['19-vanZyl-A', '19-Coh-A', '19-Quad-A']
 #dataset_list = ['19-Quad-A']
 #dataset_list = ['PGNLM3-C']
-dataset_list = ['PGNLM3', 'Coh', 'vanZyl']
+dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl']
 dataset_id = 'C' # TODO: 20190909 Consider changing this a date string
 
 # Prefix for output datamodalities object filename
@@ -147,11 +147,11 @@ for dataset_in in dataset_list:
         # Add OPT modality
         all_data.add_modality(point, 'optical', opt_pixels.tolist(), dataset_use, **kw_opt)
     
-    ## Print points
-    #all_data.print_points()
 
-#
-obj_out_name = datamod_fprefix + '-' + dataset_id + '.pkl'  
+## Print points
+#all_data.print_points()
+
 # Save DataModalities object
+obj_out_name = datamod_fprefix + '-' + dataset_id + '.pkl'  
 with open(os.path.join(dirname, 'data', obj_out_name), 'wb') as output:
     pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
