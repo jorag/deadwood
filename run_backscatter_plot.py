@@ -39,8 +39,8 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 # Print points
 #all_data.print_points()
 
-# Read ground truth point measurements into a matrix
-y_var_read = ['n_trees', 'plc', 'pdc', 'Height_GrassHerb', 'Height_Tallshrub', 'Height_Drfshrub']
+# Read ground truth point measurements into a matrix 
+y_var_read = ['n_trees', 'plc', 'pdc'] # , 'Height_GrassHerb', 'Height_Tallshrub', 'Height_Drfshrub'
 n_obs_y = length(all_data.idx_list) # Number of observations
 n_var_y = length(y_var_read) # Number of ecological variables read 
 y_data = np.empty((n_obs_y, n_var_y))
@@ -74,40 +74,44 @@ sar_data = np.squeeze(sar_data)
 opt_data = np.squeeze(opt_data)
 
 
-# Try canonical-correlation analysis (CCA)
+# Canonical-correlation analysis (CCA)
 n_comp = 2
 cca = CCA(n_components=n_comp)
 cca.fit(sar_data, y_data)
 
+# Do CCA transformation
+U_c, V_c = cca.transform(sar_data, y_data )
+
 # Print weights and scores
 print(cca.x_scores_, cca.y_scores_)
 print(cca.x_weights_, cca.y_weights_)
-print(np.allclose(cca.x_scores_, np.matmul(sar_data, cca.x_weights_)))
-print((cca.x_scores_ - np.matmul(sar_data, cca.x_loadings_))**2)
+print(np.allclose(cca.x_scores_, U_c))
+print(np.allclose(cca.y_scores_, V_c))
+print((U_c - np.matmul(sar_data, (cca.x_weights_-cca.x_loadings_ ))))
 
-X_c, Y_c = cca.transform(sar_data, y_data )
 
-print((X_c - np.matmul(sar_data, cca.x_weights_)))
 
+# https://stackoverflow.com/questions/37398856/how-to-get-the-first-canonical-correlation-from-sklearns-cca-module
+rho_cca = np.corrcoef(U_c.T, V_c.T).diagonal(offset=n_comp)
+score = np.diag(np.corrcoef(cca.x_scores_, cca.y_scores_, rowvar=False)[:n_comp, n_comp:])
+
+print((U_c - np.matmul(sar_data, cca.x_weights_)))
+
+# Calculate Coefficient of Determination (COD) = R²
+cod_cca = cca.score(sar_data, y_data)
+print(cod_cca)
 
 # Plot number of trees vs. backscatter values
 c_vec = mycolourvec()
+legend_list = []
 fig = plt.figure()
 for i_comp in range(n_comp):
-    plt.scatter(X_c[:,i_comp], Y_c[:,i_comp], c=c_vec[i_comp])
+    plt.scatter(U_c[:,i_comp], V_c[:,i_comp], c=c_vec[i_comp])
+    legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
+plt.title('CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
+plt.legend(legend_list)
+plt.show()  # display it
 
-
-# Plot a combination of Proportion Live Crown (PLC) and Proportion Defoliated Crown (PDC) vs. backscatter values
-plot_x = np.log(plc)
-
-fig = plt.figure()
-plt.scatter(plot_x, sar_data[:,0], c='r')
-
-fig = plt.figure()
-plt.scatter(plot_x, sar_data[:,1], c='b')
-
-fig = plt.figure()
-plt.scatter(plot_x, sar_data[:,2], c='g')
 
 # Plot multivariate linear regression for PLC and PDC
 # Set transformation
@@ -122,9 +126,9 @@ for response in ['plc', 'pdc']:
     W = np.matmul(np.matmul(np.linalg.inv(np.matmul(X.T,X)),X.T), r)
     # Find predicted curve
     reg_curve = np.matmul(X,W)
-    
-    coeff_of_det = rsquare(r, reg_curve)
-    print(coeff_of_det)
+    # Calculate Coefficient of Determination (COD) = R²
+    cod_reg = rsquare(r, reg_curve)
+    print(cod_reg)
     
     # Create figure
     fig = plt.figure()
@@ -134,8 +138,8 @@ for response in ['plc', 'pdc']:
     plt.legend(['Measured '+response.upper(), 'Regression '+response.upper()])
     plt.xlabel('Transect point nr.')
     plt.ylabel(response.upper())
-    plt.title('Multivariate/multiple linear regression: R^2 = ' +'{:.3f}'.format(coeff_of_det))
-    plt.show()  # display it
+    plt.title('Multivariate/multiple linear regression: R^2 = ' +'{:.3f}'.format(cod_reg))
+    plt.show()  # display 
 
 
 # Plot Y
