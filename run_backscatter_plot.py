@@ -36,11 +36,10 @@ obj_in_name = datamod_fprefix + dataset_use + '.pkl'
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
         
-# Print points
-#all_data.print_points()
+#all_data.print_points() # Print points
 
 # Read ground truth point measurements into a matrix 
-y_var_read = ['n_trees', 'plc', 'pdc'] # , 'Height_GrassHerb', 'Height_Tallshrub', 'Height_Drfshrub'
+y_var_read = ['n_trees', 'plc', 'pdc'] 
 n_obs_y = length(all_data.idx_list) # Number of observations
 n_var_y = length(y_var_read) # Number of ecological variables read 
 y_data = np.empty((n_obs_y, n_var_y))
@@ -52,16 +51,6 @@ for i_var_y in range(n_var_y):
     y[np.isnan(y)] = 0 # Replace NaNs with zeros
     y_data[:,i_var_y] = y
 
-# Get n_trees 
-n_trees = y_data[:, y_var_read.index('n_trees')] 
-plc = y_data[:, y_var_read.index('plc')] # Use index from y_var_read 
-pdc = y_data[:, y_var_read.index('pdc')]
-
-# Convert to float
-plc = plc.astype(float)
-pdc = pdc.astype(float)
-
-# for iter in range(length(plc)): print(plc[iter]) # print all values
 #trees = all_data.read_data_points('Tree') # Fails due to to all points having trees and hence no "Tree" attribute
 
 # Get SAR data 
@@ -79,23 +68,12 @@ n_comp = 2
 cca = CCA(n_components=n_comp)
 cca.fit(sar_data, y_data)
 
-# Do CCA transformation
-U_c, V_c = cca.transform(sar_data, y_data )
+# Get CCA transformation
+U_c, V_c  = cca.x_scores_, cca.y_scores_#= cca.transform(sar_data, y_data)
 
-# Print weights and scores
-print(cca.x_scores_, cca.y_scores_)
-print(cca.x_weights_, cca.y_weights_)
-print(np.allclose(cca.x_scores_, U_c))
-print(np.allclose(cca.y_scores_, V_c))
-print((U_c - np.matmul(sar_data, (cca.x_weights_-cca.x_loadings_ ))))
-
-
-
-# https://stackoverflow.com/questions/37398856/how-to-get-the-first-canonical-correlation-from-sklearns-cca-module
+# From: https://stackoverflow.com/questions/37398856/
 rho_cca = np.corrcoef(U_c.T, V_c.T).diagonal(offset=n_comp)
-score = np.diag(np.corrcoef(cca.x_scores_, cca.y_scores_, rowvar=False)[:n_comp, n_comp:])
-
-print((U_c - np.matmul(sar_data, cca.x_weights_)))
+#score = np.diag(np.corrcoef(cca.x_scores_, cca.y_scores_, rowvar=False)[:n_comp, n_comp:])
 
 # Calculate Coefficient of Determination (COD) = R²
 cod_cca = cca.score(sar_data, y_data)
@@ -115,7 +93,7 @@ plt.show()  # display it
 
 # Plot multivariate linear regression for PLC and PDC
 # Set transformation
-transformation = np.log # identity # Loop over transformations?
+transformation = identity # np.log # Loop over transformations?
 for response in ['plc', 'pdc']:
     r = y_data[:, y_var_read.index(response)]  # Response
     r = transformation(r) # Do a transformation
@@ -141,16 +119,6 @@ for response in ['plc', 'pdc']:
     plt.title('Multivariate/multiple linear regression: R^2 = ' +'{:.3f}'.format(cod_reg))
     plt.show()  # display 
 
-
-# Plot Y
-plot_x = pdc
-plot_y = 2*sar_data[:,1]/(sar_data[:,0]+sar_data[:,2])
-
-fig = plt.figure()
-plt.scatter(plot_x, plot_y, c='b')
-
-fig = plt.figure()
-plt.scatter(plot_y, plot_x, c='g')
 
 # For analysing all datasets in object
 
