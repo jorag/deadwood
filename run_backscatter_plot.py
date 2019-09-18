@@ -49,13 +49,13 @@ for i_var_y in range(n_var_y):
     y = all_data.read_data_points(y_var_read[i_var_y])
     # Ensure that the data has the correct format and remove NaNs
     y = y.astype(float)
-    y[np.isnan(y)] = 0
+    y[np.isnan(y)] = 0 # Replace NaNs with zeros
     y_data[:,i_var_y] = y
 
 # Get n_trees 
-n_trees = all_data.read_data_points('n_trees') 
-plc = all_data.read_data_points('plc') 
-pdc = all_data.read_data_points('pdc') 
+n_trees = y_data[:, y_var_read.index('n_trees')] 
+plc = y_data[:, y_var_read.index('plc')] # Use index from y_var_read 
+pdc = y_data[:, y_var_read.index('pdc')]
 
 # Convert to float
 plc = plc.astype(float)
@@ -87,7 +87,7 @@ print((cca.x_scores_ - np.matmul(sar_data, cca.x_loadings_))**2)
 
 X_c, Y_c = cca.transform(sar_data, y_data )
 
-print((X_c - np.matmul(sar_data, cca.x_loadings_)))
+print((X_c - np.matmul(sar_data, cca.x_weights_)))
 
 
 # Plot number of trees vs. backscatter values
@@ -108,6 +108,34 @@ plt.scatter(plot_x, sar_data[:,1], c='b')
 
 fig = plt.figure()
 plt.scatter(plot_x, sar_data[:,2], c='g')
+
+# Plot multivariate linear regression for PLC and PDC
+# Set transformation
+transformation = np.log # identity # Loop over transformations?
+for response in ['plc', 'pdc']:
+    r = y_data[:, y_var_read.index(response)]  # Response
+    r = transformation(r) # Do a transformation
+    r[~np.isfinite(r)] = -100 # Replace NaNs 
+    # Add column of ones
+    X = np.hstack((np.ones((length(r),1)), sar_data))
+    # Find regression parameters
+    W = np.matmul(np.matmul(np.linalg.inv(np.matmul(X.T,X)),X.T), r)
+    # Find predicted curve
+    reg_curve = np.matmul(X,W)
+    
+    coeff_of_det = rsquare(r, reg_curve)
+    print(coeff_of_det)
+    
+    # Create figure
+    fig = plt.figure()
+    # Plot data
+    plt.plot(r, color='b')
+    plt.plot(reg_curve, color='r')
+    plt.legend(['Measured '+response.upper(), 'Regression '+response.upper()])
+    plt.xlabel('Transect point nr.')
+    plt.ylabel(response.upper())
+    plt.title('Multivariate/multiple linear regression: R^2 = ' +'{:.3f}'.format(coeff_of_det))
+    plt.show()  # display it
 
 
 # Plot Y

@@ -62,6 +62,7 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 
 # ADD SATELLITE DATA
 # Loop through all satellite images
+# TODO: 20190911 - loop through datasets? for id in dataset_id:
 for dataset_in in dataset_list:
     
     # Set name of output object
@@ -140,6 +141,7 @@ for dataset_in in dataset_list:
         # Get SAR pixels
         sar_pixels = sar_data_temp[x_p, y_p, :] 
         # Add SAR modality
+        # TODO: 20190911 - change dataset_use to dataset_id to keep multiple datasets in a single object:
         all_data.add_modality(point, dataset_in, sar_pixels.tolist(), dataset_use, **kw_sar)
         
         # Get OPT pixels
