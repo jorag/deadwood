@@ -6,14 +6,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import gdal
-#from gdalconst import *
 import tkinter
 from tkinter import filedialog
 import pandas as pd
 import os # Necessary for relative paths
 import xml.etree.ElementTree as ET
 import pickle
-#import sys # To append paths
 # My moduels
 from mytools import *
 from geopixpos import *
@@ -33,8 +31,6 @@ from dataclass import *
 # List of datasets to process
 #dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 #dataset_list = ['19-vanZyl-A', '19-Coh-A', '19-Quad-A']
-#dataset_list = ['19-Quad-A']
-#dataset_list = ['PGNLM3-C']
 dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl']
 dataset_id = 'C' # TODO: 20190909 Consider changing this a date string
 
@@ -54,11 +50,15 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Name of input object and file with satellite data path string
 obj_in_name = 'NEW_FIELD_DATA' + '.pkl'
+obj_out_name = datamod_fprefix + '-' + dataset_id + '.pkl'  
                           
 ## Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
                       
+# Load data bands dictionaries
+with open(os.path.join(dirname, 'data', 'band_dicts'), 'rb') as input:
+    sar_bands_dict, opt_bands_dict, geo_bands_dict = pickle.load(input)
 
 # ADD SATELLITE DATA
 # Loop through all satellite images
@@ -68,13 +68,8 @@ for dataset_in in dataset_list:
     # Set name of output object
     # TODO: 20190628 Should objects now contain multiple different SAR data
     # - or, should each object contain only one data type?
-    #obj_out_name = datamod_fprefix + dataset_use + '.pkl'
     dataset_use = dataset_in + '-' + dataset_id 
     sat_pathfile_name = dataset_use + '-path'
-    
-    # Load data bands dictionary object
-    with open(os.path.join(dirname, 'data', 'band_dicts'), 'rb') as input:
-        sar_bands_dict, opt_bands_dict, geo_bands_dict = pickle.load(input)
                               
     # Get indices for bands, lat, lon, SAR, and optical
     lat_band = geo_bands_dict[dataset_use]['lat']
@@ -119,6 +114,7 @@ for dataset_in in dataset_list:
     kw_sar = dict([['bands_use', sar_bands_use]])
     
     # Get array with MULTISPECTRAL OPTICAL data
+    # TODO: 20190919 - add if test to see if data should be included?
     opt_data_temp = raster_data_array[opt_bands_use,:,:]
     # Convert to 2D array
     opt_data_temp, n_rows, n_cols = imtensor2array(opt_data_temp)
@@ -154,6 +150,5 @@ for dataset_in in dataset_list:
 #all_data.print_points()
 
 # Save DataModalities object
-obj_out_name = datamod_fprefix + '-' + dataset_id + '.pkl'  
 with open(os.path.join(dirname, 'data', obj_out_name), 'wb') as output:
     pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
