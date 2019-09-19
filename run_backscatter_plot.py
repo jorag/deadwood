@@ -25,19 +25,22 @@ from dataclass import *
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Prefix for object filename
-#dataset_use = 'PGNLM3-C'
-dataset_use = 'Coh-A'
 datamod_fprefix = 'Sept1-19'
-                          
+dataset_id = 'C'
+
+dataset_use = 'PGNLM3'
+#dataset_use = 'Coh-A'
+
 # Name of input object and file with satellite data path string
-obj_in_name = datamod_fprefix + dataset_use + '.pkl'
+obj_in_name = datamod_fprefix + '-' + dataset_id + '.pkl'
                           
 ## Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
         
 #all_data.print_points() # Print points
-
+print(all_data.all_modalities)
+                      
 # Read ground truth point measurements into a matrix 
 y_var_read = ['n_trees', 'plc', 'pdc'] 
 n_obs_y = length(all_data.idx_list) # Number of observations
@@ -54,9 +57,9 @@ for i_var_y in range(n_var_y):
 #trees = all_data.read_data_points('Tree') # Fails due to to all points having trees and hence no "Tree" attribute
 
 # Get SAR data 
-sar_data = all_data.read_data_points(dataset_use, modality_type='quad_pol') 
+sar_data = all_data.read_data_points(dataset_use+'-'+dataset_id, modality_type=dataset_use) 
 # Get OPT data
-opt_data = all_data.read_data_points(dataset_use, modality_type='optical') 
+opt_data = all_data.read_data_points(dataset_use+'-'+dataset_id, modality_type='optical') 
 
 # Remove singelton dimensions
 sar_data = np.squeeze(sar_data)
