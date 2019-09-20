@@ -28,8 +28,6 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 datamod_fprefix = 'Sept1-19'
 dataset_id = 'C'
 
-dataset_use = 'PGNLM3'
-
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix + '-' + dataset_id + '.pkl'
                           
@@ -41,7 +39,7 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 print(all_data.all_modalities)
                       
 # Read ground truth point measurements into a matrix 
-y_var_read = ['n_trees', 'plc', 'pdc'] 
+y_var_read = ['plc', 'pdc'] 
 n_obs_y = length(all_data.idx_list) # Number of observations
 n_var_y = length(y_var_read) # Number of ecological variables read 
 y_data = np.empty((n_obs_y, n_var_y))
@@ -95,12 +93,12 @@ for dataset_use in all_data.all_modalities:
     for i_comp in range(n_comp):
         plt.scatter(U_c[:,i_comp], V_c[:,i_comp], c=c_vec[i_comp])
         legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
-    plt.title('CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
+    plt.title(dataset_use+'-'+dataset_id+' CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
     plt.legend(legend_list)
     plt.show()  # display it
     
     
-    # Plot multivariate linear regression for PLC and PDC
+    # Plot Multivariate/multiple linear linear regression for PLC and PDC
     # Set transformation
     transformation = identity # np.log # Loop over transformations?
     for response in ['plc', 'pdc']:
@@ -125,5 +123,5 @@ for dataset_use in all_data.all_modalities:
         plt.legend(['Measured '+response.upper(), 'Regression '+response.upper()])
         plt.xlabel('Transect point nr.')
         plt.ylabel(response.upper())
-        plt.title('Multivariate/multiple linear regression: R^2 = ' +'{:.3f}'.format(cod_reg))
+        plt.title(dataset_use+'-'+dataset_id+' regression: R^2 = ' +'{:.3f}'.format(cod_reg))
         plt.show()  # display 
