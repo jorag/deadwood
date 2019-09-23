@@ -8,6 +8,7 @@ import numpy as np
 import gdal
 import tkinter
 from tkinter import filedialog
+import tkinter.messagebox as tkmb
 import pandas as pd
 import os # Necessary for relative paths
 import xml.etree.ElementTree as ET
@@ -33,7 +34,8 @@ datamod_fprefix = 'Sept23-19'
 # List of datasets to process
 #dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
 #dataset_list = ['19-vanZyl-A', '19-Coh-A', '19-Quad-A']
-dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl']
+#dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl']
+dataset_list = ['Quad']
 dataset_id = 'C' # TODO: 20190909 Consider changing this a date string
 
 # Datasets to add optical bands from
@@ -41,7 +43,6 @@ opt_dataset_list = ['vanZyl']
 
 # Which Sentinel-2 bands to use
 opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
-#opt_bands_include = ['b02','b03','b04']# Load DataModalities object
     
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -49,6 +50,16 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # Name of input object and file with satellite data path string
 obj_in_name = 'NEW_FIELD_DATA' + '.pkl'
 obj_out_name = datamod_fprefix + '-' + dataset_id + '.pkl'  
+
+# Add to existing object or create from scratch
+root = tkinter.Tk()
+root.withdraw()
+result1 = tkmb.askquestion('Create new object?', 'If not, data will be added to existing one', icon='warning')
+if result1 == 'yes':
+    obj_in_name = 'NEW_FIELD_DATA' + '.pkl'
+else:
+    obj_in_name = obj_out_name
+#root.destroy()   
                           
 ## Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
@@ -60,7 +71,6 @@ with open(os.path.join(dirname, 'data', 'band_dicts'), 'rb') as input:
 
 # ADD SATELLITE DATA
 # Loop through all satellite images
-# TODO: 20190911 - loop through datasets? for id in dataset_id:
 for dataset_in in dataset_list:
     
     # Set name of output object
