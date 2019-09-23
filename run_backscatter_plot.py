@@ -25,12 +25,15 @@ from dataclass import *
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Prefix for object filename
-datamod_fprefix = 'Sept1-19'
+datamod_fprefix = 'Sept23-19'
 dataset_id = 'C'
 
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix + '-' + dataset_id + '.pkl'
-                          
+
+# List of plots
+plot_list = ['pxcvsu'] # ['cca', 'pxcvsu', 'linreg']
+
 ## Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
@@ -53,6 +56,9 @@ for i_var_y in range(n_var_y):
 
 #trees = all_data.read_data_points('Tree') # Fails due to to all points having trees and hence no "Tree" attribute
 
+# Get colour vector
+c_vec = mycolourvec()
+                                  
 # Analyse all data modalities in object
 for dataset_use in all_data.all_modalities:
     # Calculate measures of performance for CCA and linear regression
@@ -61,14 +67,15 @@ for dataset_use in all_data.all_modalities:
         continue
                                    
     # Get SAR data 
-    sar_data = all_data.read_data_points(dataset_use+'-'+dataset_id, modality_type=dataset_use) 
+    sar_data = all_data.read_data_points(dataset_use+'-'+dataset_id, modality_type=dataset_use)
+    print(dataset_use)
     # Get OPT data
     #opt_data = all_data.read_data_points(dataset_use+'-'+dataset_id, modality_type='optical') 
     
     # Remove singelton dimensions
     sar_data = np.squeeze(sar_data)
     #opt_data = np.squeeze(opt_data)
-    
+    print(sar_data)
     
     # Canonical-correlation analysis (CCA)
     n_comp = 2
@@ -86,16 +93,40 @@ for dataset_use in all_data.all_modalities:
     cod_cca = cca.score(sar_data, y_data)
     print(cod_cca)
     
-    # Plot number of trees vs. backscatter values
-    c_vec = mycolourvec()
-    legend_list = []
-    fig = plt.figure()
-    for i_comp in range(n_comp):
-        plt.scatter(U_c[:,i_comp], V_c[:,i_comp], c=c_vec[i_comp])
-        legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
-    plt.title(dataset_use+'-'+dataset_id+' CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
-    plt.legend(legend_list)
-    plt.show()  # display it
+    # Plot number of CCA U and V
+    if 'CCA'.lower() in plot_list:
+        legend_list = []
+        fig = plt.figure()
+        for i_comp in range(n_comp):
+            plt.scatter(U_c[:,i_comp], V_c[:,i_comp], c=c_vec[i_comp])
+            legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
+        plt.title(dataset_use+'-'+dataset_id+' CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
+        plt.legend(legend_list)
+        plt.show()  # display it
+    
+    
+    # Plot number of CCA U and PDC
+    if 'PxCvsU'.lower() in plot_list:
+        legend_list = []
+        fig = plt.figure()
+        for i_comp in range(n_comp):
+            plt.scatter(V_c[:,i_comp], y_data[:, y_var_read.index('plc')] , c=c_vec[i_comp])
+            legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
+        plt.xlabel('U')
+        plt.ylabel('PLC')
+        plt.legend(legend_list)
+        plt.show()  # display it
+        
+        # Plot number of CCA U and PDC
+        legend_list = []
+        fig = plt.figure()
+        for i_comp in range(n_comp):
+            plt.scatter(V_c[:,i_comp], y_data[:, y_var_read.index('pdc')] , c=c_vec[i_comp])
+            legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
+        plt.xlabel('U')
+        plt.ylabel('PDC')
+        plt.legend(legend_list)
+        plt.show()  # display it
     
     
     # Plot Multivariate/multiple linear linear regression for PLC and PDC
@@ -116,12 +147,13 @@ for dataset_use in all_data.all_modalities:
         print(cod_reg)
         
         # Create figure
-        fig = plt.figure()
-        # Plot data
-        plt.plot(r, color='b')
-        plt.plot(reg_curve, color='r')
-        plt.legend(['Measured '+response.upper(), 'Regression '+response.upper()])
-        plt.xlabel('Transect point nr.')
-        plt.ylabel(response.upper())
-        plt.title(dataset_use+'-'+dataset_id+' regression: R^2 = ' +'{:.3f}'.format(cod_reg))
-        plt.show()  # display 
+        if 'linreg' in plot_list:
+            fig = plt.figure()
+            # Plot data
+            plt.plot(r, color='b')
+            plt.plot(reg_curve, color='r')
+            plt.legend(['Measured '+response.upper(), 'Regression '+response.upper()])
+            plt.xlabel('Transect point nr.')
+            plt.ylabel(response.upper())
+            plt.title(dataset_use+'-'+dataset_id+' regression: R^2 = ' +'{:.3f}'.format(cod_reg))
+            plt.show()  # display 
