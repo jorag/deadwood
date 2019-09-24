@@ -58,19 +58,36 @@ for i_var_y in range(n_var_y):
 
 # Get colour vector
 c_vec = mycolourvec()
-                                  
+
+# Get SAR data 
+quad_data = all_data.read_data_points('Quad-C', modality_type='Quad')
+# Remove singelton dimensions
+quad_data = np.squeeze(quad_data)
+# Get SAR data 
+pgnlm_data = all_data.read_data_points('PGNLM3-C', modality_type='PGNLM3')
+# Remove singelton dimensions
+pgnlm_data = np.squeeze(pgnlm_data)
+
+# Plot
+plt.figure()
+plt.plot(quad_data[:,0])
+plt.plot(pgnlm_data[:,0])
+
 # Analyse all data modalities in object
 for dataset_use in all_data.all_modalities:
     # Calculate measures of performance for CCA and linear regression
     
-    if dataset_use.lower() in ['optical']:
-        continue
+    #if dataset_use.lower() in ['optical']:
+    #   continue
                                    
-    # Get SAR data 
-    sar_data = all_data.read_data_points(dataset_use+'-'+dataset_id, modality_type=dataset_use)
-    print(dataset_use)
-    # Get OPT data
-    #opt_data = all_data.read_data_points(dataset_use+'-'+dataset_id, modality_type='optical') 
+    # Get SAR data
+    try:
+        sar_data = all_data.read_data_points(dataset_use+'-'+dataset_id, modality_type=dataset_use)
+        print(dataset_use)
+        # Get OPT data
+        #opt_data = all_data.read_data_points(dataset_use+'-'+dataset_id, modality_type='optical')
+    except:
+        continue
     
     # Remove singelton dimensions
     sar_data = np.squeeze(sar_data)
