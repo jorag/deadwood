@@ -26,7 +26,7 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Prefix for object filename
 datamod_fprefix = 'All-data-0919'
-dataset_id = 'C'
+dataset_id = 'A'
 
 # Name of input object and file with satellite data path string
 #obj_in_name = datamod_fprefix + '-' + dataset_id + '.pkl'
@@ -74,19 +74,23 @@ plt.figure()
 plt.plot(quad_data[:,0])
 plt.plot(pgnlm_data[:,0])
 
+# Performance measures
+linreg_pdc_r2 = dict()
+
 # Analyse all data modalities in object
-for dataset_use in all_data.all_modalities:
+for dataset_type in all_data.all_modalities:
     # Calculate measures of performance for CCA and linear regression
     
-    #if dataset_use.lower() in ['optical']:
+    #if dataset_type.lower() in ['optical']:
     #   continue
                                    
     # Get SAR data
     try:
-        sar_data = all_data.read_data_points(dataset_use+'-'+dataset_id, modality_type=dataset_use)
+        dataset_use = dataset_type+'-'+dataset_id
+        sar_data = all_data.read_data_points(dataset_use, modality_type=dataset_type)
         print(dataset_use)
         # Get OPT data
-        #opt_data = all_data.read_data_points(dataset_use+'-'+dataset_id, modality_type='optical')
+        #opt_data = all_data.read_data_points(dataset_use, modality_type='optical')
     except:
         continue
     
@@ -118,7 +122,7 @@ for dataset_use in all_data.all_modalities:
         for i_comp in range(n_comp):
             plt.scatter(U_c[:,i_comp], V_c[:,i_comp], c=c_vec[i_comp])
             legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
-        plt.title(dataset_use+'-'+dataset_id+' CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
+        plt.title(dataset_use+' CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
         plt.legend(legend_list)
         plt.show()  # display it
     
@@ -130,6 +134,7 @@ for dataset_use in all_data.all_modalities:
         for i_comp in range(n_comp):
             plt.scatter(V_c[:,i_comp], y_data[:, y_var_read.index('plc')] , c=c_vec[i_comp])
             legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
+        plt.title(dataset_use+' CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
         plt.xlabel('U')
         plt.ylabel('PLC')
         plt.legend(legend_list)
@@ -141,6 +146,7 @@ for dataset_use in all_data.all_modalities:
         for i_comp in range(n_comp):
             plt.scatter(V_c[:,i_comp], y_data[:, y_var_read.index('pdc')] , c=c_vec[i_comp])
             legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
+        plt.title(dataset_use+' CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
         plt.xlabel('U')
         plt.ylabel('PDC')
         plt.legend(legend_list)
@@ -163,6 +169,8 @@ for dataset_use in all_data.all_modalities:
         # Calculate Coefficient of Determination (COD) = R²
         cod_reg = rsquare(r, reg_curve)
         print(cod_reg)
+        # Add to output dict
+        linreg_pdc_r2[dataset_use] = cod_reg
         
         # Create figure
         if 'linreg' in plot_list:
@@ -173,5 +181,14 @@ for dataset_use in all_data.all_modalities:
             plt.legend(['Measured '+response.upper(), 'Regression '+response.upper()])
             plt.xlabel('Transect point nr.')
             plt.ylabel(response.upper())
-            plt.title(dataset_use+'-'+dataset_id+' regression: R^2 = ' +'{:.3f}'.format(cod_reg))
+            plt.title(dataset_use+' regression: R^2 = ' +'{:.3f}'.format(cod_reg))
             plt.show()  # display 
+
+
+# Plot summary statistics
+n_datasets = len(linreg_pdc_r2)
+plt.figure()
+plt.bar(range(n_datasets), list(linreg_pdc_r2.values()), align='center')
+plt.xticks(range(n_datasets), list(linreg_pdc_r2.keys()))
+
+plt.show()
