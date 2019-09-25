@@ -25,11 +25,12 @@ from dataclass import *
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Prefix for object filename
-datamod_fprefix = 'Sept23-19'
+datamod_fprefix = 'All-data-0919'
 dataset_id = 'C'
 
 # Name of input object and file with satellite data path string
-obj_in_name = datamod_fprefix + '-' + dataset_id + '.pkl'
+#obj_in_name = datamod_fprefix + '-' + dataset_id + '.pkl'
+obj_in_name = datamod_fprefix + '-' + '.pkl'
 
 # List of plots
 plot_list = ['pxcvsu'] # ['cca', 'pxcvsu', 'linreg']
