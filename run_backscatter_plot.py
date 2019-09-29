@@ -33,7 +33,7 @@ dataset_id = 'A'
 obj_in_name = datamod_fprefix + '-' + '.pkl'
 
 # List of plots
-plot_list = ['pxcvsu'] # ['cca', 'pxcvsu', 'linreg']
+plot_list = ['linreg'] # ['cca', 'pxcvsu', 'linreg']
 
 ## Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
@@ -97,7 +97,7 @@ for dataset_type in all_data.all_modalities:
     # Remove singelton dimensions
     sar_data = np.squeeze(sar_data)
     #opt_data = np.squeeze(opt_data)
-    print(sar_data)
+    #print(sar_data)
     
     # Canonical-correlation analysis (CCA)
     n_comp = 2
@@ -178,6 +178,31 @@ for dataset_type in all_data.all_modalities:
             # Plot data
             plt.plot(r, color='b')
             plt.plot(reg_curve, color='r')
+            plt.legend(['Measured '+response.upper(), 'Regression '+response.upper()])
+            plt.xlabel('Transect point nr.')
+            plt.ylabel(response.upper())
+            plt.title(dataset_use+' regression: R^2 = ' +'{:.3f}'.format(cod_reg))
+            plt.show()  # display 
+            
+    # Linreg
+    # Add column of ones
+    X = np.hstack((np.ones((length(r),1)), sar_data))
+    # Find regression parameters
+    W = np.matmul(np.matmul(np.linalg.inv(np.matmul(X.T,X)),X.T), y_data)
+    r_hat = np.matmul(X,W)
+    cod_reg = rsquare(y_data, r_hat)
+    print(cod_reg)
+    print(np.allclose(r_hat[:,1], reg_curve))
+    # Create figure
+    if 'linreg' in plot_list:
+        for i_col in range(r_hat.shape[1]):
+            # Calculate Coefficient of Determination (COD) = R²
+            cod_reg = rsquare(y_data[:, i_col], r_hat[:, i_col])
+            print(cod_reg)
+            fig = plt.figure()
+            # Plot data
+            plt.plot(y_data[:, i_col] , color='b')
+            plt.plot(r_hat[:, i_col], color='r')
             plt.legend(['Measured '+response.upper(), 'Regression '+response.upper()])
             plt.xlabel('Transect point nr.')
             plt.ylabel(response.upper())
