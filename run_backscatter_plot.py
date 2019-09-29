@@ -33,7 +33,7 @@ dataset_id = 'A'
 obj_in_name = datamod_fprefix + '-' + '.pkl'
 
 # List of plots
-plot_list = ['linreg'] # ['cca', 'pxcvsu', 'linreg']
+plot_list = ['pxcvsu'] # ['cca', 'pxcvsu', 'linreg']
 
 ## Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
@@ -111,10 +111,13 @@ for dataset_type in all_data.all_modalities:
     rho_cca = np.corrcoef(U_c.T, V_c.T).diagonal(offset=n_comp)
     #score = np.diag(np.corrcoef(cca.x_scores_, cca.y_scores_, rowvar=False)[:n_comp, n_comp:])
     
+    # Use function definition
+    cod_cca2 = rsquare(U_c, y_data)
+    print(cod_cca2)
     # Calculate Coefficient of Determination (COD) = R²
     cod_cca = cca.score(sar_data, y_data)
     print(cod_cca)
-    
+
     # Plot number of CCA U and V
     if 'CCA'.lower() in plot_list:
         legend_list = []
@@ -156,7 +159,7 @@ for dataset_type in all_data.all_modalities:
     # Plot Multivariate/multiple linear linear regression for PLC and PDC
     # Set transformation
     transformation = identity # np.log # Loop over transformations?
-    for response in ['plc', 'pdc']:
+    for response in y_var_read:
         r = y_data[:, y_var_read.index(response)]  # Response
         r = transformation(r) # Do a transformation
         r[~np.isfinite(r)] = -100 # Replace NaNs 
@@ -190,23 +193,21 @@ for dataset_type in all_data.all_modalities:
     # Find regression parameters
     W = np.matmul(np.matmul(np.linalg.inv(np.matmul(X.T,X)),X.T), y_data)
     r_hat = np.matmul(X,W)
+    # Calculate Coefficient of Determination (COD) = R²
     cod_reg = rsquare(y_data, r_hat)
     print(cod_reg)
     print(np.allclose(r_hat[:,1], reg_curve))
     # Create figure
     if 'linreg' in plot_list:
         for i_col in range(r_hat.shape[1]):
-            # Calculate Coefficient of Determination (COD) = R²
-            cod_reg = rsquare(y_data[:, i_col], r_hat[:, i_col])
-            print(cod_reg)
             fig = plt.figure()
             # Plot data
             plt.plot(y_data[:, i_col] , color='b')
             plt.plot(r_hat[:, i_col], color='r')
-            plt.legend(['Measured '+response.upper(), 'Regression '+response.upper()])
+            plt.legend(['Measured '+y_var_read[i_col].upper(), 'Regression '+y_var_read[i_col].upper()])
             plt.xlabel('Transect point nr.')
-            plt.ylabel(response.upper())
-            plt.title(dataset_use+' regression: R^2 = ' +'{:.3f}'.format(cod_reg))
+            plt.ylabel(y_var_read[i_col].upper())
+            plt.title(dataset_use+' regression: R^2 = ' +'{:.3f}'.format(cod_reg[i_col]))
             plt.show()  # display 
 
 
