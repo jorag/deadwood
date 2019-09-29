@@ -33,7 +33,7 @@ dataset_id = 'A'
 obj_in_name = datamod_fprefix + '-' + '.pkl'
 
 # List of plots
-plot_list = ['pxcvsu'] # ['cca', 'pxcvsu', 'linreg']
+plot_list = ['linreg'] # ['cca', 'pxcvsu', 'linreg']
 
 ## Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
@@ -154,50 +154,20 @@ for dataset_type in all_data.all_modalities:
         plt.ylabel('PDC')
         plt.legend(legend_list)
         plt.show()  # display it
-    
-    
-    # Plot Multivariate/multiple linear linear regression for PLC and PDC
-    # Set transformation
-    transformation = identity # np.log # Loop over transformations?
-    for response in y_var_read:
-        r = y_data[:, y_var_read.index(response)]  # Response
-        r = transformation(r) # Do a transformation
-        r[~np.isfinite(r)] = -100 # Replace NaNs 
-        # Add column of ones
-        X = np.hstack((np.ones((length(r),1)), sar_data))
-        # Find regression parameters
-        W = np.matmul(np.matmul(np.linalg.inv(np.matmul(X.T,X)),X.T), r)
-        # Find predicted curve
-        reg_curve = np.matmul(X,W)
-        # Calculate Coefficient of Determination (COD) = R²
-        cod_reg = rsquare(r, reg_curve)
-        print(cod_reg)
-        # Add to output dict
-        linreg_pdc_r2[dataset_use] = cod_reg
         
-        # Create figure
-        if 'linreg' in plot_list:
-            fig = plt.figure()
-            # Plot data
-            plt.plot(r, color='b')
-            plt.plot(reg_curve, color='r')
-            plt.legend(['Measured '+response.upper(), 'Regression '+response.upper()])
-            plt.xlabel('Transect point nr.')
-            plt.ylabel(response.upper())
-            plt.title(dataset_use+' regression: R^2 = ' +'{:.3f}'.format(cod_reg))
-            plt.show()  # display 
-            
-    # Linreg
+    # Linreg - TODO: 20190929 - Do some transformation??
     # Add column of ones
-    X = np.hstack((np.ones((length(r),1)), sar_data))
+    X = np.hstack((np.ones((sar_data.shape[0],1)), sar_data))
     # Find regression parameters
     W = np.matmul(np.matmul(np.linalg.inv(np.matmul(X.T,X)),X.T), y_data)
     r_hat = np.matmul(X,W)
     # Calculate Coefficient of Determination (COD) = R²
     cod_reg = rsquare(y_data, r_hat)
     print(cod_reg)
-    print(np.allclose(r_hat[:,1], reg_curve))
-    # Create figure
+    
+    # Add to output dict
+    linreg_pdc_r2[dataset_use] = cod_reg[1] # TODO: set index programatically
+    # Plot Multivariate/multiple linear linear regression for PLC and PDC
     if 'linreg' in plot_list:
         for i_col in range(r_hat.shape[1]):
             fig = plt.figure()
