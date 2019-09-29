@@ -332,10 +332,19 @@ def polar2complex(amp_in, ang_in):
 
 
 def rsquare(y, y_hat):
-    "Calculate the goodness of fit, R²"
-    # Relative square error: SS_residual / SS_total SS= Sum of Squares) 
-    Erse = np.sum((y - y_hat)**2)/np.sum((y-np.mean(y))**2)
+    """Calculate the goodness of fit, R²
     
+    Assume response / labels / y is given as columns.
+    """
+    # Average/sum over columns
+    if length(y.shape) == 1:
+        axis = None
+    else:
+        axis = 0
+    # Relative square error: SS_residual / SS_total (SS= Sum of Squares) 
+    SS_residual = np.sum((y - y_hat)**2, axis=axis)
+    SS_total = np.sum((y-np.mean(y, axis=axis))**2, axis=axis)
+    Erse = SS_residual/SS_total
     # Coefficient Of Determination, R²
     Rsquare = 1 - Erse
     return Rsquare
