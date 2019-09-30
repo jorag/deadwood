@@ -24,8 +24,9 @@ datamod_fprefix = 'All-data-0919'
 
 # List of datasets to process
 dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl', 'Quad', 'GNLM', '19-vanZyl']
-#dataset_list = ['vanZyl', '19-vanZyl']
+#dataset_list = ['vanZyl']
 id_list = ['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
+add_ndvi = True
 
 # Datasets to add optical bands from
 opt_dataset_list = ['vanZyl']
@@ -132,6 +133,13 @@ for dataset_id in id_list:
                 opt_pixels = opt_data_temp[x_p, y_p, :] 
                 # Add OPT modality
                 all_data.add_modality(point, 'optical', opt_pixels.tolist(), 'optical-'+dataset_id, **kw_opt)
+                # Add NDVI
+                if add_ndvi:
+                    kw_ndvi = dict([['bands_use', ['b04', 'b08']]])
+                    nir_pixels = opt_data_temp[x_p, y_p, opt_bands_dict[dataset_use]['b08']] 
+                    red_pixels = opt_data_temp[x_p, y_p, opt_bands_dict[dataset_use]['b04']]
+                    ndvi_pixels = (nir_pixels-red_pixels)/(nir_pixels+red_pixels)
+                    all_data.add_modality(point, 'NDVI', ndvi_pixels.tolist(), 'NDVI-'+dataset_id, **kw_ndvi)
     
 
 ## Print points
