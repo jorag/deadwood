@@ -78,34 +78,28 @@ plt.plot(pgnlm_data[:,0])
 linreg_pdc_r2 = dict()
 
 # Analyse all data modalities in object
+# Calculate measures of performance for CCA and linear regression   
 for dataset_type in all_data.all_modalities:
-    # Calculate measures of performance for CCA and linear regression
-    
-    #if dataset_type.lower() in ['optical']:
-    #   continue
-                                   
-    # Get SAR data
+    print(dataset_type)            
+    # Get satellite data
     try:
         dataset_use = dataset_type+'-'+dataset_id
-        sar_data = all_data.read_data_points(dataset_use, modality_type=dataset_type)
+        sat_data = all_data.read_data_points(dataset_use, modality_type=dataset_type)
         print(dataset_use)
-        # Get OPT data
-        #opt_data = all_data.read_data_points(dataset_use, modality_type='optical')
     except:
         continue
     
     # Remove singelton dimensions
-    sar_data = np.squeeze(sar_data)
-    #opt_data = np.squeeze(opt_data)
-    #print(sar_data)
+    sat_data = np.squeeze(sat_data)
+    #print(sat_data)
     
     # Canonical-correlation analysis (CCA)
     n_comp = 2
     cca = CCA(n_components=n_comp)
-    cca.fit(sar_data, y_data)
+    cca.fit(sat_data, y_data)
     
     # Get CCA transformation
-    U_c, V_c  = cca.x_scores_, cca.y_scores_#= cca.transform(sar_data, y_data)
+    U_c, V_c  = cca.x_scores_, cca.y_scores_#= cca.transform(sat_data, y_data)
     
     # From: https://stackoverflow.com/questions/37398856/
     rho_cca = np.corrcoef(U_c.T, V_c.T).diagonal(offset=n_comp)
@@ -115,7 +109,7 @@ for dataset_type in all_data.all_modalities:
     cod_cca2 = rsquare(U_c, y_data)
     print(cod_cca2)
     # Calculate Coefficient of Determination (COD) = R²
-    cod_cca = cca.score(sar_data, y_data)
+    cod_cca = cca.score(sat_data, y_data)
     print(cod_cca)
 
     # Plot number of CCA U and V
@@ -157,7 +151,7 @@ for dataset_type in all_data.all_modalities:
         
     # Linreg - TODO: 20190929 - Do some transformation??
     # Add column of ones
-    X = np.hstack((np.ones((sar_data.shape[0],1)), sar_data))
+    X = np.hstack((np.ones((sat_data.shape[0],1)), sat_data))
     # Find regression parameters
     W = np.matmul(np.matmul(np.linalg.inv(np.matmul(X.T,X)),X.T), y_data)
     r_hat = np.matmul(X,W)
@@ -186,5 +180,4 @@ n_datasets = len(linreg_pdc_r2)
 plt.figure()
 plt.bar(range(n_datasets), list(linreg_pdc_r2.values()), align='center')
 plt.xticks(range(n_datasets), list(linreg_pdc_r2.keys()))
-
 plt.show()
