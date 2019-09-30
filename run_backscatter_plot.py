@@ -35,6 +35,10 @@ obj_in_name = datamod_fprefix + '-' + '.pkl'
 # List of plots
 plot_list = ['linreg'] # ['cca', 'pxcvsu', 'linreg']
 
+# Parameters
+y_var_read = ['plc', 'pdc']
+n_cca_comp = 1
+
 ## Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
@@ -43,7 +47,6 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 print(all_data.all_modalities)
                       
 # Read ground truth point measurements into a matrix 
-y_var_read = ['plc', 'pdc'] 
 n_obs_y = length(all_data.idx_list) # Number of observations
 n_var_y = length(y_var_read) # Number of ecological variables read 
 y_data = np.empty((n_obs_y, n_var_y))
@@ -89,21 +92,26 @@ for dataset_type in all_data.all_modalities:
     except:
         continue
     
-    # Remove singelton dimensions
-    sat_data = np.squeeze(sat_data)
+    # Ensure that the output array has the proper shape (2 dimensions)
+    if length(sat_data.shape) == 1:
+        # If data is only a single column make it a proper vector
+        sat_data = sat_data[:, np.newaxis]
+    elif length(sat_data.shape) > 2:
+        # Remove singelton dimensions
+        sat_data = np.squeeze(sat_data)
     #print(sat_data)
     
+    # TODO: 20190930 - assert that n_cca_comp >= sat_data.shape[1] ?
     # Canonical-correlation analysis (CCA)
-    n_comp = 2
-    cca = CCA(n_components=n_comp)
+    cca = CCA(n_components=n_cca_comp)
     cca.fit(sat_data, y_data)
     
     # Get CCA transformation
-    U_c, V_c  = cca.x_scores_, cca.y_scores_#= cca.transform(sat_data, y_data)
+    U_c, V_c  = cca.x_scores_, cca.y_scores_ #= cca.transform(sat_data, y_data)
     
     # From: https://stackoverflow.com/questions/37398856/
-    rho_cca = np.corrcoef(U_c.T, V_c.T).diagonal(offset=n_comp)
-    #score = np.diag(np.corrcoef(cca.x_scores_, cca.y_scores_, rowvar=False)[:n_comp, n_comp:])
+    rho_cca = np.corrcoef(U_c.T, V_c.T).diagonal(offset=n_cca_comp)
+    #score = np.diag(np.corrcoef(cca.x_scores_, cca.y_scores_, rowvar=False)[:n_cca_comp, n_cca_comp:])
     
     # Use function definition
     cod_cca2 = rsquare(U_c, y_data)
@@ -116,7 +124,7 @@ for dataset_type in all_data.all_modalities:
     if 'CCA'.lower() in plot_list:
         legend_list = []
         fig = plt.figure()
-        for i_comp in range(n_comp):
+        for i_comp in range(n_cca_comp):
             plt.scatter(U_c[:,i_comp], V_c[:,i_comp], c=c_vec[i_comp])
             legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
         plt.title(dataset_use+' CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
@@ -128,7 +136,7 @@ for dataset_type in all_data.all_modalities:
     if 'PxCvsU'.lower() in plot_list:
         legend_list = []
         fig = plt.figure()
-        for i_comp in range(n_comp):
+        for i_comp in range(n_cca_comp):
             plt.scatter(V_c[:,i_comp], y_data[:, y_var_read.index('plc')] , c=c_vec[i_comp])
             legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
         plt.title(dataset_use+' CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
@@ -140,7 +148,7 @@ for dataset_type in all_data.all_modalities:
         # Plot number of CCA U and PDC
         legend_list = []
         fig = plt.figure()
-        for i_comp in range(n_comp):
+        for i_comp in range(n_cca_comp):
             plt.scatter(V_c[:,i_comp], y_data[:, y_var_read.index('pdc')] , c=c_vec[i_comp])
             legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
         plt.title(dataset_use+' CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
