@@ -19,24 +19,13 @@ from geopixpos import *
 from visandtest import *
 from dataclass import *
 
-# New structure:
-    #-read field data object (perhaps try to read object with other sat data already added first)
-    #-read satellite data
-    #-loop through with: for point in DataModalities.point_name:
-        #--read GPS coords
-        #--get sat data for that coord
-        #--store in DataModalities object for that point
-    #-save updated object 
-
 # Prefix for output datamodalities object filename
 datamod_fprefix = 'All-data-0919'
 
 # List of datasets to process
-#dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
-#dataset_list = ['19-vanZyl-A', '19-Coh-A', '19-Quad-A']
-dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl', 'Quad', 'GNLM']
-#dataset_list = ['Quad']
-#dataset_id = 'C' # TODO: 20190909 Consider changing this a date string
+dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl', 'Quad', 'GNLM', '19-vanZyl']
+#dataset_list = ['vanZyl', '19-vanZyl']
+id_list = ['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 
 # Datasets to add optical bands from
 opt_dataset_list = ['vanZyl']
@@ -48,8 +37,8 @@ opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Name of input object and file with satellite data path string
-obj_in_name = 'NEW_FIELD_DATA' + '.pkl'
-obj_out_name = datamod_fprefix + '-' + '.pkl'  
+obj_in_name = 'NEW_FIELD_DATA'+'.pkl'
+obj_out_name = datamod_fprefix+'-'+'.pkl' # TODO: 20190930 remove trailing "-" 
 
 # Add to existing object or create from scratch
 root = tkinter.Tk()
@@ -71,11 +60,11 @@ with open(os.path.join(dirname, 'data', 'band_dicts'), 'rb') as input:
 
 # ADD SATELLITE DATA
 # Loop through all satellite images
-for dataset_id in ['A', 'B', 'C']:
+for dataset_id in id_list:
     for dataset_in in dataset_list:
         
         # Set name of output object
-        dataset_use = dataset_in + '-' + dataset_id 
+        dataset_use = dataset_in +'-'+dataset_id 
         sat_pathfile_name = dataset_use + '-path'
         print(sat_pathfile_name)
         # Try reading the dataset
@@ -136,14 +125,13 @@ for dataset_id in ['A', 'B', 'C']:
             # Get SAR pixels
             sar_pixels = sar_data_temp[x_p, y_p, :] 
             # Add SAR modality
-            # TODO: 20190911 - change dataset_use to dataset_id to keep multiple datasets in a single object:
             all_data.add_modality(point, dataset_in, sar_pixels.tolist(), dataset_use, **kw_sar)
             
             if dataset_in in opt_dataset_list:
                 # Get OPT pixels
                 opt_pixels = opt_data_temp[x_p, y_p, :] 
                 # Add OPT modality
-                all_data.add_modality(point, 'optical', opt_pixels.tolist(), dataset_use, **kw_opt)
+                all_data.add_modality(point, 'optical', opt_pixels.tolist(), 'optical-'+dataset_id, **kw_opt)
     
 
 ## Print points
