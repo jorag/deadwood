@@ -37,7 +37,7 @@ plot_list = ['linreg'] # ['cca', 'pxcvsu', 'linreg']
 
 # Parameters
 y_var_read = ['plc', 'pdc']
-n_cca_comp = 1
+n_cca_comp = 2
 
 ## Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
@@ -102,6 +102,10 @@ for dataset_type in all_data.all_modalities:
     #print(sat_data)
     
     # TODO: 20190930 - assert that n_cca_comp >= sat_data.shape[1] ?
+    # For now ignore NDVI
+    if n_cca_comp > sat_data.shape[1]:
+        continue
+    
     # Canonical-correlation analysis (CCA)
     cca = CCA(n_components=n_cca_comp)
     cca.fit(sat_data, y_data)
