@@ -77,8 +77,11 @@ plt.figure()
 plt.plot(quad_data[:,0])
 plt.plot(pgnlm_data[:,0])
 
-# Performance measures
+# Collect performance measures in dict
+linreg_plc_r2 = dict()
 linreg_pdc_r2 = dict()
+cca_plc_r2 = dict()
+cca_pdc_r2 = dict()
 
 # Analyse all data modalities in object
 # Calculate measures of performance for CCA and linear regression   
@@ -120,6 +123,9 @@ for dataset_type in all_data.all_modalities:
     # Use function definition
     cod_cca2 = rsquare(U_c, y_data)
     print(cod_cca2)
+    # Add to output dict
+    cca_plc_r2[dataset_use] = cod_cca2[0] # TODO: set index programatically
+    cca_pdc_r2[dataset_use] = cod_cca2[1] # TODO: set index programatically
     # Calculate Coefficient of Determination (COD) = R²
     cod_cca = cca.score(sat_data, y_data)
     print(cod_cca)
@@ -189,6 +195,7 @@ for dataset_type in all_data.all_modalities:
     print(cod_reg)
     
     # Add to output dict
+    linreg_plc_r2[dataset_use] = cod_reg[0] # TODO: set index programatically
     linreg_pdc_r2[dataset_use] = cod_reg[1] # TODO: set index programatically
     # Plot Multivariate/multiple linear linear regression for PLC and PDC
     if 'linreg' in plot_list:
@@ -205,8 +212,19 @@ for dataset_type in all_data.all_modalities:
 
 
 # Plot summary statistics
-n_datasets = len(linreg_pdc_r2)
+n_datasets = length(linreg_pdc_r2)
+x_bars = np.arange(n_datasets) # range(n_datasets)
+ofs = 0.15 # offset
+alf = 0.7 # alpha
+# Linreg
 plt.figure()
-plt.bar(range(n_datasets), list(linreg_pdc_r2.values()), align='center')
-plt.xticks(range(n_datasets), list(linreg_pdc_r2.keys()))
+plt.bar(x_bars+ofs, list(linreg_plc_r2.values()), align='center', color='b', alpha=alf)
+plt.bar(x_bars-ofs, list(linreg_pdc_r2.values()), align='center', color='r', alpha=alf)
+plt.xticks(x_bars, list(linreg_pdc_r2.keys()))
+plt.show()
+# CCA
+plt.figure()
+plt.bar(x_bars+ofs, list(cca_plc_r2.values()), align='center', color='b', alpha=alf)
+plt.bar(x_bars-ofs, list(cca_pdc_r2.values()), align='center', color='r', alpha=alf)
+plt.xticks(x_bars, list(cca_pdc_r2.keys()))
 plt.show()
