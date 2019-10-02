@@ -33,7 +33,7 @@ dataset_id = 'A'
 obj_in_name = datamod_fprefix + '-' + '.pkl'
 
 # List of plots
-plot_list = ['linreg'] # ['cca', 'pxcvsu', 'linreg']
+plot_list = ['cca_reg'] # ['cca', 'pxcvsu', 'linreg', 'cca_reg']
 
 # Parameters
 y_var_read = ['plc', 'pdc']
@@ -135,8 +135,7 @@ for dataset_type in all_data.all_modalities:
         plt.legend(legend_list)
         plt.show()  # display it
     
-    
-    # Plot number of CCA U and PDC
+    # Plot number of CCA U and PLC
     if 'PxCvsU'.lower() in plot_list:
         legend_list = []
         fig = plt.figure()
@@ -144,10 +143,8 @@ for dataset_type in all_data.all_modalities:
             plt.scatter(V_c[:,i_comp], y_data[:, y_var_read.index('plc')] , c=c_vec[i_comp])
             legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
         plt.title(dataset_use+' CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
-        plt.xlabel('U')
-        plt.ylabel('PLC')
-        plt.legend(legend_list)
-        plt.show()  # display it
+        plt.xlabel('U'); plt.ylabel('PLC'); plt.legend(legend_list)
+        plt.show()
         
         # Plot number of CCA U and PDC
         legend_list = []
@@ -156,10 +153,29 @@ for dataset_type in all_data.all_modalities:
             plt.scatter(V_c[:,i_comp], y_data[:, y_var_read.index('pdc')] , c=c_vec[i_comp])
             legend_list.append('Comp. nr. '+str(i_comp)+ r' $\rho$ = ' +'{:.3f}'.format(rho_cca[i_comp]))
         plt.title(dataset_use+' CCA: R^2 = ' +'{:.3f}'.format(cod_cca))
-        plt.xlabel('U')
-        plt.ylabel('PDC')
-        plt.legend(legend_list)
+        plt.xlabel('U'); plt.ylabel('PDC'); plt.legend(legend_list)
         plt.show()  # display it
+        
+    # Plot number of CCA U and PLC
+    if 'CCA_reg'.lower() in plot_list:
+        X_CCA = np.hstack((np.ones((sat_data.shape[0],1)), U_c))
+        # Find regression parameters and regression curve
+        W_CCA = np.matmul(np.matmul(np.linalg.inv(np.matmul(X_CCA.T,X_CCA)),X_CCA.T), y_data)
+        r_CCA = np.matmul(X_CCA, W_CCA)
+        # Calculate Coefficient of Determination (COD) = R²
+        cca_reg = rsquare(y_data, r_CCA)
+        print(r'CCA R^2')
+        print(cca_reg)
+        for i_col in range(r_CCA.shape[1]):
+            fig = plt.figure()
+            # Plot data
+            plt.plot(y_data[:, i_col] , color='b')
+            plt.plot(r_CCA[:, i_col], color='r')
+            plt.legend(['Measured '+y_var_read[i_col].upper(), 'Regression '+y_var_read[i_col].upper()])
+            plt.xlabel('Transect point nr.')
+            plt.ylabel(y_var_read[i_col].upper())
+            plt.title(dataset_use+' CCA regression: R^2 = ' +'{:.3f}'.format(cca_reg[i_col]))
+            plt.show()  # display 
         
     # Linreg - TODO: 20190929 - Do some transformation??
     # Add column of ones
@@ -169,6 +185,7 @@ for dataset_type in all_data.all_modalities:
     r_hat = np.matmul(X,W)
     # Calculate Coefficient of Determination (COD) = R²
     cod_reg = rsquare(y_data, r_hat)
+    print(r'Regression R^2')
     print(cod_reg)
     
     # Add to output dict
