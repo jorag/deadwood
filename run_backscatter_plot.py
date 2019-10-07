@@ -29,11 +29,10 @@ datamod_fprefix = 'All-data-0919'
 id_list = ['A', 'B', 'C']
 
 # Name of input object and file with satellite data path string
-#obj_in_name = datamod_fprefix + '-' + dataset_id + '.pkl'
 obj_in_name = datamod_fprefix + '-' + '.pkl'
 
 # List of plots
-plot_list = [] # ['cca', 'pxcvsu', 'linreg', 'cca_reg']
+plot_list = ['quad-pgnlm'] # ['cca', 'pxcvsu', 'linreg', 'cca_reg', 'quad-pgnlm']
 
 # Parameters
 y_var_read = ['plc', 'pdc']
@@ -63,19 +62,26 @@ for i_var_y in range(n_var_y):
 # Get colour vector
 c_vec = mycolourvec()
 
-# Get SAR data 
-quad_data = all_data.read_data_points('Quad-C', modality_type='Quad')
-# Remove singelton dimensions
-quad_data = np.squeeze(quad_data)
-# Get SAR data 
-pgnlm_data = all_data.read_data_points('PGNLM3-C', modality_type='PGNLM3')
-# Remove singelton dimensions
-pgnlm_data = np.squeeze(pgnlm_data)
-
-# Plot
-plt.figure()
-plt.plot(quad_data[:,0])
-plt.plot(pgnlm_data[:,0])
+if 'quad-PGNLM'.lower() in plot_list:
+    # Get SAR data 
+    quad_data = all_data.read_data_points('Quad-C', modality_type='Quad')
+    # Remove singelton dimensions
+    quad_data = np.squeeze(quad_data)
+    # Get SAR data 
+    pgnlm_data = all_data.read_data_points('PGNLM3-C', modality_type='PGNLM3')
+    # Remove singelton dimensions
+    pgnlm_data = np.squeeze(pgnlm_data)
+    
+    # Plot
+    plt.figure(); plt.title('HH')
+    plt.plot(quad_data[:,0]); plt.plot(pgnlm_data[:,0]); plt.legend(['quad','PGNLM'])
+    plt.xlabel('Transect point nr.'); plt.ylabel('Backscatter'); plt.show()
+    plt.figure(); plt.title('HV')
+    plt.plot(quad_data[:,1]); plt.plot(pgnlm_data[:,1]); plt.legend(['quad','PGNLM'])
+    plt.xlabel('Transect point nr.'); plt.ylabel('Backscatter'); plt.show()
+    plt.figure(); plt.title('VV')
+    plt.plot(quad_data[:,3]); plt.plot(pgnlm_data[:,2]); plt.legend(['quad','PGNLM'])
+    plt.xlabel('Transect point nr.'); plt.ylabel('Backscatter'); plt.show()
 
 # Collect performance measures in dict
 linreg_plc_r2 = dict()
@@ -83,9 +89,8 @@ linreg_pdc_r2 = dict()
 cca_plc_r2 = dict()
 cca_pdc_r2 = dict()
 
-# Analyse all data modalities in object
 # Calculate measures of performance for CCA and linear regression
-# Loop through all satellite images
+# Go through all satellite images and all data modalities in object
 for dataset_id in id_list: 
     for dataset_type in all_data.all_modalities:
         print(dataset_type)            
@@ -219,14 +224,22 @@ x_bars = np.arange(n_datasets) # range(n_datasets)
 ofs = 0.15 # offset
 alf = 0.7 # alpha
 # Linreg
+# # Try sorting dictionaries alphabetically
+# From: 
+#sorted(linreg_plc_r2, key=linreg_plc_r2.get, reverse=True)
+#sorted(linreg_pdc_r2, key=linreg_pdc_r2.get, reverse=True)
 plt.figure()
 plt.bar(x_bars+ofs, list(linreg_plc_r2.values()), align='center', color='b', alpha=alf)
 plt.bar(x_bars-ofs, list(linreg_pdc_r2.values()), align='center', color='r', alpha=alf)
 plt.xticks(x_bars, list(linreg_pdc_r2.keys()))
+plt.legend(['PLC - Live','PDC - Defoliated'])
+plt.title('Linear regression: R^2')
 plt.show()
 # CCA
 plt.figure()
 plt.bar(x_bars+ofs, list(cca_plc_r2.values()), align='center', color='b', alpha=alf)
 plt.bar(x_bars-ofs, list(cca_pdc_r2.values()), align='center', color='r', alpha=alf)
 plt.xticks(x_bars, list(cca_pdc_r2.keys()))
+plt.title('CCA: R^2')
+plt.legend(['PLC - Live','PDC - Defoliated'])
 plt.show()
