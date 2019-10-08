@@ -52,9 +52,6 @@ id_list = ['A', 'B', 'C']
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix + '-' + '.pkl'
 
-# Parameters
-y_var_read = ['plc', 'pdc']
-
 ## Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
@@ -62,6 +59,23 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 # Set class labels for dictionary - TODO: Consider moving this to get_stat_data
 class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 #class_dict_in = None
+
+# Read ground truth point measurements into a matrix 
+y_var_read = ['plc', 'pdc', 'n_trees']
+n_obs_y = length(all_data.idx_list) # Number of observations
+n_var_y = length(y_var_read) # Number of ecological variables read 
+y_data = np.empty((n_obs_y, n_var_y))
+# Loop through list of variables and add to Y mat out
+for i_var_y in range(n_var_y):
+    y = all_data.read_data_points(y_var_read[i_var_y])
+    # Ensure that the data has the correct format and remove NaNs
+    y = y.astype(float)
+    y[np.isnan(y)] = 0 # Replace NaNs with zeros
+    y_data[:,i_var_y] = y
+
+data_labels = np.random.randint(3, size=(length(y_data)))
+class_dict=class_dict_in
+n_classes = length(class_dict)
 
 # Plot classifier result for entire image
 plot_image_result = False
@@ -133,11 +147,6 @@ for dataset_id in id_list:
         
         # Name of input object and file with satellite data path string
         sat_pathfile_name = dataset_use + '-path'
-        
-        
-        data_labels = np.random.randint(3, size=(length(sat_data)))
-        class_dict=class_dict_in
-        n_classes = length(class_dict)
         
         # Get labels and class_dict (in case None is input, one is created)
 #        labels_out, class_dict = input_data.assign_labels(class_dict=class_dict_in)
