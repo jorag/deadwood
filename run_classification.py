@@ -25,6 +25,9 @@ from geopixpos import *
 from visandtest import *
 from dataclass import *
 
+# Path to working directory 
+dirname = os.path.realpath('.') # For parent directory use '..'
+
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
 # PROCESSING PARAMETERS
@@ -37,27 +40,32 @@ rf_ntrees = 25 # Number of trees in the Random Forest algorithm
 norm_type = 'local' # 'global' # 
 
 # List of datasets to process
-#dataset_list = ['Coh-A', 'Coh-B', 'Coh-C', 'vanZyl-A', 'vanZyl-B', 'vanZyl-C']
-#dataset_list = ['19-vanZyl-A', '19-Coh-A', '19-Quad-A']
-#dataset_list = ['19-vanZyl-A']
 dataset_list = ['PGNLM3-C']
 
-# Prefix for input datamodalities object filename
-#datamod_fprefix = 'rule3m2_lai_globloc'
-datamod_fprefix = '19_nonorm'
 # Prefix for output cross validation object filename
-crossval_fprefix = 'kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
+crossval_fprefix = 'new-kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
 
+# Prefix for object filename
+datamod_fprefix = 'All-data-0919'
+id_list = ['A', 'B', 'C']
+
+# Name of input object and file with satellite data path string
+obj_in_name = datamod_fprefix + '-' + '.pkl'
+
+# Parameters
+y_var_read = ['plc', 'pdc']
+
+## Read DataModalities object with ground in situ vegetation data
+with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
+    all_data = pickle.load(input)
 
 # Set class labels for dictionary - TODO: Consider moving this to get_stat_data
 class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 #class_dict_in = None
 
 # Plot classifier result for entire image
-plot_image_result = True
+plot_image_result = False
 
-# Path to working directory 
-dirname = os.path.realpath('.') # For parent directory use '..'
 # Output files
 knn_file =  datamod_fprefix + crossval_fprefix + 'cross_validation_knn.pkl'
 knn_confmat_file =  datamod_fprefix + crossval_fprefix + 'conf_mat_knn.pkl'
@@ -102,249 +110,145 @@ except:
 
                           
 # TRAIN AND CROSS-VALIDATE
-# Loop through all satellite images
-for dataset_use in dataset_list:
-    
-    # Name of input object and file with satellite data path string
-    obj_in_name = datamod_fprefix + dataset_use + '.pkl'
-    sat_pathfile_name = dataset_use + '-path'
-    
-    
-    # Load DataModalities object
-    with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
-        input_data = pickle.load(input)
+# Go through all satellite images and all data modalities in object
+for dataset_id in id_list: 
+    for dataset_type in all_data.all_modalities:
+        print(dataset_type)            
+        # Get satellite data
+        try:
+            dataset_use = dataset_type+'-'+dataset_id
+            sat_data = all_data.read_data_points(dataset_use, modality_type=dataset_type)
+            print(dataset_use)
+        except:
+            continue
         
-    # Get labels and class_dict (in case None is input, one is created)
-    labels_out, class_dict = input_data.assign_labels(class_dict=class_dict_in)
-    n_classes = length(class_dict)
+        # Ensure that the output array has the proper shape (2 dimensions)
+        if length(sat_data.shape) == 1:
+            # If data is only a single column make it a proper vector
+            sat_data = sat_data[:, np.newaxis]
+        elif length(sat_data.shape) > 2:
+            # Remove singelton dimensions
+            sat_data = np.squeeze(sat_data)
+        #print(sat_data)
+        
+        # Name of input object and file with satellite data path string
+        sat_pathfile_name = dataset_use + '-path'
+        
+        
+        data_labels = np.random.randint(3, size=(length(sat_data)))
+        class_dict=class_dict_in
+        n_classes = length(class_dict)
+        
+        # Get labels and class_dict (in case None is input, one is created)
+#        labels_out, class_dict = input_data.assign_labels(class_dict=class_dict_in)
+#        n_classes = length(class_dict)
+        
+#        # Get all data
+#        sat_data, data_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
+#        # Get SAR data
+#        sar_data, data_labels = input_data.read_data_array(['quad_pol'], 'all') 
+#        # Get OPT data
+#        opt_data, data_labels = input_data.read_data_array(['optical'], 'all') 
+        # Convert labels to numpy array
+        labels = np.asarray(data_labels)
+        
+        # Plot in 3D
+        #modalitypoints3d('van_zyl', sat_data, labels, labels_dict=class_dict)
+        
+        #breakpoint = dummy 
+        # Print number of instances for each class
+        for key in class_dict.keys():
+            val = class_dict[key]
+            n_instances = length(labels[labels==val])
+            print(str(val)+' '+key+' - points: '+str(n_instances))
+        
+        
+        # Normalize data - should probably be done when data is stored in object...
+        print(np.max(sat_data,axis=0))
+        
+        # Split into training and test datasets
+        data_train, data_test, labels_train, labels_test = train_test_split(sat_data, data_labels, test_size=0.2, random_state=0)  
+        
+        # Create kNN classifier
+        neigh = KNeighborsClassifier(n_neighbors=knn_k)
+        # Fit kNN
+        neigh.fit(data_train, labels_train) 
+        
+        # Score kNN
+        print(neigh.score(data_test, labels_test)) 
+        # Test kNN on test dataset
+        prediction_result = neigh.predict(data_test)
+        
+        # Cross validate - kNN - All data
+        knn_all = KNeighborsClassifier(n_neighbors=knn_k)
+        knn_scores_all = cross_val_score(knn_all, sat_data, data_labels, cv=crossval_kfold)
+        # Add to output dict
+        knn_cv_all[dataset_use] = knn_scores_all
+        print('kNN OPT+SAR - ' + dataset_use + ' :')
+        print(np.mean(knn_scores_all)) 
     
-    # Get all data
-    all_data, data_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
-    # Get SAR data
-    sar_data, data_labels = input_data.read_data_array(['quad_pol'], 'all') 
-    # Get OPT data
-    opt_data, data_labels = input_data.read_data_array(['optical'], 'all') 
-    # Convert labels to numpy array
-    labels = np.asarray(data_labels)
-    
-    # Plot in 3D
-    modalitypoints3d('van_zyl', sar_data, labels, labels_dict=class_dict)
-    modalitypoints3d('opt', opt_data, labels, labels_dict=class_dict)
-    
-    #breakpoint = dummy 
-    # Print number of instances for each class
-    for key in class_dict.keys():
-        val = class_dict[key]
-        n_instances = length(labels[labels==val])
-        print(str(val)+' '+key+' - points: '+str(n_instances))
-    
-    
-    # Normalize data - should probably be done when data is stored in object...
-    print(np.max(all_data,axis=0))
-    
-    # Split into training and test datasets
-    data_train, data_test, labels_train, labels_test = train_test_split(all_data, data_labels, test_size=0.2, random_state=0)  
-    
-    # Create kNN classifier
-    neigh = KNeighborsClassifier(n_neighbors=knn_k)
-    # Fit kNN
-    neigh.fit(data_train, labels_train) 
-    
-    # Score kNN
-    print(neigh.score(data_test, labels_test)) 
-    # Test kNN on test dataset
-    prediction_result = neigh.predict(data_test)
-    
-    # Cross validate - kNN - All data
-    knn_all = KNeighborsClassifier(n_neighbors=knn_k)
-    knn_scores_all = cross_val_score(knn_all, all_data, data_labels, cv=crossval_kfold)
-    # Add to output dict
-    knn_cv_all[dataset_use] = knn_scores_all
-    print('kNN OPT+SAR - ' + dataset_use + ' :')
-    print(np.mean(knn_scores_all)) 
-
-    # Get split for cofusion matrix calculation
-    skf = StratifiedKFold(n_splits=crossval_split_k)
-    skf.get_n_splits(all_data, labels)
-    # Initialize output confusion matrix
-    knn_all_confmat = np.zeros((n_classes , n_classes ))
-    # Use split
-    for train_index, test_index in skf.split(all_data, labels):
-       # Split into training and test set
-       y_train, y_test = labels[train_index], labels[test_index]
-       X_train, X_test = all_data[train_index], all_data[test_index]
-       # Fit classifier
-       knn_all.fit(X_train, y_train)
-       # Calculate confusion matrix
-       conf_mat_temp = confusion_matrix(y_test, knn_all.predict(X_test))
-       # Add contribution to overall confusion matrix
-       knn_all_confmat += conf_mat_temp
-       
-    # Add to output dict
-    knn_confmat_all[dataset_use] = knn_all_confmat
-    print(knn_all_confmat)
-    
-    
-    # Cross validate - kNN - SAR data
-    knn_sar = KNeighborsClassifier(n_neighbors=knn_k)
-    knn_scores_sar = cross_val_score(knn_sar, sar_data, data_labels, cv=crossval_kfold)
-    # Add to output dict
-    knn_cv_sar[dataset_use] = knn_scores_sar
-    print('kNN SAR only - ' + dataset_use + ' :')
-    print(np.mean(knn_scores_sar))
-    
-    # Get split for cofusion matrix calculation
-    skf = StratifiedKFold(n_splits=crossval_split_k)
-    skf.get_n_splits(sar_data, labels)
-    # Initialize output confusion matrix
-    knn_sar_confmat = np.zeros((n_classes , n_classes ))
-    # Use split
-    for train_index, test_index in skf.split(sar_data, labels):
-       # Split into training and test set
-       y_train, y_test = labels[train_index], labels[test_index]
-       X_train, X_test = sar_data[train_index], sar_data[test_index]
-       # Fit classifier
-       knn_sar.fit(X_train, y_train)
-       # Calculate confusion matrix
-       conf_mat_temp = confusion_matrix(y_test, knn_sar.predict(X_test))
-       # Add contribution to overall confusion matrix
-       knn_sar_confmat += conf_mat_temp
-       
-    # Add to output dict
-    knn_confmat_sar[dataset_use] = knn_sar_confmat
-    print(knn_sar_confmat)
-    
-
-    # Cross validate - kNN - OPT data
-    knn_opt = KNeighborsClassifier(n_neighbors=knn_k)
-    knn_scores_opt = cross_val_score(knn_opt, opt_data, data_labels, cv=crossval_kfold)
-    # Add to output dict
-    knn_cv_opt[dataset_use] = knn_scores_opt
-    print('kNN opt only - ' + dataset_use + ' :')
-    print(np.mean(knn_scores_opt)) 
-    
-    # Get split for cofusion matrix calculation
-    skf = StratifiedKFold(n_splits=crossval_split_k)
-    skf.get_n_splits(opt_data, labels)
-    # Initialize output confusion matrix
-    knn_opt_confmat = np.zeros((n_classes , n_classes ))
-    # Use split
-    for train_index, test_index in skf.split(opt_data, labels):
-       # Split into training and test set
-       y_train, y_test = labels[train_index], labels[test_index]
-       X_train, X_test = opt_data[train_index], opt_data[test_index]
-       # Fit classifier
-       knn_opt.fit(X_train, y_train)
-       # Calculate confusion matrix
-       conf_mat_temp = confusion_matrix(y_test, knn_opt.predict(X_test))
-       # Add contribution to overall confusion matrix
-       knn_opt_confmat += conf_mat_temp
-       
-    # Add to output dict
-    knn_confmat_opt[dataset_use] = knn_opt_confmat
-    print(knn_opt_confmat)
-    
-    
-    
-    # Cross validate - Random Forest - All data
-    rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
-    rf_scores_all = cross_val_score(rf_all, all_data, data_labels, cv=crossval_kfold)
-    # Add to output dict
-    rf_cv_all[dataset_use] = rf_scores_all
-    print('RF OPT+SAR - ' + dataset_use + ' :')
-    print(np.mean(rf_scores_all)) 
-    
-    # Get split for cofusion matrix calculation
-    skf = StratifiedKFold(n_splits=crossval_split_k)
-    skf.get_n_splits(all_data, labels)
-    # Initialize output confusion matrix
-    rf_all_confmat = np.zeros((n_classes , n_classes ))
-    # Use split
-    for train_index, test_index in skf.split(all_data, labels):
-       # Split into training and test set
-       y_train, y_test = labels[train_index], labels[test_index]
-       X_train, X_test = all_data[train_index], all_data[test_index]
-       # Fit classifier
-       rf_all.fit(X_train, y_train)
-       # Calculate confusion matrix
-       conf_mat_temp = confusion_matrix(y_test, rf_all.predict(X_test))
-       # Add contribution to overall confusion matrix
-       rf_all_confmat += conf_mat_temp
-       
-    # Add to output dict
-    rf_confmat_all[dataset_use] = rf_all_confmat
-    print(rf_all_confmat)
-    
-    # Cross validate - Random Forest - SAR data
-    rf_sar = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
-    rf_scores_sar = cross_val_score(rf_sar, sar_data, data_labels, cv=crossval_kfold)
-    # Add to output dict
-    rf_cv_sar[dataset_use] = rf_scores_sar
-    print('RF SAR - ' + dataset_use + ' :')
-    print(np.mean(rf_scores_sar))
-    
-    # Get split for cofusion matrix calculation
-    skf = StratifiedKFold(n_splits=crossval_split_k)
-    skf.get_n_splits(sar_data, labels)
-    # Initialize output confusion matrix
-    rf_sar_confmat = np.zeros((n_classes , n_classes ))
-    # Use split
-    for train_index, test_index in skf.split(sar_data, labels):
-       # Split into training and test set
-       y_train, y_test = labels[train_index], labels[test_index]
-       X_train, X_test = sar_data[train_index], sar_data[test_index]
-       # Fit classifier
-       rf_sar.fit(X_train, y_train)
-       # Calculate confusion matrix
-       conf_mat_temp = confusion_matrix(y_test, rf_sar.predict(X_test))
-       # Add contribution to overall confusion matrix
-       rf_sar_confmat += conf_mat_temp
-       
-    # Add to output dict
-    rf_confmat_sar[dataset_use] = rf_sar_confmat
-    print(rf_sar_confmat)
-    
-    
-    # Cross validate - Random Forest - OPT data
-    rf_opt = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
-    rf_scores_opt = cross_val_score(rf_opt, opt_data, data_labels, cv=crossval_kfold)
-    # Add to output dict
-    rf_cv_opt[dataset_use] = rf_scores_opt
-    print('RF OPT - ' + dataset_use + ' :')
-    print(np.mean(rf_scores_opt))
-
-    # Get split for cofusion matrix calculation
-    skf = StratifiedKFold(n_splits=crossval_split_k)
-    skf.get_n_splits(opt_data, labels)
-    # Initialize output confusion matrix
-    rf_opt_confmat = np.zeros((n_classes , n_classes ))
-    # Use split
-    for train_index, test_index in skf.split(opt_data, labels):
-       # Split into training and test set
-       y_train, y_test = labels[train_index], labels[test_index]
-       X_train, X_test = opt_data[train_index], opt_data[test_index]
-       # Fit classifier
-       rf_opt.fit(X_train, y_train)
-       # Calculate confusion matrix
-       conf_mat_temp = confusion_matrix(y_test, rf_opt.predict(X_test))
-       # Add contribution to overall confusion matrix
-       rf_opt_confmat += conf_mat_temp
-       
-    # Add to output dict
-    rf_confmat_opt[dataset_use] = rf_opt_confmat
-    print(rf_opt_confmat)         
+        # Get split for cofusion matrix calculation
+        skf = StratifiedKFold(n_splits=crossval_split_k)
+        skf.get_n_splits(sat_data, labels)
+        # Initialize output confusion matrix
+        knn_all_confmat = np.zeros((n_classes , n_classes ))
+        # Use split
+        for train_index, test_index in skf.split(sat_data, labels):
+           # Split into training and test set
+           y_train, y_test = labels[train_index], labels[test_index]
+           X_train, X_test = sat_data[train_index], sat_data[test_index]
+           # Fit classifier
+           knn_all.fit(X_train, y_train)
+           # Calculate confusion matrix
+           conf_mat_temp = confusion_matrix(y_test, knn_all.predict(X_test))
+           # Add contribution to overall confusion matrix
+           knn_all_confmat += conf_mat_temp
+           
+        # Add to output dict
+        knn_confmat_all[dataset_use] = knn_all_confmat
+        print(knn_all_confmat)
+        
+        
+        # Cross validate - Random Forest - All data
+        rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
+        rf_scores_all = cross_val_score(rf_all, sat_data, data_labels, cv=crossval_kfold)
+        # Add to output dict
+        rf_cv_all[dataset_use] = rf_scores_all
+        print('RF OPT+SAR - ' + dataset_use + ' :')
+        print(np.mean(rf_scores_all)) 
+        
+        # Get split for cofusion matrix calculation
+        skf = StratifiedKFold(n_splits=crossval_split_k)
+        skf.get_n_splits(sat_data, labels)
+        # Initialize output confusion matrix
+        rf_all_confmat = np.zeros((n_classes , n_classes ))
+        # Use split
+        for train_index, test_index in skf.split(sat_data, labels):
+           # Split into training and test set
+           y_train, y_test = labels[train_index], labels[test_index]
+           X_train, X_test = sat_data[train_index], sat_data[test_index]
+           # Fit classifier
+           rf_all.fit(X_train, y_train)
+           # Calculate confusion matrix
+           conf_mat_temp = confusion_matrix(y_test, rf_all.predict(X_test))
+           # Add contribution to overall confusion matrix
+           rf_all_confmat += conf_mat_temp
+           
+        # Add to output dict
+        rf_confmat_all[dataset_use] = rf_all_confmat
+        print(rf_all_confmat)
 
 
 # SAVE RESULTS
 # kNN - cross validation
 with open(os.path.join(dirname, 'data', knn_file), 'wb') as output:
-    pickle.dump([knn_cv_all, knn_cv_sar, knn_cv_opt], output, pickle.HIGHEST_PROTOCOL)
+    pickle.dump([knn_cv_all], output, pickle.HIGHEST_PROTOCOL)
 # kNN - confusion matrices   
 with open(os.path.join(dirname, 'data', knn_confmat_file), 'wb') as output:
-    pickle.dump([knn_confmat_all, knn_confmat_sar, knn_confmat_opt], output, pickle.HIGHEST_PROTOCOL)
+    pickle.dump([knn_confmat_all], output, pickle.HIGHEST_PROTOCOL)
 # RF
 with open(os.path.join(dirname, 'data', rf_file), 'wb') as output:
-    pickle.dump([rf_cv_all, rf_cv_sar, rf_cv_opt], output, pickle.HIGHEST_PROTOCOL)
+    pickle.dump([rf_cv_all], output, pickle.HIGHEST_PROTOCOL)
 
 # Save parameters
 with open(os.path.join(dirname, 'data', classify_params_file), 'wb') as output:
