@@ -31,16 +31,14 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
 # PROCESSING PARAMETERS
-crossval_split_k = 5
+crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
-knn_k = 4
-rf_ntrees = 25 # Number of trees in the Random Forest algorithm
+knn_k = 3
+rf_ntrees = 15 # Number of trees in the Random Forest algorithm
+separate_bar_plots = False # Combination of RF and kNN result, or separate plots
 
 # Image plot parameter - TODO: Differentiate for SAR and optical data
 norm_type = 'local' # 'global' # 
-
-# List of datasets to process
-dataset_list = ['PGNLM3-C']
 
 # Prefix for output cross validation object filename
 crossval_fprefix = 'new-kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
@@ -73,7 +71,14 @@ for i_var_y in range(n_var_y):
     y[np.isnan(y)] = 0 # Replace NaNs with zeros
     y_data[:,i_var_y] = y
 
-data_labels = np.random.randint(3, size=(length(y_data)))
+# Set labels
+data_labels = np.zeros((length(y_data)))
+data_labels[np.where(y_data[:,1]>y_data[:,0])] = 2 # Defoliated
+#data_labels[np.where(y_data[:,1]>0.05)] = 2 # Defoliated
+data_labels[np.where(y_data[:,1]<=0.075)] = 0 # Other
+data_labels[np.where(y_data[:,0] > 0.075)] = 1 # Live
+data_labels[np.where(y_data[:,2]<=2)] = 0 # Other
+#data_labels = np.random.randint(3, size=(length(y_data)))
 class_dict=class_dict_in
 n_classes = length(class_dict)
 
@@ -122,7 +127,37 @@ try:
 except:
     rf_confmat_all = dict(); rf_confmat_sar = dict(); rf_confmat_opt = dict()
 
-                          
+
+# Convert labels to numpy array
+labels = np.asarray(data_labels)
+# Print number of instances for each class
+for key in class_dict.keys():
+    val = class_dict[key]
+    n_instances = length(labels[labels==val])
+    print(str(val)+' '+key+' - points: '+str(n_instances))
+
+# Collect performance measures in dict
+rf_mean_acc = dict()
+knn_mean_acc = dict()
+
+
+# Show PLC and PDC with class colours
+# TODO: 3D plot with n_trees as one axis
+plot_labels = labels.astype(int)
+# Get standard colour/plotstyle vector
+c_vec = mycolourvec()
+# Convert to numpy array for indexation
+c_vec = np.asarray(c_vec)
+# Plot x
+xs = np.arange(length(y_data)) # range(n_datasets)
+fig = plt.figure()
+plt.scatter(y_data[:,0], y_data[:,1], c=c_vec[plot_labels], marker='o', label=plot_labels)
+plt.xlabel('Live Crown Proportion'); plt.ylabel('Defoliated Crown Proportion')
+plt.ylim((-0.1,1)); plt.xlim((-0.1,1))
+#plt.legend(['other', 'Live', 'Defoliated'])
+#plt.legend()
+plt.show()
+
 # TRAIN AND CROSS-VALIDATE
 # Go through all satellite images and all data modalities in object
 for dataset_id in id_list: 
@@ -148,30 +183,22 @@ for dataset_id in id_list:
         # Name of input object and file with satellite data path string
         sat_pathfile_name = dataset_use + '-path'
         
-        # Get labels and class_dict (in case None is input, one is created)
+#        # Get labels and class_dict (in case None is input, one is created)
 #        labels_out, class_dict = input_data.assign_labels(class_dict=class_dict_in)
 #        n_classes = length(class_dict)
-        
+#        
 #        # Get all data
 #        sat_data, data_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
 #        # Get SAR data
 #        sar_data, data_labels = input_data.read_data_array(['quad_pol'], 'all') 
 #        # Get OPT data
 #        opt_data, data_labels = input_data.read_data_array(['optical'], 'all') 
-        # Convert labels to numpy array
-        labels = np.asarray(data_labels)
         
         # Plot in 3D
         #modalitypoints3d('van_zyl', sat_data, labels, labels_dict=class_dict)
         
         #breakpoint = dummy 
-        # Print number of instances for each class
-        for key in class_dict.keys():
-            val = class_dict[key]
-            n_instances = length(labels[labels==val])
-            print(str(val)+' '+key+' - points: '+str(n_instances))
-        
-        
+
         # Normalize data - should probably be done when data is stored in object...
         print(np.max(sat_data,axis=0))
         
@@ -195,7 +222,8 @@ for dataset_id in id_list:
         knn_cv_all[dataset_use] = knn_scores_all
         print('kNN OPT+SAR - ' + dataset_use + ' :')
         print(np.mean(knn_scores_all)) 
-    
+        knn_mean_acc[dataset_use] = np.mean(knn_scores_all)
+        
         # Get split for cofusion matrix calculation
         skf = StratifiedKFold(n_splits=crossval_split_k)
         skf.get_n_splits(sat_data, labels)
@@ -225,6 +253,7 @@ for dataset_id in id_list:
         rf_cv_all[dataset_use] = rf_scores_all
         print('RF OPT+SAR - ' + dataset_use + ' :')
         print(np.mean(rf_scores_all)) 
+        rf_mean_acc[dataset_use] = np.mean(rf_scores_all)
         
         # Get split for cofusion matrix calculation
         skf = StratifiedKFold(n_splits=crossval_split_k)
@@ -262,6 +291,57 @@ with open(os.path.join(dirname, 'data', rf_file), 'wb') as output:
 # Save parameters
 with open(os.path.join(dirname, 'data', classify_params_file), 'wb') as output:
     pickle.dump([knn_k, rf_ntrees], output, pickle.HIGHEST_PROTOCOL)
+
+
+# Convert labels to numpy array
+labels = np.asarray(data_labels)
+# Print number of instances for each class
+n_class_samples = []
+for key in class_dict.keys():
+    val = class_dict[key]
+    n_instances = length(labels[labels==val])
+    n_class_samples.append(n_instances)
+    print(str(val)+' '+key+' - points: '+str(n_instances))
+
+# Plot summary statistics
+n_datasets = length(rf_mean_acc)
+x_bars = np.arange(n_datasets) # range(n_datasets)
+ofs = 0.25 # offset
+alf = 0.7 # alpha
+# Linreg
+# # Try sorting dictionaries alphabetically
+# From: 
+#sorted(rf_mean_acc, key=rf_mean_acc.get, reverse=True)
+#sorted(linreg_pdc_r2, key=linreg_pdc_r2.get, reverse=True)
+
+# Both
+plt.figure()
+plt.bar(x_bars*2+ofs, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
+plt.bar(x_bars*2-ofs, list(knn_mean_acc.values()), align='center', color='r', alpha=alf)
+plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*n_datasets)
+plt.xticks(x_bars*2, list(rf_mean_acc.keys()))
+plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k))
+plt.ylim((0,1))
+plt.legend(['Largest class %', 'RF', 'kNN'])
+plt.show()
+
+# Separate plots
+if separate_bar_plots:
+    # RF
+    plt.figure()
+    plt.bar(x_bars, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
+    plt.xticks(x_bars, list(rf_mean_acc.keys()))
+    plt.title('RF, n_trees: '+str(rf_ntrees))
+    plt.ylim((0,1))
+    plt.show()
+    # kNN
+    plt.figure()
+    plt.bar(x_bars, list(knn_mean_acc.values()), align='center', color='r', alpha=alf)
+    plt.xticks(x_bars, list(knn_mean_acc.keys()))
+    plt.title('kNN, k: '+str(knn_k))
+    plt.ylim((0,1))
+    plt.show()
+
 
 
 # TEST ON COMPLETE IMAGE
