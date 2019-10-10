@@ -18,6 +18,7 @@ from sklearn.model_selection import train_test_split # train/test set split
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import StratifiedKFold # is deafault in cross-val?
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import cohen_kappa_score
 #import sys # To append paths
 # My moduels
 from mytools import *
@@ -139,7 +140,7 @@ for key in class_dict.keys():
 # Collect performance measures in dict
 rf_mean_acc = dict()
 knn_mean_acc = dict()
-
+knn_mean_kappa = dict()
 
 # Show PLC and PDC with class colours
 # TODO: 3D plot with n_trees as one axis
@@ -182,22 +183,6 @@ for dataset_id in id_list:
         
         # Name of input object and file with satellite data path string
         sat_pathfile_name = dataset_use + '-path'
-        
-#        # Get labels and class_dict (in case None is input, one is created)
-#        labels_out, class_dict = input_data.assign_labels(class_dict=class_dict_in)
-#        n_classes = length(class_dict)
-#        
-#        # Get all data
-#        sat_data, data_labels = input_data.read_data_array(['quad_pol', 'optical'], 'all') 
-#        # Get SAR data
-#        sar_data, data_labels = input_data.read_data_array(['quad_pol'], 'all') 
-#        # Get OPT data
-#        opt_data, data_labels = input_data.read_data_array(['optical'], 'all') 
-        
-        # Plot in 3D
-        #modalitypoints3d('van_zyl', sat_data, labels, labels_dict=class_dict)
-        
-        #breakpoint = dummy 
 
         # Normalize data - should probably be done when data is stored in object...
         print(np.max(sat_data,axis=0))
@@ -227,8 +212,9 @@ for dataset_id in id_list:
         # Get split for cofusion matrix calculation
         skf = StratifiedKFold(n_splits=crossval_split_k)
         skf.get_n_splits(sat_data, labels)
-        # Initialize output confusion matrix
-        knn_all_confmat = np.zeros((n_classes , n_classes ))
+        # Initialize output confusion matrix and kappa
+        knn_all_confmat = np.zeros((n_classes , n_classes))
+        knn_all_kappa = []
         # Use split
         for train_index, test_index in skf.split(sat_data, labels):
            # Split into training and test set
@@ -236,14 +222,20 @@ for dataset_id in id_list:
            X_train, X_test = sat_data[train_index], sat_data[test_index]
            # Fit classifier
            knn_all.fit(X_train, y_train)
+           # Do prediction
+           y_pred = knn_all.predict(X_test)
            # Calculate confusion matrix
-           conf_mat_temp = confusion_matrix(y_test, knn_all.predict(X_test))
+           conf_mat_temp = confusion_matrix(y_test, y_pred)
            # Add contribution to overall confusion matrix
            knn_all_confmat += conf_mat_temp
+           # Calculate kappa
+           knn_all_kappa.append(cohen_kappa_score(y_test, y_pred))
            
         # Add to output dict
         knn_confmat_all[dataset_use] = knn_all_confmat
+        knn_mean_kappa[dataset_use] = np.mean(knn_all_kappa)
         print(knn_all_confmat)
+        print(r'$\kappa$ = ', knn_all_kappa)
         
         
         # Cross validate - Random Forest - All data
