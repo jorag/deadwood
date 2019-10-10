@@ -140,6 +140,7 @@ for key in class_dict.keys():
 # Collect performance measures in dict
 rf_mean_acc = dict()
 knn_mean_acc = dict()
+rf_mean_kappa = dict()
 knn_mean_kappa = dict()
 
 # Show PLC and PDC with class colours
@@ -205,7 +206,7 @@ for dataset_id in id_list:
         knn_scores_all = cross_val_score(knn_all, sat_data, data_labels, cv=crossval_kfold)
         # Add to output dict
         knn_cv_all[dataset_use] = knn_scores_all
-        print('kNN OPT+SAR - ' + dataset_use + ' :')
+        print('kNN - ' + dataset_use + ' :')
         print(np.mean(knn_scores_all)) 
         knn_mean_acc[dataset_use] = np.mean(knn_scores_all)
         
@@ -235,7 +236,7 @@ for dataset_id in id_list:
         knn_confmat_all[dataset_use] = knn_all_confmat
         knn_mean_kappa[dataset_use] = np.mean(knn_all_kappa)
         print(knn_all_confmat)
-        print(r'$\kappa$ = ', knn_all_kappa)
+        print('kappa = ', np.mean(knn_all_kappa))
         
         
         # Cross validate - Random Forest - All data
@@ -243,7 +244,7 @@ for dataset_id in id_list:
         rf_scores_all = cross_val_score(rf_all, sat_data, data_labels, cv=crossval_kfold)
         # Add to output dict
         rf_cv_all[dataset_use] = rf_scores_all
-        print('RF OPT+SAR - ' + dataset_use + ' :')
+        print('Random Forest - ' + dataset_use + ' :')
         print(np.mean(rf_scores_all)) 
         rf_mean_acc[dataset_use] = np.mean(rf_scores_all)
         
@@ -251,7 +252,8 @@ for dataset_id in id_list:
         skf = StratifiedKFold(n_splits=crossval_split_k)
         skf.get_n_splits(sat_data, labels)
         # Initialize output confusion matrix
-        rf_all_confmat = np.zeros((n_classes , n_classes ))
+        rf_all_confmat = np.zeros((n_classes , n_classes))
+        rf_all_kappa = []
         # Use split
         for train_index, test_index in skf.split(sat_data, labels):
            # Split into training and test set
@@ -259,15 +261,20 @@ for dataset_id in id_list:
            X_train, X_test = sat_data[train_index], sat_data[test_index]
            # Fit classifier
            rf_all.fit(X_train, y_train)
+           # Do prediction
+           y_pred = rf_all.predict(X_test)
            # Calculate confusion matrix
-           conf_mat_temp = confusion_matrix(y_test, rf_all.predict(X_test))
+           conf_mat_temp = confusion_matrix(y_test, y_pred)
            # Add contribution to overall confusion matrix
            rf_all_confmat += conf_mat_temp
+           # Calculate kappa
+           rf_all_kappa.append(cohen_kappa_score(y_test, y_pred))
            
         # Add to output dict
         rf_confmat_all[dataset_use] = rf_all_confmat
+        rf_mean_kappa[dataset_use] = np.mean(rf_all_kappa)
         print(rf_all_confmat)
-
+        print('kappa = ', np.mean(rf_all_kappa))
 
 # SAVE RESULTS
 # kNN - cross validation
@@ -300,24 +307,33 @@ n_datasets = length(rf_mean_acc)
 x_bars = np.arange(n_datasets) # range(n_datasets)
 ofs = 0.25 # offset
 alf = 0.7 # alpha
-# Linreg
+
 # # Try sorting dictionaries alphabetically
-# From: 
 #sorted(rf_mean_acc, key=rf_mean_acc.get, reverse=True)
 #sorted(linreg_pdc_r2, key=linreg_pdc_r2.get, reverse=True)
 
-# Both
+# Mean Accuracy - both in same plot (kNN and RF)
 plt.figure()
 plt.bar(x_bars*2+ofs, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
 plt.bar(x_bars*2-ofs, list(knn_mean_acc.values()), align='center', color='r', alpha=alf)
 plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*n_datasets)
 plt.xticks(x_bars*2, list(rf_mean_acc.keys()))
 plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k))
-plt.ylim((0,1))
+plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
 plt.legend(['Largest class %', 'RF', 'kNN'])
 plt.show()
 
-# Separate plots
+# Mean Kappa - both in same plot (kNN and RF)
+plt.figure()
+plt.bar(x_bars*2+ofs, list(rf_mean_kappa.values()), align='center', color='b', alpha=alf)
+plt.bar(x_bars*2-ofs, list(knn_mean_kappa.values()), align='center', color='r', alpha=alf)
+plt.xticks(x_bars*2, list(rf_mean_kappa.keys()))
+plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k))
+plt.ylabel(r'Mean $\kappa$, n_splits = '+str(crossval_split_k)) 
+plt.legend(['RF', 'kNN'])
+plt.show()
+
+# Mean Accuracy - Separate plots (kNN and RF)
 if separate_bar_plots:
     # RF
     plt.figure()
