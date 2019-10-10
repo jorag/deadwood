@@ -38,9 +38,6 @@ knn_k = 3
 rf_ntrees = 15 # Number of trees in the Random Forest algorithm
 separate_bar_plots = False # Combination of RF and kNN result, or separate plots
 
-# Image plot parameter - TODO: Differentiate for SAR and optical data
-norm_type = 'local' # 'global' # 
-
 # Prefix for output cross validation object filename
 crossval_fprefix = 'new-kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
 
@@ -57,7 +54,6 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 
 # Set class labels for dictionary - TODO: Consider moving this to get_stat_data
 class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
-#class_dict_in = None
 
 # Read ground truth point measurements into a matrix 
 y_var_read = ['plc', 'pdc', 'n_trees']
@@ -93,6 +89,10 @@ rf_file = datamod_fprefix + crossval_fprefix + 'cross_validation_rf.pkl'
 rf_confmat_file =  datamod_fprefix + crossval_fprefix + 'conf_mat_rf.pkl'
 # Parameter save file
 classify_params_file = datamod_fprefix + crossval_fprefix + 'cross_validation_params.pkl' 
+
+
+## Image plot parameter - TODO: Differentiate for SAR and optical data
+#norm_type = 'local' # 'global' # 
 
 # Read or create result dicts - kNN
 try:
@@ -276,6 +276,7 @@ for dataset_id in id_list:
         print(rf_all_confmat)
         print('kappa = ', np.mean(rf_all_kappa))
 
+
 # SAVE RESULTS
 # kNN - cross validation
 with open(os.path.join(dirname, 'data', knn_file), 'wb') as output:
@@ -338,92 +339,87 @@ if separate_bar_plots:
     # RF
     plt.figure()
     plt.bar(x_bars, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
-    plt.xticks(x_bars, list(rf_mean_acc.keys()))
-    plt.title('RF, n_trees: '+str(rf_ntrees))
-    plt.ylim((0,1))
+    plt.xticks(x_bars, list(rf_mean_acc.keys())); plt.title('RF, n_trees: '+str(rf_ntrees))
+    plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
     plt.show()
     # kNN
     plt.figure()
     plt.bar(x_bars, list(knn_mean_acc.values()), align='center', color='r', alpha=alf)
-    plt.xticks(x_bars, list(knn_mean_acc.keys()))
-    plt.title('kNN, k: '+str(knn_k))
-    plt.ylim((0,1))
+    plt.xticks(x_bars, list(knn_mean_acc.keys())); plt.title('kNN, k: '+str(knn_k))
+    plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
     plt.show()
 
 
-
-# TEST ON COMPLETE IMAGE
-if plot_image_result:
-    ## Read satellite data
-    try:
-        # Read predefined file
-        with open(os.path.join(dirname, 'input-paths', sat_pathfile_name)) as infile:
-            sat_file = infile.readline().strip()
-            logit('Read file: ' + sat_file, log_type = 'default')
-        
-        # Load data
-        dataset = gdal.Open(sat_file)
-        gdalinfo_log(dataset, log_type='default')
-    except:
-        logit('Error, promt user for file.', log_type = 'default')
-        # Predefined file failed for some reason, promt user
-        root = tkinter.Tk() # GUI for file selection
-        root.withdraw()
-        sat_file = tkinter.filedialog.askopenfilename(title='Select input .tif file')
-        # Load data
-        dataset = gdal.Open(sat_file)
-        gdalinfo_log(dataset, log_type='default')
-    
-    # Read multiple bands
-    all_sat_bands = dataset.ReadAsArray()
-    
-    # Get bands used in two lists
-    bands_use_single = []
-    for key in input_data.modality_order: # .modality_bands.keys()
-        # Get list of lists of bands
-        bands_use_single += input_data.modality_bands[key]
-    
-    
-    ## Predict class for entire satellite image
-    sat_im = all_sat_bands[bands_use_single , :, : ]
-    ## Reshape array to n_cols*n_rows rows with the channels as columns 
-    sat_im_prediction, n_rows, n_cols = imtensor2array(sat_im)
-    
-    # NORMALIZE IMAGE - TODO: Change to 'local' both here and in get_sat_data??
-    sat_im_prediction = norm01(sat_im_prediction, norm_type=norm_type, log_type = 'print')
-    
-    # For colourbar: Get the list of unique class numbers  
-    class_n_unique = np.unique(list(class_dict.values()))
-    # Use the highest and lowest class n for colourbar visualization
-    class_n_lowest = np.min(class_n_unique) 
-    class_n_highest = np.max(class_n_unique)
-     
-    colors = ['red','green','blue','purple']
-    cmap = plt.get_cmap('jet', length(class_n_unique)) # Number of colours = n. of classes
-    
-                       
-    # kNN image
-    kNN_im_result = neigh.predict(sat_im_prediction)
-    # Reshape to original input size
-    sat_result_kNN = np.reshape(kNN_im_result, (n_rows, n_cols))
-    
-    # Show classification result
-    fig = plt.figure()
-    plt.imshow(sat_result_kNN.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
-    plt.colorbar(ticks=np.unique(list(class_dict.values())) )
-    plt.title('kNN result' + dataset_use)
-    plt.show()  # display it
-    
-    
-    # RF image
-    rf_im_result = rf_all.predict(sat_im_prediction)
-    # Reshape to original input size
-    sat_result_rf = np.reshape(rf_im_result, (n_rows, n_cols))
-    
-    fig2 = plt.figure()
-    plt.imshow(sat_result_rf.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
-    plt.colorbar(ticks=np.unique(list(class_dict.values())) )
-    plt.title('Random Forest result, '+dataset_use)
-    plt.show()  # display it
-
-
+## TEST ON COMPLETE IMAGE
+#if plot_image_result:
+#    ## Read satellite data
+#    try:
+#        # Read predefined file
+#        with open(os.path.join(dirname, 'input-paths', sat_pathfile_name)) as infile:
+#            sat_file = infile.readline().strip()
+#            logit('Read file: ' + sat_file, log_type = 'default')
+#        
+#        # Load data
+#        dataset = gdal.Open(sat_file)
+#        gdalinfo_log(dataset, log_type='default')
+#    except:
+#        logit('Error, promt user for file.', log_type = 'default')
+#        # Predefined file failed for some reason, promt user
+#        root = tkinter.Tk() # GUI for file selection
+#        root.withdraw()
+#        sat_file = tkinter.filedialog.askopenfilename(title='Select input .tif file')
+#        # Load data
+#        dataset = gdal.Open(sat_file)
+#        gdalinfo_log(dataset, log_type='default')
+#    
+#    # Read multiple bands
+#    all_sat_bands = dataset.ReadAsArray()
+#    
+#    # Get bands used in two lists
+#    bands_use_single = []
+#    for key in input_data.modality_order: # .modality_bands.keys()
+#        # Get list of lists of bands
+#        bands_use_single += input_data.modality_bands[key]
+#    
+#    
+#    ## Predict class for entire satellite image
+#    sat_im = all_sat_bands[bands_use_single , :, : ]
+#    ## Reshape array to n_cols*n_rows rows with the channels as columns 
+#    sat_im_prediction, n_rows, n_cols = imtensor2array(sat_im)
+#    
+#    # NORMALIZE IMAGE - TODO: Change to 'local' both here and in get_sat_data??
+#    sat_im_prediction = norm01(sat_im_prediction, norm_type=norm_type, log_type = 'print')
+#    
+#    # For colourbar: Get the list of unique class numbers  
+#    class_n_unique = np.unique(list(class_dict.values()))
+#    # Use the highest and lowest class n for colourbar visualization
+#    class_n_lowest = np.min(class_n_unique) 
+#    class_n_highest = np.max(class_n_unique)
+#     
+#    colors = ['red','green','blue','purple']
+#    cmap = plt.get_cmap('jet', length(class_n_unique)) # Number of colours = n. of classes
+#    
+#                       
+#    # kNN image
+#    kNN_im_result = neigh.predict(sat_im_prediction)
+#    # Reshape to original input size
+#    sat_result_kNN = np.reshape(kNN_im_result, (n_rows, n_cols))
+#    
+#    # Show classification result
+#    fig = plt.figure()
+#    plt.imshow(sat_result_kNN.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
+#    plt.colorbar(ticks=np.unique(list(class_dict.values())) )
+#    plt.title('kNN result' + dataset_use)
+#    plt.show()  # display it
+#    
+#    
+#    # RF image
+#    rf_im_result = rf_all.predict(sat_im_prediction)
+#    # Reshape to original input size
+#    sat_result_rf = np.reshape(rf_im_result, (n_rows, n_cols))
+#    
+#    fig2 = plt.figure()
+#    plt.imshow(sat_result_rf.astype(int), cmap=cmap, vmin=class_n_lowest-0.5, vmax=class_n_highest+0.5)
+#    plt.colorbar(ticks=np.unique(list(class_dict.values())) )
+#    plt.title('Random Forest result, '+dataset_use)
+#    plt.show()  # display it
