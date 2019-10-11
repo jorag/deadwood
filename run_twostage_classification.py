@@ -38,8 +38,8 @@ crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
 test_pct = 0.2
 rnd_state = 33
     
-# Plotting parameters
-separate_bar_plots = False # Combination of RF and kNN result, or separate plots
+# List of plots: # ['acc_bar_separate', 'acc_bar_combined', 'kappa_bar_combined', 'n_trees', 'plc_pdc_class'] 
+plot_list = ['acc_bar_separate', 'acc_bar_combined', 'kappa_bar_combined', 'n_trees', 'plc_pdc_class'] 
 
 # Prefix for object filename
 datamod_fprefix = 'All-data-0919'
@@ -90,27 +90,29 @@ knn_mean_acc = dict()
 rf_mean_kappa = dict()
 knn_mean_kappa = dict()
 
-# Show PLC and PDC with class colours
-# TODO: 3D plot with n_trees as one axis
-plot_labels = labels.astype(int)
-# Get standard colour/plotstyle vector
-c_vec = mycolourvec()
-# Convert to numpy array for indexation
-c_vec = np.asarray(c_vec)
-# Plot x
-fig = plt.figure()
-plt.scatter(y_data[:,0], y_data[:,1], c=c_vec[plot_labels], marker='o', label=plot_labels)
-plt.xlabel('Live Crown Proportion'); plt.ylabel('Defoliated Crown Proportion')
-plt.ylim((-0.1,1)); plt.xlim((-0.1,1))
-#plt.legend(['other', 'Live', 'Defoliated'])
-#plt.legend()
-plt.show()
 
-# Plot number of trees
-#xs = np.arange(length(y_data)) # range(n_datasets)
-fig = plt.figure()
-plt.plot(y_data[:,2], 'ro-')
-plt.show()
+if 'plc_pdc_class' in plot_list:
+    # Show PLC and PDC with class colours
+    # TODO: 3D plot with n_trees as one axis
+    plot_labels = labels.astype(int)
+    # Get standard colour/plotstyle vector
+    c_vec = mycolourvec()
+    # Convert to numpy array for indexation
+    c_vec = np.asarray(c_vec)
+    fig = plt.figure()
+    plt.scatter(y_data[:,0], y_data[:,1], c=c_vec[plot_labels], marker='o', label=plot_labels)
+    plt.xlabel('Live Crown Proportion'); plt.ylabel('Defoliated Crown Proportion')
+    plt.ylim((-0.1,1)); plt.xlim((-0.1,1))
+    #plt.legend(['other', 'Live', 'Defoliated'])
+    #plt.legend()
+    plt.show()
+
+if 'n_trees' in plot_list:
+    # Plot number of trees
+    #xs = np.arange(length(y_data)) # range(n_datasets)
+    fig = plt.figure()
+    plt.plot(y_data[:,2], 'ro-')
+    plt.show()
 
 # TRAIN AND CROSS-VALIDATE
 # Go through all satellite images and all data modalities in object
@@ -257,29 +259,31 @@ alf = 0.7 # alpha
 #sorted(rf_mean_acc, key=rf_mean_acc.get, reverse=True)
 #sorted(linreg_pdc_r2, key=linreg_pdc_r2.get, reverse=True)
 
-# Mean Accuracy - both in same plot (kNN and RF)
-plt.figure()
-plt.bar(x_bars*2+ofs, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
-plt.bar(x_bars*2-ofs, list(knn_mean_acc.values()), align='center', color='r', alpha=alf)
-plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*n_datasets)
-plt.xticks(x_bars*2, list(rf_mean_acc.keys()))
-plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k))
-plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
-plt.legend(['Largest class %', 'RF', 'kNN'])
-plt.show()
+if 'acc_bar_combined' in plot_list:
+    # Mean Accuracy - both in same plot (kNN and RF)
+    plt.figure()
+    plt.bar(x_bars*2+ofs, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
+    plt.bar(x_bars*2-ofs, list(knn_mean_acc.values()), align='center', color='r', alpha=alf)
+    plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*n_datasets)
+    plt.xticks(x_bars*2, list(rf_mean_acc.keys()))
+    plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k))
+    plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
+    plt.legend(['Largest class %', 'RF', 'kNN'])
+    plt.show()
 
-# Mean Kappa - both in same plot (kNN and RF)
-plt.figure()
-plt.bar(x_bars*2+ofs, list(rf_mean_kappa.values()), align='center', color='b', alpha=alf)
-plt.bar(x_bars*2-ofs, list(knn_mean_kappa.values()), align='center', color='r', alpha=alf)
-plt.xticks(x_bars*2, list(rf_mean_kappa.keys()))
-plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k))
-plt.ylabel(r'Mean $\kappa$, n_splits = '+str(crossval_split_k)) 
-plt.legend(['RF', 'kNN'])
-plt.show()
+if 'kappa_bar_combined' in plot_list:
+    # Mean Kappa - both in same plot (kNN and RF)
+    plt.figure()
+    plt.bar(x_bars*2+ofs, list(rf_mean_kappa.values()), align='center', color='b', alpha=alf)
+    plt.bar(x_bars*2-ofs, list(knn_mean_kappa.values()), align='center', color='r', alpha=alf)
+    plt.xticks(x_bars*2, list(rf_mean_kappa.keys()))
+    plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k))
+    plt.ylabel(r'Mean $\kappa$, n_splits = '+str(crossval_split_k)) 
+    plt.legend(['RF', 'kNN'])
+    plt.show()
 
-# Mean Accuracy - Separate plots (kNN and RF)
-if separate_bar_plots:
+if 'acc_bar_separate' in plot_list: 
+    # Mean Accuracy - Separate plots (kNN and RF)
     # RF
     plt.figure()
     plt.bar(x_bars, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
