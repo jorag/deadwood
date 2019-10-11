@@ -41,9 +41,6 @@ rnd_state = 33
 # Plotting parameters
 separate_bar_plots = False # Combination of RF and kNN result, or separate plots
 
-# Prefix for output cross validation object filename
-crossval_fprefix = 'new-kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
-
 # Prefix for object filename
 datamod_fprefix = 'All-data-0919'
 id_list = ['A', 'B', 'C']
@@ -101,13 +98,18 @@ c_vec = mycolourvec()
 # Convert to numpy array for indexation
 c_vec = np.asarray(c_vec)
 # Plot x
-xs = np.arange(length(y_data)) # range(n_datasets)
 fig = plt.figure()
 plt.scatter(y_data[:,0], y_data[:,1], c=c_vec[plot_labels], marker='o', label=plot_labels)
 plt.xlabel('Live Crown Proportion'); plt.ylabel('Defoliated Crown Proportion')
 plt.ylim((-0.1,1)); plt.xlim((-0.1,1))
 #plt.legend(['other', 'Live', 'Defoliated'])
 #plt.legend()
+plt.show()
+
+# Plot number of trees
+#xs = np.arange(length(y_data)) # range(n_datasets)
+fig = plt.figure()
+plt.plot(y_data[:,2], 'ro-')
 plt.show()
 
 # TRAIN AND CROSS-VALIDATE
@@ -150,6 +152,17 @@ for dataset_id in id_list:
         print('Accuracy, test set fraction: '+str(test_pct)+' = ', neigh.score(data_test, labels_test)) 
         # Test kNN on test dataset
         prediction_result = neigh.predict(data_test)
+        
+        # Get training accuracy for entire dataset
+        neigh2 = KNeighborsClassifier(n_neighbors=knn_k)
+        # Fit kNN
+        neigh2.fit(sat_data, data_labels) 
+        
+        # Score kNN
+        print('Accuracy training set (max) = ', neigh2.score(sat_data, data_labels)) 
+        # Test kNN on test dataset
+        prediction_result2 = neigh2.predict(sat_data)
+        print('n training errors = ', np.sum(np.abs(prediction_result2-data_labels)))
         
         # Cross validate - kNN - All data
         knn_all = KNeighborsClassifier(n_neighbors=knn_k)
