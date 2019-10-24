@@ -32,14 +32,14 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 knn_k = 5
 rf_ntrees = 25 # Number of trees in the Random Forest algorithm
 # Cross validation
-crossval_split_k = 5
+crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
 # Single-run test parameters:
-test_pct = 0.2
+test_pct = 0.25
 rnd_state = 33
     
 # List of plots: # ['acc_bar_separate', 'acc_bar_combined', 'kappa_bar_combined', 'n_trees', 'plc_pdc_class'] 
-plot_list = ['acc_bar_separate', 'acc_bar_combined', 'kappa_bar_combined', 'n_trees', 'plc_pdc_class'] 
+plot_list = ['acc_bar_combined', 'plc_pdc_class'] 
 
 # Prefix for object filename
 datamod_fprefix = 'All-data-0919'
