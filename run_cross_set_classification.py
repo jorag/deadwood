@@ -13,9 +13,6 @@ import pickle # To load object
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
-#from sklearn.model_selection import train_test_split # train/test set split
-#from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import StratifiedKFold # is deafault in cross-val?
 from sklearn.metrics import confusion_matrix
 #from sklearn.metrics import cohen_kappa_score
 #import sys # To append paths
@@ -31,11 +28,7 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # PROCESSING PARAMETERS
 knn_k = 5
 rf_ntrees = 25 # Number of trees in the Random Forest algorithm
-# Cross validation
-crossval_split_k = 3
-crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
 # Single-run test parameters:
-test_pct = 0.25
 rnd_state = 33
     
 # List of plots: # ['acc_bar_separate', 'acc_bar_combined', 'kappa_bar_combined', 'n_trees', 'plc_pdc_class'] 
@@ -53,7 +46,7 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
 
 # Set class labels for dictionary - TODO: Consider moving this to get_stat_data
-class_dict_forest = dict([['other', 0], ['Forest', 1]])
+class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 
 # Read ground truth point measurements into a matrix 
 y_var_read = ['plc', 'pdc', 'n_trees']
@@ -68,12 +61,26 @@ for i_var_y in range(n_var_y):
     y[np.isnan(y)] = 0 # Replace NaNs with zeros
     y_data[:,i_var_y] = y
 
+# Normalization
+norm_type =  'local' # 'global' # 'none' # 
+
 # Set labels
-data_labels = np.zeros((length(y_data))) # Other
-data_labels[np.where(y_data[:,1] > 0.100)] = 1 # Forest
-data_labels[np.where(y_data[:,0] > 0.075)] = 1 # Forest
-data_labels[np.where(y_data[:,2]<=2)] = 0 # Other
-class_dict=class_dict_forest
+data_labels = np.zeros((length(y_data)))
+for i_point in range(length(data_labels)):
+    if y_data[i_point, 2] >= 2 and (y_data[i_point, 0]>0.10 or y_data[i_point, 1]>0.05): 
+         if y_data[i_point, 0] >= y_data[i_point, 1] - 0.00:
+             data_labels[i_point] = 1
+         else:
+             data_labels[i_point] = 2
+                            
+        
+#data_labels[np.where(y_data[:,1]>0)] = 2 # Defoliated
+#data_labels[np.where(y_data[:,1]<y_data[:,0])] = 1 # Live
+#data_labels[np.where(y_data[:,1]<=0.015)] = 0 # Other
+#data_labels[np.where(y_data[:,0]<=0.015)] = 0 # Other
+#data_labels[np.where(y_data[:,2]<=1)] = 0 # Other
+#data_labels = np.random.randint(3, size=(length(y_data)))
+class_dict=class_dict_in
 n_classes = length(class_dict)
 
 # Convert labels to numpy array
@@ -137,6 +144,8 @@ for dataset_type in all_data.all_modalities:
             # Remove singelton dimensions
             sat_data = np.squeeze(sat_data)
         
+        # Do normalization
+        sat_data = norm01(sat_data, norm_type=norm_type)
         # Name of input object and file with satellite data path string
         sat_pathfile_name = dataset_use + '-path'
         # Max values of data
@@ -212,7 +221,7 @@ if 'acc_bar_combined' in plot_list:
     plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*n_datasets)
     plt.xticks(x_bars*2, list(rf_mean_acc.keys()))
     plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k))
-    plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
+    plt.ylabel('Mean accuracy'); plt.ylim((0,1))
     #plt.legend(['Largest class %', 'RF', 'kNN'])
     plt.show()
 
@@ -223,7 +232,7 @@ if 'kappa_bar_combined' in plot_list:
     plt.bar(x_bars*2-ofs, list(knn_mean_kappa.values()), align='center', color='r', alpha=alf)
     plt.xticks(x_bars*2, list(rf_mean_kappa.keys()))
     plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k))
-    plt.ylabel(r'Mean $\kappa$, n_splits = '+str(crossval_split_k)) 
+    plt.ylabel(r'Mean $\kappa$') 
     plt.legend(['RF', 'kNN'])
     plt.show()
 
@@ -233,11 +242,11 @@ if 'acc_bar_separate' in plot_list:
     plt.figure()
     plt.bar(x_bars, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
     plt.xticks(x_bars, list(rf_mean_acc.keys())); plt.title('RF, n_trees: '+str(rf_ntrees))
-    plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
+    plt.ylabel('Mean accuracy'); plt.ylim((0,1))
     plt.show()
     # kNN
     plt.figure()
     plt.bar(x_bars, list(knn_mean_acc.values()), align='center', color='r', alpha=alf)
     plt.xticks(x_bars, list(knn_mean_acc.keys())); plt.title('kNN, k: '+str(knn_k))
-    plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
+    plt.ylabel('Mean accuracy'); plt.ylim((0,1))
     plt.show()
