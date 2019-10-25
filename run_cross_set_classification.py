@@ -145,34 +145,41 @@ for dataset_type in all_data.all_modalities:
         # Split into training and test datasets
         if prev_type != curr_type: # New data type, do training
         #data_train, data_test, labels_train, labels_test = train_test_split(sat_data, data_labels, test_size=test_pct, random_state=rnd_state)  
-            neigh = KNeighborsClassifier(n_neighbors=knn_k)
             # Fit kNN
-            neigh.fit(sat_data, data_labels) 
+            neigh = KNeighborsClassifier(n_neighbors=knn_k)
+            neigh.fit(sat_data, data_labels)
+            # Fit RF
+            rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
+            rf_all.fit(sat_data, data_labels)
         else: # Have one instance of the dataset already, Do testing 
-            # Create kNN classifier
-            print('------ kNN - ' + dataset_use + ' --------')
-            
-            
             # Score kNN
-            knn_mean_acc[dataset_use] = neigh.score(sat_data, data_labels)
-            print('Accuracy = ', neigh.score(sat_data, data_labels)) 
+            knn_score = neigh.score(sat_data, data_labels)
+            knn_mean_acc[dataset_use] = knn_score
+            # Use kNN classifier
+            print('------ kNN - ' + dataset_use + ' --------')
+            print('Accuracy = ', knn_score) 
             # Test kNN on test dataset
-            prediction_result = neigh.predict(sat_data)
-            
-            knn_confmat = confusion_matrix(data_labels, prediction_result)
-              
-            print('Confusion matrix ('+str(crossval_split_k)+'-fold split):')
+            knn_prediction_result = neigh.predict(sat_data)
+            # Print kNN confusion matrix
+            knn_confmat = confusion_matrix(data_labels, knn_prediction_result)
+            print('Confusion matrix:')
             print(knn_confmat)
             
-            
-            # Cross validate - Random Forest - All data
-            rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
-            #rf_scores_all = cross_val_score(rf_all, sat_data, data_labels, cv=crossval_kfold)
+            # Score Random Forest - All data
+            rf_scores_all = rf_all.score(sat_data, data_labels)
             # Add to output dict
-            #print('------- Random Forest - ' + dataset_use + ' -------')
-            #print('Accuracy, mean of '+str(crossval_split_k)+'-fold split= ', np.mean(rf_scores_all)) 
-            #rf_mean_acc[dataset_use] = np.mean(rf_scores_all)
-            
+            rf_mean_acc[dataset_use] = rf_scores_all
+            # Use RF classifier
+            print('------- Random Forest - ' + dataset_use + ' -------')
+            print('Accuracy, = ', rf_scores_all)
+            # Test RF on test dataset
+            rf_prediction_result = rf_all.predict(sat_data)
+            # Print RF confusion matrix
+            rf_confmat = confusion_matrix(data_labels, rf_prediction_result)
+            print('Confusion matrix:')
+            print(rf_confmat)
+        
+        # Set previous dataset type    
         prev_type = dataset_type
             
             
@@ -200,7 +207,7 @@ alf = 0.7 # alpha
 if 'acc_bar_combined' in plot_list:
     # Mean Accuracy - both in same plot (kNN and RF)
     plt.figure()
-    #plt.bar(x_bars*2+ofs, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
+    plt.bar(x_bars*2+ofs, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
     plt.bar(x_bars*2-ofs, list(knn_mean_acc.values()), align='center', color='r', alpha=alf)
     plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*n_datasets)
     plt.xticks(x_bars*2, list(rf_mean_acc.keys()))
