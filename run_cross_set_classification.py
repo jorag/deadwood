@@ -65,10 +65,14 @@ for i_var_y in range(n_var_y):
 norm_type =  'local' # 'global' # 'none' # 
 
 # Set labels
+min_p_live = 0.10
+min_p_defo = 0.05
+min_tree_live = 2
+diff_live_defo = 0.0
 data_labels = np.zeros((length(y_data)))
 for i_point in range(length(data_labels)):
-    if y_data[i_point, 2] >= 2 and (y_data[i_point, 0]>0.10 or y_data[i_point, 1]>0.05): 
-         if y_data[i_point, 0] >= y_data[i_point, 1] - 0.00:
+    if y_data[i_point, 2] >= min_tree_live and (y_data[i_point, 0]>min_p_live or y_data[i_point, 1]>min_p_defo): 
+         if y_data[i_point, 0] >= y_data[i_point, 1] - diff_live_defo:
              data_labels[i_point] = 1
          else:
              data_labels[i_point] = 2
@@ -123,6 +127,8 @@ if 'n_trees' in plot_list:
 
 # TRAIN AND CROSS-VALIDATE
 prev_type = 'dummy'
+#data_train = []
+#labels_train = []
 # Go through all satellite images and all data modalities in object
 for dataset_type in all_data.all_modalities:
     for dataset_id in id_list:           
@@ -154,6 +160,8 @@ for dataset_type in all_data.all_modalities:
         # Split into training and test datasets
         if prev_type != curr_type: # New data type, do training
         #data_train, data_test, labels_train, labels_test = train_test_split(sat_data, data_labels, test_size=test_pct, random_state=rnd_state)  
+            #data_train = np.vstack((data_train, sat_data))
+            #labels_train = np.concatenate(labels_train, data_labels)
             # Fit kNN
             neigh = KNeighborsClassifier(n_neighbors=knn_k)
             neigh.fit(sat_data, data_labels)
@@ -188,6 +196,8 @@ for dataset_type in all_data.all_modalities:
             print('Confusion matrix:')
             print(rf_confmat)
         
+        #data_train = []
+        #labels_train = []
         # Set previous dataset type    
         prev_type = dataset_type
             
