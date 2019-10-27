@@ -33,7 +33,7 @@ from dataclass import *
 gridsearch_file = 'gridsearch_1.pkl'
 
 # Parameters
-n_runs = 3
+n_runs = 5
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
 # Set class labels for dictionary - TODO: Consider moving this to get_stat_data
@@ -77,6 +77,7 @@ for i_var_y in range(n_var_y):
 param_list = []
 #result_rf_kappa = []
 #result_knn_kappa = []
+result_summary = []
 result_rf_cross_val = []
 result_rf_cross_set = []
 result_knn_cross_val = []
@@ -109,11 +110,12 @@ for i_run in range(n_runs):
     labels = np.asarray(data_labels)
     # Find unique labels and counts
     u_labels, label_percent = np.unique(labels, return_counts=True)
-    label_percent = label_percent/n_obs_y # Make percent/fractiob
+    label_percent = label_percent/n_obs_y # Make percent/fraction
+    largest_class_size = np.max(label_percent)
     # Check that all classes are represented 
     if (length(u_labels) != n_classes or np.min(label_percent) < min_class_size or 
-             np.max(label_percent) > max_class_size):
-        print(labels_percent)
+             largest_class_size > max_class_size):
+        print(label_percent)
         continue 
              
     
@@ -239,7 +241,13 @@ for i_run in range(n_runs):
     param_dict['min_p_defo'] = min_p_defo
     param_dict['min_tree_live'] = min_tree_live
     param_dict['diff_live_defo'] = diff_live_defo
+    # Add to summary
+    summary_dict = dict()
+    summary_dict['largest_class_size'] = largest_class_size
+    summary_dict['best_rf_gain'] = np.max(list(rf_mean_acc.values())) - largest_class_size
+    summary_dict['best_knn_gain'] = np.max(list(knn_mean_acc.values())) - largest_class_size
     # Add to output result
+    result_summary.append(summary_dict)
     param_list.append(param_dict)
     #result_rf_kappa = []
     #result_knn_kappa = []
@@ -251,4 +259,4 @@ for i_run in range(n_runs):
 # SAVE RESULTS
 # kNN - cross validation
 with open(os.path.join(dirname, 'data', gridsearch_file), 'wb') as output:
-    pickle.dump([param_list, result_rf_cross_val, result_knn_cross_val, result_rf_cross_set, result_knn_cross_set], output, pickle.HIGHEST_PROTOCOL)
+    pickle.dump([result_summary, param_list, result_rf_cross_val, result_knn_cross_val, result_rf_cross_set, result_knn_cross_set], output, pickle.HIGHEST_PROTOCOL)
