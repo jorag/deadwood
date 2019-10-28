@@ -16,6 +16,8 @@ import os # Necessary for relative paths
 import pickle # To load object
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split # train/test set split
 from sklearn.model_selection import cross_val_score
@@ -30,12 +32,13 @@ from visandtest import *
 from dataclass import *
 
 # Output files
-gridsearch_file = 'gridsearch_1.pkl'
+gridsearch_file = 'gridsearch_2.pkl'
 
 # Parameters
-n_runs = 100
+n_runs = 500
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
+kernel_options = ['linear', 'rbf']
 # Set class labels for dictionary - TODO: Consider moving this to get_stat_data
 class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 # Min and max size of classes
@@ -77,7 +80,9 @@ for i_var_y in range(n_var_y):
 try:
     # Read predefined file
     with open(os.path.join(dirname, 'data', gridsearch_file), 'rb') as infile:
-        result_summary, param_list, result_rf_cross_val, result_knn_cross_val, result_rf_cross_set, result_knn_cross_set = pickle.load(infile)
+        result_summary, param_list, result_rf_cross_val, result_knn_cross_val,\
+        result_svm_cross_val, result_rf_cross_set, result_knn_cross_set,\
+        result_svm_cross_set = pickle.load(infile)
     print('Loaded previous result, appending')
 except:
     # Initialize output lists
@@ -89,12 +94,16 @@ except:
     result_rf_cross_set = []
     result_knn_cross_val = []
     result_knn_cross_set = []
+    result_svm_cross_val = []
+    result_svm_cross_set = []
 
 # RUN
 for i_run in range(n_runs):
     # PROCESSING PARAMETERS
     knn_k = np.random.randint(1, high=11)
     rf_ntrees = np.random.randint(5, high=100) # Number of trees in the Random Forest algorithm
+    # TODO: 20191028: Fix this choise!
+    svm_kernel = 'rbf' # np.random.choice(kernel_options)
     # Normalization
     norm_type = np.random.choice(norm_options) # 'local' # 'global' # 'none' # 
     # Class boundaries
@@ -138,8 +147,10 @@ for i_run in range(n_runs):
     #knn_mean_kappa = dict()
     rf_acc = dict()
     knn_acc = dict()
+    svm_acc = dict()
     rf_mean_acc = dict()
     knn_mean_acc = dict()
+    svm_mean_acc = dict()
     
     # Print number of instances for each class
     n_class_samples = []
@@ -178,15 +189,15 @@ for i_run in range(n_runs):
             
             # Split into training and test datasets
             if prev_type != curr_type: # New data type, do training
-            #data_train, data_test, labels_train, labels_test = train_test_split(sat_data, data_labels, test_size=test_pct, random_state=rnd_state)  
-                #data_train = np.concatenate(data_train, sat_data)
-                #labels_train = np.concatenate(labels_train, data_labels)
                 # Fit kNN
                 neigh = KNeighborsClassifier(n_neighbors=knn_k)
                 neigh.fit(sat_data, data_labels)
                 # Fit RF
                 rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
                 rf_all.fit(sat_data, data_labels)
+                # Fit SVM
+                svm_all = OneVsRestClassifier(SVC(kernel=svm_kernel))
+                svm_all.fit(sat_data, data_labels)
             else: # Have one instance of the dataset already, Do testing 
                 # Score kNN
                 knn_score = neigh.score(sat_data, data_labels)
@@ -210,6 +221,11 @@ for i_run in range(n_runs):
                 rf_confmat = confusion_matrix(data_labels, rf_prediction_result)
                 print('RF Confusion matrix:')
                 print(rf_confmat)
+                
+                # Score SVM - All data
+                svm_scores_all = svm_all.score(sat_data, data_labels)
+                # Add to output dict
+                svm_acc[dataset_use] = svm_scores_all
             
             # Cross validate - kNN - All data
             knn_cv = KNeighborsClassifier(n_neighbors=knn_k)
@@ -223,6 +239,12 @@ for i_run in range(n_runs):
             # Add to output dict
             rf_mean_acc[dataset_use] = np.mean(rf_scores_cv)
             
+            # Cross validate - SVM - All data
+            svm_cv = OneVsRestClassifier(SVC(kernel=svm_kernel))
+            svm_scores_cv = cross_val_score(svm_cv, sat_data, data_labels, cv=crossval_kfold)
+            # Add to output dict
+            svm_mean_acc[dataset_use] = np.mean(svm_scores_cv)
+            
             #data_train = []
             #labels_train = []
             # Set previous dataset type    
@@ -230,8 +252,8 @@ for i_run in range(n_runs):
     
     # Add parameters to output dict            
     param_dict = dict()
-    param_dict['knn_k'] = knn_k
-    param_dict['rf_ntrees'] = rf_ntrees
+    param_dict['knn_k'] = knn_k; param_dict['rf_ntrees'] = rf_ntrees
+    param_dict['svm_kernel'] = svm_kernel
     param_dict['norm_type'] = norm_type 
     param_dict['min_p_live'] = min_p_live
     param_dict['min_p_defo'] = min_p_defo
@@ -240,8 +262,12 @@ for i_run in range(n_runs):
     # Add to summary
     summary_dict = dict()
     summary_dict['largest_class_size'] = largest_class_size
-    summary_dict['best_rf_gain'] = np.max(list(rf_mean_acc.values())) - largest_class_size
-    summary_dict['best_knn_gain'] = np.max(list(knn_mean_acc.values())) - largest_class_size
+    summary_dict['cross-val_rf_max'] = np.max(list(rf_mean_acc.values())) 
+    summary_dict['cross-val_knn_max'] = np.max(list(knn_mean_acc.values())) 
+    summary_dict['cross-val_svm_max'] = np.max(list(svm_mean_acc.values())) 
+    summary_dict['cross-set_rf_max'] = np.max(list(rf_acc.values())) 
+    summary_dict['cross-set_knn_max'] = np.max(list(knn_acc.values())) 
+    summary_dict['cross-set_svm_max'] = np.max(list(svm_acc.values())) 
     # Add to output result
     result_summary.append(summary_dict)
     param_list.append(param_dict)
@@ -250,9 +276,13 @@ for i_run in range(n_runs):
     result_rf_cross_val.append(rf_mean_acc)
     result_rf_cross_set.append(rf_acc)
     result_knn_cross_val.append(knn_mean_acc)
-    result_knn_cross_set.append(knn_acc)          
+    result_knn_cross_set.append(knn_acc)   
+    result_svm_cross_val.append(svm_mean_acc)
+    result_svm_cross_set.append(svm_acc)       
 
 # SAVE RESULTS
 # kNN - cross validation
 with open(os.path.join(dirname, 'data', gridsearch_file), 'wb') as output:
-    pickle.dump([result_summary, param_list, result_rf_cross_val, result_knn_cross_val, result_rf_cross_set, result_knn_cross_set], output, pickle.HIGHEST_PROTOCOL)
+    pickle.dump([result_summary, param_list, result_rf_cross_val, 
+                 result_knn_cross_val, result_svm_cross_val, result_rf_cross_set, 
+                 result_knn_cross_set, result_svm_cross_set], output, pickle.HIGHEST_PROTOCOL)
