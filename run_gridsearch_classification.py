@@ -33,7 +33,7 @@ from dataclass import *
 gridsearch_file = 'gridsearch_1.pkl'
 
 # Parameters
-n_runs = 5
+n_runs = 100
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
 # Set class labels for dictionary - TODO: Consider moving this to get_stat_data
@@ -73,15 +73,22 @@ for i_var_y in range(n_var_y):
     y[np.isnan(y)] = 0 # Replace NaNs with zeros
     y_data[:,i_var_y] = y
 
-# Initialize output lists
-param_list = []
-#result_rf_kappa = []
-#result_knn_kappa = []
-result_summary = []
-result_rf_cross_val = []
-result_rf_cross_set = []
-result_knn_cross_val = []
-result_knn_cross_set = []
+# Read or create result dicts - kNN
+try:
+    # Read predefined file
+    with open(os.path.join(dirname, 'data', gridsearch_file), 'rb') as infile:
+        result_summary, param_list, result_rf_cross_val, result_knn_cross_val, result_rf_cross_set, result_knn_cross_set = pickle.load(infile)
+    print('Loaded previous result, appending')
+except:
+    # Initialize output lists
+    param_list = []
+    #result_rf_kappa = []
+    #result_knn_kappa = []
+    result_summary = []
+    result_rf_cross_val = []
+    result_rf_cross_set = []
+    result_knn_cross_val = []
+    result_knn_cross_set = []
 
 for i_run in range(n_runs):
     # PROCESSING PARAMETERS
@@ -151,8 +158,6 @@ for i_run in range(n_runs):
             try:
                 dataset_use = dataset_type+'-'+dataset_id
                 sat_data = all_data.read_data_points(dataset_use, modality_type=dataset_type)
-                print('----------------------------------------------------------')
-                print(dataset_use)
                 curr_type = dataset_type # Dataset loaded ok
             except:
                 continue
@@ -169,8 +174,6 @@ for i_run in range(n_runs):
             sat_data = norm01(sat_data, norm_type=norm_type)
             # Name of input object and file with satellite data path string
             sat_pathfile_name = dataset_use + '-path'
-            # Max values of data
-            print('Max values', np.max(sat_data,axis=0))
             
             # Split into training and test datasets
             if prev_type != curr_type: # New data type, do training
@@ -188,13 +191,11 @@ for i_run in range(n_runs):
                 knn_score = neigh.score(sat_data, data_labels)
                 knn_acc[dataset_use] = knn_score
                 # Use kNN classifier
-                print('------ kNN - ' + dataset_use + ' --------')
-                print('Accuracy = ', knn_score) 
                 # Test kNN on test dataset
                 knn_prediction_result = neigh.predict(sat_data)
                 # Print kNN confusion matrix
                 knn_confmat = confusion_matrix(data_labels, knn_prediction_result)
-                print('Confusion matrix:')
+                print('KNN Confusion matrix:')
                 print(knn_confmat)
                 
                 # Score Random Forest - All data
@@ -202,29 +203,23 @@ for i_run in range(n_runs):
                 # Add to output dict
                 rf_acc[dataset_use] = rf_scores_all
                 # Use RF classifier
-                print('------- Random Forest - ' + dataset_use + ' -------')
-                print('Accuracy, = ', rf_scores_all)
                 # Test RF on test dataset
                 rf_prediction_result = rf_all.predict(sat_data)
                 # Print RF confusion matrix
                 rf_confmat = confusion_matrix(data_labels, rf_prediction_result)
-                print('Confusion matrix:')
+                print('RF Confusion matrix:')
                 print(rf_confmat)
             
             # Cross validate - kNN - All data
             knn_cv = KNeighborsClassifier(n_neighbors=knn_k)
             knn_scores_cv = cross_val_score(knn_cv, sat_data, data_labels, cv=crossval_kfold)
             # Add to output dict
-            print('kNN - ' + dataset_use + ' :')
-            print(np.mean(knn_scores_cv)) 
             knn_mean_acc[dataset_use] = np.mean(knn_scores_cv)
             
             # Cross validate - Random Forest - All data
             rf_cv = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
             rf_scores_cv = cross_val_score(rf_cv, sat_data, data_labels, cv=crossval_kfold)
             # Add to output dict
-            print('Random Forest - ' + dataset_use + ' :')
-            print(np.mean(rf_scores_cv)) 
             rf_mean_acc[dataset_use] = np.mean(rf_scores_cv)
             
             #data_train = []
