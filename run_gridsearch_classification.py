@@ -73,7 +73,7 @@ for i_var_y in range(n_var_y):
     y[np.isnan(y)] = 0 # Replace NaNs with zeros
     y_data[:,i_var_y] = y
 
-# Read or create result dicts - kNN
+# Read pre-existing result file and append, or create new output lists
 try:
     # Read predefined file
     with open(os.path.join(dirname, 'data', gridsearch_file), 'rb') as infile:
@@ -90,6 +90,7 @@ except:
     result_knn_cross_val = []
     result_knn_cross_set = []
 
+# RUN
 for i_run in range(n_runs):
     # PROCESSING PARAMETERS
     knn_k = np.random.randint(1, high=11)
