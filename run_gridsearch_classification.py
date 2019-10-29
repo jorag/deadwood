@@ -35,10 +35,10 @@ from dataclass import *
 gridsearch_file = 'gridsearch_2.pkl'
 
 # Parameters
-n_runs = 500
+n_runs = 50
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
-kernel_options = ['linear', 'rbf']
+kernel_options = ['linear', 'rbf', 'sigmoid']
 # Set class labels for dictionary - TODO: Consider moving this to get_stat_data
 class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 # Min and max size of classes
@@ -99,11 +99,12 @@ except:
 
 # RUN
 for i_run in range(n_runs):
+    print('Iteration: ', i_run)
     # PROCESSING PARAMETERS
     knn_k = np.random.randint(1, high=11)
     rf_ntrees = np.random.randint(5, high=100) # Number of trees in the Random Forest algorithm
     # TODO: 20191028: Fix this choise!
-    svm_kernel = 'rbf' # np.random.choice(kernel_options)
+    svm_kernel = str(np.random.choice(kernel_options))
     # Normalization
     norm_type = np.random.choice(norm_options) # 'local' # 'global' # 'none' # 
     # Class boundaries
@@ -206,9 +207,9 @@ for i_run in range(n_runs):
                 # Test kNN on test dataset
                 knn_prediction_result = neigh.predict(sat_data)
                 # Print kNN confusion matrix
-                knn_confmat = confusion_matrix(data_labels, knn_prediction_result)
-                print('KNN Confusion matrix:')
-                print(knn_confmat)
+#                knn_confmat = confusion_matrix(data_labels, knn_prediction_result)
+#                print('KNN Confusion matrix:')
+#                print(knn_confmat)
                 
                 # Score Random Forest - All data
                 rf_scores_all = rf_all.score(sat_data, data_labels)
@@ -218,9 +219,9 @@ for i_run in range(n_runs):
                 # Test RF on test dataset
                 rf_prediction_result = rf_all.predict(sat_data)
                 # Print RF confusion matrix
-                rf_confmat = confusion_matrix(data_labels, rf_prediction_result)
-                print('RF Confusion matrix:')
-                print(rf_confmat)
+#                rf_confmat = confusion_matrix(data_labels, rf_prediction_result)
+#                print('RF Confusion matrix:')
+#                print(rf_confmat)
                 
                 # Score SVM - All data
                 svm_scores_all = svm_all.score(sat_data, data_labels)
