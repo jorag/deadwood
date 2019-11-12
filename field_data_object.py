@@ -21,6 +21,9 @@ from visandtest import *
 from dataclass import *
 
 
+# Set name of output object
+obj_out_name = 'DiffGPS_FIELD_DATA'
+
 # PARAMETERS
 # Ground truth info - TODO: Store this info and parameters in object!!
 transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examined)
@@ -45,6 +48,18 @@ all_data = DataModalities('Field data only')
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
+
+# Read .gpx file with coordinates of transect points
+#try:
+# Read predefined file
+with open(os.path.join(dirname, 'input-paths', 'DiffGPS-data-path')) as infile:
+    diff_gps_file = infile.readline().strip()
+    logit('Read file: ' + diff_gps_file, log_type = 'default')
+    
+# Load data
+diff_gps = pd.read_csv(diff_gps_file )
+                          
+                          
 # READ GROUND TRUTH DATA FILES
 # Read Excel file with vegetation types
 try:
@@ -223,6 +238,7 @@ for i_point in range(length(name_tree)):
         if max_stem_thick[i_point] > maxstem_min_defo  and n_trees[i_point] >= ntrees_min_defo:
             class_dict[name_tree[i_point]] = 'Defoliated'
 
+# 20191111: TODO - Is this used? Delete??
 # Return original order of points
 class_use = [class_dict[x] for x in gps_id]
 
@@ -234,12 +250,8 @@ gps_points = list(zip(gps_id, pos_array))
 pos_array2 = np.asarray([item[1] for item in gps_points])
 gps_id2 = [item[0] for item in gps_points]
 
-    
-# Set name of output object
-obj_out_name = 'NEW_FIELD_DATA' + '.pkl'
-
-
 # Add GPS points
+# 20191111: TODO - Add DiffGPS points here, rename original waypoint_lat/lon?
 all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
 
 
@@ -247,7 +259,7 @@ all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
 all_data.print_points(['N_4_89', 'N_4_90'])
 
 # Save DataModalities object
-with open(os.path.join(dirname, 'data', obj_out_name), 'wb') as output:
+with open(os.path.join(dirname, 'data', obj_out_name+'.pkl'), 'wb') as output:
     pickle.dump(all_data, output, pickle.HIGHEST_PROTOCOL)
 
 
