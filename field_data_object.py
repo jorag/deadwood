@@ -41,23 +41,6 @@ all_data = DataModalities('Field data only')
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
-
-# Read .gpx file with coordinates of transect points
-#try:
-# Read predefined file
-with open(os.path.join(dirname, 'input-paths', 'DiffGPS-data-path')) as infile:
-    diff_gps_file = infile.readline().strip()
-    logit('Read file: ' + diff_gps_file, log_type = 'default')
-    
-# Load data
-diff_gps = pd.read_csv(diff_gps_file, sep='\t')
-#diff_gps.columns = diff_gps.columns.str.strip()
-diff_gps['Latitude']
-diff_gps_points = list(diff_gps['Comment'])
-diff_gps['Comment']
-diff_gps['Latitude'][diff_gps_points.index('F6-136')] # This works
-# diff_gps['Comment'][93]
-#diff_gps['Index']
                           
 # READ GROUND TRUTH DATA FILES
 # Read Excel file with vegetation types
@@ -96,11 +79,25 @@ for i_sheet in range(1,7):
             all_data.add_to_point(id, attr, [df[attr][point_id.index(id)]], 'meta')
 
 
-# DiffGPS
+# Read .txt differentian GPS file with coordinates of transect points
+with open(os.path.join(dirname, 'input-paths', 'DiffGPS-data-path')) as infile:
+    diff_gps_file = infile.readline().strip()
+    logit('Read file: ' + diff_gps_file, log_type = 'default')
+    
+# Load data
+diff_gps = pd.read_csv(diff_gps_file, sep='\t')
+# Contains point names - create list of point names
+diff_gps_points = list(diff_gps['Comment']) 
+
+# DiffGPS - # Get lat and long
+dpos_array = []
 for point_name in name_veg:
     # Transform transect point name from Excel file name format to DiffGPS name format
     curr_name = point_name[0]+point_name[2]+'-'+point_name[4:]
-    print(curr_name)
+    lat = diff_gps['Latitude'][diff_gps_points.index(curr_name)]
+    lon = diff_gps['Longitude'][diff_gps_points.index(curr_name)]
+    dpos_array.append((float(lat), float(lon)))
+    print(curr_name, lat, lon)
 
 
 # Read .gpx file with coordinates of transect points
