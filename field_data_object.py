@@ -38,13 +38,6 @@ ntrees_min_defo = 3 # min number of trees for defoliated class
 all_data = DataModalities('Field data only')
 
 
-# Set class labels for dictionary
-#class_dict = None
-#labels = all_data.assign_labels(class_dict=class_dict)
-# Split into training, validation, and test sets
-#all_data.split(split_type = 'weighted', train_pct = 0.7, test_pct = 0.3, val_pct = 0.0)
-
-    
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
@@ -57,8 +50,12 @@ with open(os.path.join(dirname, 'input-paths', 'DiffGPS-data-path')) as infile:
     logit('Read file: ' + diff_gps_file, log_type = 'default')
     
 # Load data
-diff_gps = pd.read_csv(diff_gps_file )
-                          
+diff_gps = pd.read_csv(diff_gps_file, sep='\t')
+#diff_gps.columns = diff_gps.columns.str.strip()
+diff_gps['Latitude']
+diff_gps['Comment']['N1-0']
+# diff_gps['Comment']['N1-0']
+#diff_gps['Index']
                           
 # READ GROUND TRUTH DATA FILES
 # Read Excel file with vegetation types
@@ -226,21 +223,6 @@ for i_sheet in range(1,7):
 # Remove first (dummy) elements used to avoid throw-away counting variables
 n_trees.pop(0)
 avg_tree_height.pop(0)
-
-# Sort into healthy and defoliated forest
-# TODO: NEED TO ADJUST THESE RULES AFTER DISCUSSION WITH ECOLOGISTS/EXPERTS
-for i_point in range(length(name_tree)):
-    # Check if Leaf Area Index is greater than threshold
-    if plc_point[i_point] > plc_min_live: # pdc_point[i_point]:  #
-        if plc_point[i_point] > plc_min_live:
-            class_dict[name_tree[i_point]] = 'Live'
-    elif plc_point[i_point] < pdc_point[i_point]:  #:
-        if max_stem_thick[i_point] > maxstem_min_defo  and n_trees[i_point] >= ntrees_min_defo:
-            class_dict[name_tree[i_point]] = 'Defoliated'
-
-# 20191111: TODO - Is this used? Delete??
-# Return original order of points
-class_use = [class_dict[x] for x in gps_id]
 
 
 # Merge transect waypoint names and positions
