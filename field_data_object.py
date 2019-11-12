@@ -53,8 +53,10 @@ with open(os.path.join(dirname, 'input-paths', 'DiffGPS-data-path')) as infile:
 diff_gps = pd.read_csv(diff_gps_file, sep='\t')
 #diff_gps.columns = diff_gps.columns.str.strip()
 diff_gps['Latitude']
-diff_gps['Comment']['N1-0']
-# diff_gps['Comment']['N1-0']
+diff_gps_points = list(diff_gps['Comment'])
+diff_gps['Comment']
+diff_gps['Latitude'][diff_gps_points.index('F6-136')] # This works
+# diff_gps['Comment'][93]
 #diff_gps['Index']
                           
 # READ GROUND TRUTH DATA FILES
@@ -93,6 +95,12 @@ for i_sheet in range(1,7):
             # TODO: Consider "translating" some column names using a dict
             all_data.add_to_point(id, attr, [df[attr][point_id.index(id)]], 'meta')
 
+
+# DiffGPS
+for point_name in name_veg:
+    # Transform transect point name from Excel file name format to DiffGPS name format
+    curr_name = point_name[0]+point_name[2]+'-'+point_name[4:]
+    print(curr_name)
 
 
 # Read .gpx file with coordinates of transect points
