@@ -24,6 +24,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import StratifiedKFold # is deafault in cross-val?
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import cohen_kappa_score
+import time
 #import sys # To append paths
 # My moduels
 from mytools import *
@@ -35,7 +36,7 @@ from dataclass import *
 gridsearch_file = 'gridsearch_DiffGPS.pkl'
 
 # Parameters
-n_runs = 25
+n_runs = 4800
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
 kernel_options = ['linear', 'rbf', 'sigmoid']
@@ -96,6 +97,10 @@ except:
     result_knn_cross_set = []
     result_svm_cross_val = []
     result_svm_cross_set = []
+
+
+# Time the processing
+time_start = time.time()
 
 # RUN
 for i_run in range(n_runs):
@@ -287,3 +292,9 @@ with open(os.path.join(dirname, 'data', gridsearch_file), 'wb') as output:
     pickle.dump([result_summary, param_list, result_rf_cross_val, 
                  result_knn_cross_val, result_svm_cross_val, result_rf_cross_set, 
                  result_knn_cross_set, result_svm_cross_set], output, pickle.HIGHEST_PROTOCOL)
+    
+# Elapsed time
+time_stop = time.time()
+time_elapsed = time_stop - time_start
+print('Time total = '+str(time_elapsed)+' s = '+str(time_elapsed/60)+' min')
+print('Time per iteration = '+str(time_elapsed/n_runs)+' seconds/iteration')
