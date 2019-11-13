@@ -20,11 +20,11 @@ from visandtest import *
 from dataclass import *
 
 # Prefix for output datamodalities object filename
-datamod_fprefix = 'All-data-0919'
+datamod_fprefix = 'Old-data-1119'
 
 # List of datasets to process
-dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl', 'Quad', 'GNLM', '19-vanZyl']
-#dataset_list = ['GNLM']
+#dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl', 'Quad', 'GNLM', '19-vanZyl']
+dataset_list = ['19-Quad']
 id_list = ['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 add_ndvi = True
 
@@ -38,7 +38,7 @@ opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Name of input object and file with satellite data path string
-obj_in_name = 'NEW_FIELD_DATA'+'.pkl'
+obj_in_name = 'DiffGPS_FIELD_DATA'+'.pkl'
 obj_out_name = datamod_fprefix+'-'+'.pkl' # TODO: 20190930 remove trailing "-" 
 
 # Add to existing object or create from scratch
@@ -46,7 +46,7 @@ root = tkinter.Tk()
 root.withdraw()
 result1 = tkmb.askquestion('Create new object?', 'If not, data will be added to existing one', icon='warning')
 if result1 == 'yes':
-    obj_in_name = 'NEW_FIELD_DATA' + '.pkl'
+    obj_in_name = 'DiffGPS_FIELD_DATA'+'.pkl'
 else:
     obj_in_name = obj_out_name
 #root.destroy()   
@@ -122,6 +122,13 @@ for dataset_id in id_list:
             x_p, y_p = geocoords2pix(raster_data_array[lat_band,:,:], 
                                      raster_data_array[lon_band,:,:], 
                                      lat=coord[0], lon=coord[1], pixels_out ='npsingle')
+            # DEBUG - 20191113: Check offset:
+            coord2 = all_data.read_point(point, 'waypoint_coordinates')
+            # Get pixel positions from my geopixpos module
+            x_p2, y_p2 = geocoords2pix(raster_data_array[lat_band,:,:], 
+                                     raster_data_array[lon_band,:,:], 
+                                     lat=coord2[0], lon=coord2[1], pixels_out ='npsingle')
+            print(point, x_p-x_p2, y_p-y_p2)
     
             # Get SAR pixels
             sar_pixels = sar_data_temp[x_p, y_p, :] 

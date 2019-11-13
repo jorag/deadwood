@@ -28,15 +28,8 @@ obj_out_name = 'DiffGPS_FIELD_DATA'
 # Ground truth info - TODO: Store this info and parameters in object!!
 transect_point_area = 10*10 # m^2 (10 m X 10 m around centre of point was examined)
 
-# Processing parameters - minimum of X * 100 m^2 plc to be in 'Live' class
-# TODO: NEED TO ADJUST THESE THRESHOLDS AFTER DISCUSSION WITH ECOLOGISTS/EXPERTS
-plc_min_live = 0.03 # min Leaf Area Index to be assigned to Live class 
-maxstem_min_defo = 2.5 # min registered max stem thickness for defoliated class
-ntrees_min_defo = 3 # min number of trees for defoliated class
-
 ## Intialize data object
 all_data = DataModalities('Field data only')
-
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -261,11 +254,13 @@ avg_tree_height.pop(0)
 
 # Add GPS points
 # 20191111: TODO - Add DiffGPS points here, rename original waypoint_lat/lon?
-all_data.add_meta(gps_id, 'gps_coordinates', pos_array)
+all_data.add_meta(gps_id, 'gps_coordinates', dpos_array)
+all_data.add_meta(gps_id, 'waypoint_coordinates', pos_array)
 
 
 ## Print points
 all_data.print_points(['N_4_89', 'N_4_90'])
+#all_data.print_points() # Print all points
 
 # Save DataModalities object
 with open(os.path.join(dirname, 'data', obj_out_name+'.pkl'), 'wb') as output:
