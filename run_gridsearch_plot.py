@@ -18,7 +18,7 @@ from visandtest import *
 from dataclass import *
 
 # Input file
-gridsearch_file = 'gridsearch_2.pkl'
+gridsearch_file = 'gridsearch_DiffGPS.pkl'
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'

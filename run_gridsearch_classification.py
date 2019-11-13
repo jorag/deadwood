@@ -32,10 +32,10 @@ from visandtest import *
 from dataclass import *
 
 # Output files
-gridsearch_file = 'gridsearch_2.pkl'
+gridsearch_file = 'gridsearch_DiffGPS.pkl'
 
 # Parameters
-n_runs = 50
+n_runs = 25
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
 kernel_options = ['linear', 'rbf', 'sigmoid']
@@ -53,7 +53,7 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
 # Prefix for object filename
-datamod_fprefix = 'All-data-0919'
+datamod_fprefix = 'Old-data-1119'
 id_list = ['A', 'B', 'C'] # First is used for training, next is used for testing
           
 # Name of input object and file with satellite data path string

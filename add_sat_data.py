@@ -20,11 +20,11 @@ from visandtest import *
 from dataclass import *
 
 # Prefix for output datamodalities object filename
-datamod_fprefix = 'Old-data-1119'
+datamod_fprefix = 'Old-data-20191113'
 
 # List of datasets to process
-#dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl', 'Quad', 'GNLM', '19-vanZyl']
-dataset_list = ['19-Quad']
+dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl', 'Quad', 'GNLM', '19-vanZyl']
+#dataset_list = ['19-Quad']
 id_list = ['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 add_ndvi = True
 
