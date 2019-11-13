@@ -91,6 +91,8 @@ diff_gps_points = list(diff_gps['Comment'])
 
 # DiffGPS - # Get lat and long
 dpos_array = []
+lat_vec_diff = []
+lon_vec_diff = []
 for point_name in name_veg:
     # Transform transect point name from Excel file name format to DiffGPS name format
     curr_name = point_name[0]+point_name[2]+'-'+point_name[4:]
@@ -98,6 +100,8 @@ for point_name in name_veg:
     lon = diff_gps['Longitude'][diff_gps_points.index(curr_name)]
     dpos_array.append((float(lat), float(lon)))
     print(curr_name, lat, lon)
+    lat_vec_diff.append(float(lat))
+    lon_vec_diff.append(float(lon))
 
 
 # Read .gpx file with coordinates of transect points
@@ -120,9 +124,24 @@ except:
 
 # Get lat and long
 pos_array = []
+lat_vec_way = []
+lon_vec_way = []
 for elem in tree.findall('{http://www.topografix.com/GPX/1/1}wpt'):
     lon, lat = elem.attrib['lon'], elem.attrib['lat']
     pos_array.append((float(lat), float(lon)))
+    lat_vec_way.append(float(lat))
+    lon_vec_way.append(float(lon))
+
+
+# DEBUG
+lat_offset = np.asarray(lat_vec_diff)-np.asarray(lat_vec_way)
+lon_offset = np.asarray(lon_vec_diff)-np.asarray(lon_vec_way)
+print(np.max(np.abs(lat_offset)))
+print(np.mean(np.abs(lat_offset)))
+print(np.mean(lat_offset))
+print(np.max(np.abs(lon_offset)))
+print(np.mean(np.abs(lon_offset)))
+print(np.mean(lon_offset))
 
 # Get name of waypoints
 gps_id = []
