@@ -63,6 +63,7 @@ except:
 # Go through all sheets in Excel file for vegetation
 class_veg = []
 name_veg = []
+diff_gps_waypoint = []
 for i_sheet in range(1,7):
     # Get pandas dataframe, all IDs and column (header)
     df = pd.read_excel(xls_veg, str(i_sheet))
@@ -73,6 +74,7 @@ for i_sheet in range(1,7):
         name_veg.append(id) # Point name, e.g. 'N_6_159'
         all_data.add_points(id) # Create point with name, e.g. 'N_6_159'
         class_veg.append(df['LCT1_2017'][point_id.index(id)]) # Terrain type, e.g. 'Forest'
+        diff_gps_waypoint.append(df['DiffGPSwaypoint'][point_id.index(id)])
         # Add info to point
         for attr in veg_header:
             # TODO: Consider "translating" some column names using a dict
@@ -93,9 +95,10 @@ diff_gps_points = list(diff_gps['Comment'])
 dpos_array = []
 lat_vec_diff = []
 lon_vec_diff = []
-for point_name in name_veg:
+for curr_name in diff_gps_waypoint:
+#for point_name in name_veg:
     # Transform transect point name from Excel file name format to DiffGPS name format
-    curr_name = point_name[0]+point_name[2]+'-'+point_name[4:]
+    #curr_name = point_name[0]+point_name[2]+'-'+point_name[4:]
     lat = diff_gps['Latitude'][diff_gps_points.index(curr_name)]
     lon = diff_gps['Longitude'][diff_gps_points.index(curr_name)]
     dpos_array.append((float(lat), float(lon)))
@@ -249,12 +252,12 @@ n_trees.pop(0)
 avg_tree_height.pop(0)
 
 
-# Merge transect waypoint names and positions
-gps_points = list(zip(gps_id, pos_array))
-# Convert to numpy array
-#pos_array2 = np.asarray(pos_array)
-pos_array2 = np.asarray([item[1] for item in gps_points])
-gps_id2 = [item[0] for item in gps_points]
+## Merge transect waypoint names and positions
+#gps_points = list(zip(gps_id, pos_array))
+## Convert to numpy array
+##pos_array2 = np.asarray(pos_array)
+#pos_array2 = np.asarray([item[1] for item in gps_points])
+#gps_id2 = [item[0] for item in gps_points]
 
 # Add GPS points
 # 20191111: TODO - Add DiffGPS points here, rename original waypoint_lat/lon?
