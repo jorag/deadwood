@@ -85,6 +85,8 @@ for dataset_id in id_list:
             gdalinfo_log(dataset, log_type='default')
             
             # Read ALL bands - note that it will be zero indexed
+            # 20191127: IF-test here to switch between reading data from file, 
+            # or use output (possibly from memory) from filtering
             raster_data_array = dataset.ReadAsArray()
         except:
             # Something went wrong, zero out some variables to ensure no follow up errors
