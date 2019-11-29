@@ -5,9 +5,30 @@ Created on Mon Sep 10 16:17:30 2018
 
 @author: jorag
 @author of length: MadsAdrian, updated by jorag 
+@autor of ask_multiple_choice_question: SO username Kevin, updated by jorag 
 """
 
 import numpy as np
+from tkinter import Tk, Label, Button, Radiobutton, IntVar
+
+
+def ask_multiple_choice_question(prompt, options, title=None):
+    """Multiple choice question.
+    
+    From: https://stackoverflow.com/questions/42581016/
+    """
+    root = Tk()
+    if title is not None:
+        root.title(title)
+    if prompt:
+        Label(root, text=prompt).pack()
+    v = IntVar()
+    for i, option in enumerate(options):
+        Radiobutton(root, text=option, variable=v, value=i).pack(anchor="w")
+    Button(text="Submit", command=root.destroy).pack()
+    root.mainloop()
+    if v.get() == 0: return None
+    return options[v.get()]
 
 
 def length(x):
