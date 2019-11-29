@@ -27,7 +27,7 @@ def ask_multiple_choice_question(prompt, options, title=None):
         Radiobutton(root, text=option, variable=v, value=i).pack(anchor="w")
     Button(text="Submit", command=root.destroy).pack()
     root.mainloop()
-    if v.get() == 0: return None
+
     return options[v.get()]
 
 

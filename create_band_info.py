@@ -20,16 +20,20 @@ from geopixpos import *
 from visandtest import *
 from dataclass import *
 
+# Dataset index
+datasets_idx = -1
+
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Open Spreadsheat
-dataset_xls = pd.ExcelFile(os.path.join(dirname, 'input-paths', '2019_reprocess_dataset_overview.xls'))
-dataset_df = pd.read_excel(dataset_xls)
-paths_in = list(dataset_df['Path']) 
+xls_fullpath = os.path.join(dirname, 'input-paths', '2019_reprocess_dataset_overview.xls')
+datasets_xls = pd.ExcelFile(xls_fullpath)
+datasets_df = pd.read_excel(datasets_xls)
+paths_in = list(datasets_df['Path']) 
 
 # Read LAST line - OR index specific dataset
-latest_dataset_path = paths_in[-1] 
+latest_dataset_path = paths_in[datasets_idx] 
 
 # Read dataset in path found from 3rd column using GDAL
 dataset = gdal.Open(latest_dataset_path)
@@ -45,22 +49,13 @@ raster_data_array = dataset.ReadAsArray()
 # - plot subplot with previous, current and next band??
 # - ask user if he wants to add band to a list (lat, lon, SAR, or opt), multiple choise
 
-                                               
-#for i_band in range(raster_data_array.shape[0]):
-#    plt.figure()
-#    plt.imshow(raster_data_array[i_band,:,:]) 
-#    plt.show()  # display it
              
 # Initialize output lists
-sorting_dict = {'sar_bands': [], 'opt_bands': [], 'lat_band': [], 
-'lon_band': [], 'unsure': [], 'none': []}
-#sar_bands = []             
-#opt_bands = []
-#lat_band = []
-#lon_band = []
+sorting_dict = {'SAR_bands': [], 'OPT_bands': [], 'Lat_band': [], 
+'Lon_band': [], 'unsure': []}
 
 # List for question dialogue
-
+option_list = list(sorting_dict.keys())
 
 # Rearrage dimensions to x,y,channel format
 im_generate = np.transpose(raster_data_array, (1,2,0))
@@ -72,16 +67,14 @@ for i_band in range(im_generate.shape[2]-20):
     band_max = np.nanmax(im_generate[:,:,i_band])
     # Band title text
     band_txt = 'BAND '+ str(i_band) 
+    # Plot data
     plt.figure(i_band)
     plt.imshow(im_generate[:,:,i_band])
     plt.title(band_txt +' Min = '+str(band_min)+' Mean = '+str(band_mean)+' Max = '+str(band_max))
-    plt.pause(0.05)
-    #plt.show()  # display it
+    plt.pause(0.05) # Make sure plot is displayed
     
     # Ask which band it its
-    which_list = ask_multiple_choice_question('Which band type is this?', list(sorting_dict.keys()), title=band_txt)
-    print("User's response was: {}".format(repr(which_list)))
-    print(which_list)
+    which_list = ask_multiple_choice_question('Which band type is this?', option_list, title=band_txt)
     
     # Store result
     sorting_dict[which_list].append(i_band)
@@ -90,3 +83,24 @@ for i_band in range(im_generate.shape[2]-20):
     
 # Promt user and ask if band list should be stored
 # - if there are already band lists, show the current list and the pre-existing one
+
+# Add band lists to data frame
+for band_type in option_list:
+    try:
+        # Convert to object type to enable list input
+        datasets_df[band_type] = datasets_df[band_type].astype('object')
+        datasets_df[band_type].iloc[datasets_idx] = sorting_dict[band_type]
+    except:
+         print(band_type + ' not in file!') 
+
+
+# Add band lists to data frame
+for band_type in option_list:
+    try:
+        print(datasets_df[band_type].iloc[datasets_idx])
+    except:
+         print(band_type + ' not in file!') 
+    
+
+# Write Excel output
+#datasets_df.to_excel(xls_fullpath)
