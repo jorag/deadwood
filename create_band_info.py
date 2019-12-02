@@ -52,7 +52,7 @@ raster_data_array = dataset.ReadAsArray()
              
 # Initialize output lists
 sorting_dict = {'SAR_bands': [], 'OPT_bands': [], 'Lat_band': [], 
-'Lon_band': [], 'unsure': []}
+'Lon_band': []} # , 'unsure': []
 
 # List for question dialogue
 option_list = list(sorting_dict.keys())
@@ -86,12 +86,18 @@ for i_band in range(im_generate.shape[2]-20):
 
 # Add band lists to data frame
 for band_type in option_list:
-    try:
-        # Convert to object type to enable list input
-        datasets_df[band_type] = datasets_df[band_type].astype('object')
-        datasets_df[band_type].iloc[datasets_idx] = sorting_dict[band_type]
-    except:
-         print(band_type + ' not in file!') 
+    #try:
+    current_var = datasets_df[band_type]
+    print(current_var)
+    #print(whois(current_var))
+    # Convert to object type to enable list input
+    datasets_df[band_type] = datasets_df[band_type].astype('object')
+    #datasets_df[band_type].iloc[datasets_idx] = sorting_dict[band_type]
+    # Due to warning
+    #datasets_df.iloc[band_type, datasets_idx] = sorting_dict[band_type]
+    datasets_df.loc[datasets_df.index[datasets_idx], band_type] = sorting_dict[band_type]
+#    except:
+#         print(band_type + ' not in file!') 
 
 
 # Add band lists to data frame
@@ -103,4 +109,4 @@ for band_type in option_list:
     
 
 # Write Excel output
-#datasets_df.to_excel(xls_fullpath)
+datasets_df.to_excel(xls_fullpath)
