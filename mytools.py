@@ -12,7 +12,7 @@ import numpy as np
 from tkinter import Tk, Label, Button, Radiobutton, IntVar
 
 
-def ask_multiple_choice_question(prompt, options, title=None):
+def ask_multiple_choice_question(prompt, options, title=None, default_v=0):
     """Multiple choice question.
     
     From: https://stackoverflow.com/questions/42581016/
@@ -22,13 +22,13 @@ def ask_multiple_choice_question(prompt, options, title=None):
         root.title(title)
     if prompt:
         Label(root, text=prompt).pack()
-    v = IntVar()
+    v = IntVar(None, default_v)
     for i, option in enumerate(options):
         Radiobutton(root, text=option, variable=v, value=i).pack(anchor="w")
     Button(text="Submit", command=root.destroy).pack()
     root.mainloop()
 
-    return options[v.get()]
+    return options[v.get()], v.get() 
 
 
 def length(x):

@@ -13,7 +13,6 @@ from tkinter import filedialog
 import tkinter.messagebox as tkmb
 import pandas as pd
 import os # Necessary for relative paths
-import pickle
 import ast
 # My moduels
 from mytools import *
@@ -60,8 +59,9 @@ option_list = list(sorting_dict.keys())
 
 # Rearrage dimensions to x,y,channel format
 im_generate = np.transpose(raster_data_array, (1,2,0))
-    
-for i_band in range(im_generate.shape[2]-20):
+selection = 0
+
+for i_band in range(im_generate.shape[2]):
     # Get statistics
     band_min = np.nanmin(im_generate[:,:,i_band])
     band_mean = np.nanmean(im_generate[:,:,i_band])
@@ -75,7 +75,7 @@ for i_band in range(im_generate.shape[2]-20):
     plt.pause(0.05) # Make sure plot is displayed
     
     # Ask which band it its
-    which_list = ask_multiple_choice_question('Which band type is this?', option_list, title=band_txt)
+    which_list, selection = ask_multiple_choice_question('Which band type is this?', option_list, title=band_txt, default_v = selection)
     
     # Store result
     sorting_dict[which_list].append(i_band)
@@ -88,10 +88,8 @@ for i_band in range(im_generate.shape[2]-20):
 # Add band lists to data frame
 for band_type in option_list:
     try:
-        current_var = datasets_df.loc[datasets_df.index[datasets_idx], band_type]
-        print(current_var)
-        print(list(current_var))
-        print(ast.literal_eval(current_var))
+        #current_var = datasets_df.loc[datasets_df.index[datasets_idx], band_type]
+        #print(ast.literal_eval(current_var))
         # Convert to object type to enable list input
         datasets_df[band_type] = datasets_df[band_type].astype('object')
         # Due to warning
