@@ -66,11 +66,13 @@ for i_band in range(im_generate.shape[2]):
     band_min = np.nanmin(im_generate[:,:,i_band])
     band_mean = np.nanmean(im_generate[:,:,i_band])
     band_max = np.nanmax(im_generate[:,:,i_band])
+    # Normalization
+    im_generate[:,:,i_band] =  norm01(im_generate[:,:,i_band], min_cap=-990,  min_cap_value=np.NaN)
     # Band title text
     band_txt = 'BAND '+ str(i_band) 
     # Plot data
     plt.figure(i_band)
-    plt.imshow(im_generate[:,:,i_band])
+    plt.imshow(im_generate[:,:,i_band], cmap='gray')
     plt.title(band_txt +' Min = '+str(band_min)+' Mean = '+str(band_mean)+' Max = '+str(band_max))
     plt.pause(0.05) # Make sure plot is displayed
     
