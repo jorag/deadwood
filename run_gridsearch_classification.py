@@ -33,10 +33,10 @@ from visandtest import *
 from dataclass import *
 
 # Output files
-gridsearch_file = 'gridsearch_DiffGPS.pkl'
+gridsearch_file = 'gridsearch_20191203.pkl' # 'gridsearch_DiffGPS.pkl'
 
 # Parameters
-n_runs = 4800
+n_runs = 40
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
 kernel_options = ['linear', 'rbf', 'sigmoid']
@@ -54,7 +54,7 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
 # Prefix for object filename
-datamod_fprefix = 'Old-data-1119'
+datamod_fprefix = 'New-data-20191203'
 id_list = ['A', 'B', 'C'] # First is used for training, next is used for testing
           
 # Name of input object and file with satellite data path string
@@ -107,8 +107,8 @@ for i_run in range(n_runs):
     print('Iteration: ', i_run)
     # PROCESSING PARAMETERS
     knn_k = np.random.randint(1, high=11)
-    rf_ntrees = np.random.randint(5, high=100) # Number of trees in the Random Forest algorithm
-    # TODO: 20191028: Fix this choise!
+    rf_ntrees = np.random.randint(10, high=150) # Number of trees in the Random Forest algorithm
+    # TODO: 20191028: Fix this choice!
     svm_kernel = str(np.random.choice(kernel_options))
     # Normalization
     norm_type = np.random.choice(norm_options) # 'local' # 'global' # 'none' # 

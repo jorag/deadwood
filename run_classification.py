@@ -42,7 +42,7 @@ separate_bar_plots = False # Combination of RF and kNN result, or separate plots
 crossval_fprefix = 'new-kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
 
 # Prefix for object filename
-datamod_fprefix = 'Old-data-1119'
+datamod_fprefix = 'New-data-20191203'
 id_list = ['A', 'B', 'C']
 
 # Name of input object and file with satellite data path string
