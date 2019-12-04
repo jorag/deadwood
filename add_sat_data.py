@@ -13,26 +13,28 @@ import pandas as pd
 import os # Necessary for relative paths
 import xml.etree.ElementTree as ET
 import pickle
+import ast
 # My moduels
 from mytools import *
 from geopixpos import *
 from visandtest import *
 from dataclass import *
 
+new_data = True
 # Prefix for output datamodalities object filename
-datamod_fprefix = 'Old-data-20191113'
+datamod_fprefix = 'New-data-20191203'
 
 # List of datasets to process
-dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl', 'Quad', 'GNLM', '19-vanZyl']
-#dataset_list = ['19-Quad']
+#dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl', 'Quad', 'GNLM', '19-vanZyl']
+dataset_list = ['iq', 'C3', 'cloude_3x3', 'genFD_3x3', 'vanZyl_3x3', 'yamaguchi_3x3'] # 'collocate_iq', 'collocate_C3', 
 id_list = ['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
-add_ndvi = True
+add_ndvi = False
 
 # Datasets to add optical bands from
-opt_dataset_list = ['vanZyl']
+opt_dataset_list = []
 
 # Which Sentinel-2 bands to use
-opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
+opt_bands_include = [] # ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
     
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -55,21 +57,37 @@ else:
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
                       
-# Load data bands dictionaries
-with open(os.path.join(dirname, 'data', 'band_dicts'), 'rb') as input:
-    sar_bands_dict, opt_bands_dict, geo_bands_dict = pickle.load(input)
+if new_data:
+    # Load band lists from Excel file
+    # Open Spreadsheat
+    xls_fullpath = os.path.join(dirname, 'input-paths', '2019_reprocess_dataset_overview.xls')
+    datasets_xls = pd.ExcelFile(xls_fullpath)
+    df = pd.read_excel(datasets_xls)
+else:
+    # Load data bands dictionaries
+    with open(os.path.join(dirname, 'data', 'band_dicts'), 'rb') as input:
+        sar_bands_dict, opt_bands_dict, geo_bands_dict = pickle.load(input)
 
 # ADD SATELLITE DATA
 # Loop through all satellite images
 for dataset_id in id_list:
     for dataset_in in dataset_list:
+        dataset_use = dataset_in +'-'+dataset_id 
+        
         
         # Set name of output object
-        dataset_use = dataset_in +'-'+dataset_id 
-        sat_pathfile_name = dataset_use + '-path'
-        print(sat_pathfile_name)
-        # Try reading the dataset
-        try:
+        if new_data:
+            # Use path from Excel file
+            sat_file = df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'Path'].values[0]
+            # Get indices for bands, lat, lon, SAR, and optical
+            lat_band = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'Lat_band'].values[0])[0]
+            lon_band = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'Lon_band'].values[0])[0]
+            sar_bands_use = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'SAR_bands'].values[0])
+            print(sat_file)
+        else:
+            sat_pathfile_name = dataset_use + '-path'
+            print(sat_pathfile_name)
+
             # Get indices for bands, lat, lon, SAR, and optical
             lat_band = geo_bands_dict[dataset_use]['lat']
             lon_band = geo_bands_dict[dataset_use]['lon']
@@ -79,7 +97,9 @@ for dataset_id in id_list:
             with open(os.path.join(dirname, 'input-paths', sat_pathfile_name)) as infile:
                 sat_file = infile.readline().strip()
                 logit('Read file: ' + sat_file, log_type = 'default')
-            
+          
+        # Try reading the dataset
+        try:
             # Load data
             dataset = gdal.Open(sat_file)
             gdalinfo_log(dataset, log_type='default')
@@ -124,13 +144,13 @@ for dataset_id in id_list:
             x_p, y_p = geocoords2pix(raster_data_array[lat_band,:,:], 
                                      raster_data_array[lon_band,:,:], 
                                      lat=coord[0], lon=coord[1], pixels_out ='npsingle')
-            # DEBUG - 20191113: Check offset:
-            coord2 = all_data.read_point(point, 'waypoint_coordinates')
-            # Get pixel positions from my geopixpos module
-            x_p2, y_p2 = geocoords2pix(raster_data_array[lat_band,:,:], 
-                                     raster_data_array[lon_band,:,:], 
-                                     lat=coord2[0], lon=coord2[1], pixels_out ='npsingle')
-            print(point, x_p-x_p2, y_p-y_p2)
+#            # DEBUG - 20191113: Check offset:
+#            coord2 = all_data.read_point(point, 'waypoint_coordinates')
+#            # Get pixel positions from my geopixpos module
+#            x_p2, y_p2 = geocoords2pix(raster_data_array[lat_band,:,:], 
+#                                     raster_data_array[lon_band,:,:], 
+#                                     lat=coord2[0], lon=coord2[1], pixels_out ='npsingle')
+#            print(point, x_p-x_p2, y_p-y_p2)
     
             # Get SAR pixels
             sar_pixels = sar_data_temp[x_p, y_p, :] 
