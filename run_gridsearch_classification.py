@@ -8,10 +8,6 @@ Created on Sat Oct 26 18:48:05 2019
 
 import matplotlib.pyplot as plt
 import numpy as np
-import gdal
-#from gdalconst import *
-import tkinter
-from tkinter import filedialog
 import os # Necessary for relative paths
 import pickle # To load object
 from sklearn.neighbors import KNeighborsClassifier
@@ -28,8 +24,6 @@ import time
 #import sys # To append paths
 # My moduels
 from mytools import *
-from geopixpos import *
-from visandtest import *
 from dataclass import *
 
 # Output files
@@ -108,7 +102,6 @@ for i_run in range(n_runs):
     # PROCESSING PARAMETERS
     knn_k = np.random.randint(1, high=11)
     rf_ntrees = np.random.randint(5, high=200) # Number of trees in the Random Forest algorithm
-    # TODO: 20191028: Fix this choice!
     svm_kernel = str(np.random.choice(kernel_options))
     # Normalization
     norm_type = np.random.choice(norm_options) # 'local' # 'global' # 'none' # 
@@ -190,8 +183,6 @@ for i_run in range(n_runs):
             
             # Do normalization
             sat_data = norm01(sat_data, norm_type=norm_type)
-            # Name of input object and file with satellite data path string
-            sat_pathfile_name = dataset_use + '-path'
             
             # Split into training and test datasets
             if prev_type != curr_type: # New data type, do training
@@ -208,25 +199,20 @@ for i_run in range(n_runs):
                 # Score kNN
                 knn_score = neigh.score(sat_data, data_labels)
                 knn_acc[dataset_use] = knn_score
-                # Use kNN classifier
                 # Test kNN on test dataset
                 knn_prediction_result = neigh.predict(sat_data)
-                # Print kNN confusion matrix
+                # kNN confusion matrix
 #                knn_confmat = confusion_matrix(data_labels, knn_prediction_result)
-#                print('KNN Confusion matrix:')
-#                print(knn_confmat)
+
                 
                 # Score Random Forest - All data
                 rf_scores_all = rf_all.score(sat_data, data_labels)
                 # Add to output dict
                 rf_acc[dataset_use] = rf_scores_all
-                # Use RF classifier
                 # Test RF on test dataset
                 rf_prediction_result = rf_all.predict(sat_data)
-                # Print RF confusion matrix
+                # RF confusion matrix
 #                rf_confmat = confusion_matrix(data_labels, rf_prediction_result)
-#                print('RF Confusion matrix:')
-#                print(rf_confmat)
                 
                 # Score SVM - All data
                 svm_scores_all = svm_all.score(sat_data, data_labels)
@@ -251,8 +237,6 @@ for i_run in range(n_runs):
             # Add to output dict
             svm_mean_acc[dataset_use] = np.mean(svm_scores_cv)
             
-            #data_train = []
-            #labels_train = []
             # Set previous dataset type    
             prev_type = dataset_type
     
