@@ -47,7 +47,7 @@ raster_data_array = dataset.ReadAsArray()
 # Loop through all dataset bands - like visandtest.showallbands(raster_data_array)
 # - plot with dataset name, min and max values, and band number as title
 # - plot subplot with previous, current and next band??
-# - ask user if he wants to add band to a list (lat, lon, SAR, or opt), multiple choise
+# - ask user if he wants to add band to a list (lat, lon, SAR, or opt), multiple choice
 
              
 # Initialize output lists
