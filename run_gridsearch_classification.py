@@ -33,18 +33,18 @@ from visandtest import *
 from dataclass import *
 
 # Output files
-gridsearch_file = 'gridsearch_20191203.pkl' # 'gridsearch_DiffGPS.pkl'
+gridsearch_file = 'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
 
 # Parameters
-n_runs = 40
+n_runs = 50
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
 kernel_options = ['linear', 'rbf', 'sigmoid']
 # Set class labels for dictionary - TODO: Consider moving this to get_stat_data
 class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 # Min and max size of classes
-min_class_size = 0.07
-max_class_size = 0.70
+min_class_size = 0.05
+max_class_size = 0.80
 # Normalization options to try
 norm_options =  ['local','global','none']
 
@@ -107,7 +107,7 @@ for i_run in range(n_runs):
     print('Iteration: ', i_run)
     # PROCESSING PARAMETERS
     knn_k = np.random.randint(1, high=11)
-    rf_ntrees = np.random.randint(10, high=150) # Number of trees in the Random Forest algorithm
+    rf_ntrees = np.random.randint(5, high=200) # Number of trees in the Random Forest algorithm
     # TODO: 20191028: Fix this choice!
     svm_kernel = str(np.random.choice(kernel_options))
     # Normalization
@@ -116,7 +116,7 @@ for i_run in range(n_runs):
     min_p_live = np.random.uniform(low=0.0, high=0.4)
     min_p_defo = np.random.uniform(low=0.0, high=0.4)
     min_tree_live = np.random.randint(0, high=7)
-    diff_live_defo = np.random.uniform(low=0.0, high=0.1)
+    diff_live_defo = np.random.uniform(low=-0.15, high=0.15)
     
     # Set labels
     data_labels = np.zeros((length(y_data)))

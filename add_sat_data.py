@@ -22,11 +22,12 @@ from dataclass import *
 
 new_data = True
 # Prefix for output datamodalities object filename
-datamod_fprefix = 'New-data-20191203'
+datamod_fprefix = 'New-data-20191205'
 
 # List of datasets to process
 #dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl', 'Quad', 'GNLM', '19-vanZyl']
-dataset_list = ['iq', 'C3', 'cloude_3x3', 'genFD_3x3', 'vanZyl_3x3', 'yamaguchi_3x3'] # 'collocate_iq', 'collocate_C3', 
+dataset_list = ['iq', 'C3', 'cloude_3x3', 'genFD_3x3', 'vanZyl_3x3', 'yamaguchi_3x3', 'collocate_iq', 'collocate_C3', 'pgnlm_iq'] 
+#dataset_list = ['collocate_iq', 'collocate_C3', 'pgnlm_iq']
 id_list = ['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 add_ndvi = False
 
@@ -78,12 +79,17 @@ for dataset_id in id_list:
         # Set name of output object
         if new_data:
             # Use path from Excel file
-            sat_file = df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'Path'].values[0]
-            # Get indices for bands, lat, lon, SAR, and optical
-            lat_band = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'Lat_band'].values[0])[0]
-            lon_band = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'Lon_band'].values[0])[0]
-            sar_bands_use = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'SAR_bands'].values[0])
-            print(sat_file)
+            try: 
+                sat_file = df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'Path'].values[0]
+                # Get indices for bands, lat, lon, SAR, and optical
+                lat_band = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'Lat_band'].values[0])[0]
+                lon_band = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'Lon_band'].values[0])[0]
+                sar_bands_use = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'SAR_bands'].values[0])
+                print(sat_file)
+            except:
+                # Something went wrong, zero out some variables to ensure no follow up errors
+                sar_bands_use = []
+                continue
         else:
             sat_pathfile_name = dataset_use + '-path'
             print(sat_pathfile_name)

@@ -18,13 +18,13 @@ from visandtest import *
 from dataclass import *
 
 # Input file
-gridsearch_file = 'gridsearch_20191203.pkl' # 'gridsearch_DiffGPS.pkl'
+gridsearch_file = 'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
                          
 # Prefix for object filename
-datamod_fprefix = 'New-data-20191203' # 'All-data-0919'
+datamod_fprefix = 'New-data-20191205' # 'All-data-0919'
           
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix + '-' + '.pkl'
