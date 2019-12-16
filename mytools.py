@@ -369,3 +369,16 @@ def rsquare(y, y_hat):
     # Coefficient Of Determination, R²
     Rsquare = 1 - Erse
     return Rsquare
+
+class empty_object:
+    """Empty object for storing and organizing parameters etc."""
+    def __init__(self, **kwargs):
+        # Get keyword arguments
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+            
+    def print(self):
+        # Print
+        # 20191207 - TODO - implement this!
+        for key in self.all_keys:
+            print(key, ' : ', getattr(self, key))
