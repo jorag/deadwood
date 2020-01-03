@@ -31,10 +31,11 @@ gridsearch_file = 'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
 
 # Parameters
 n_runs = 50
+# SHUFFLE DATA BEFORE CROSS VALIDATION, SET RANDOM STATE TO K FOR REPRODUCABILITY
 crossval_split_k = 3
-crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
+crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
 kernel_options = ['linear', 'rbf', 'sigmoid']
-# Set class labels for dictionary - TODO: Consider moving this to get_stat_data
+# Set class labels for dictionary, Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 # Min and max size of classes
 min_class_size = 0.05
@@ -44,9 +45,7 @@ norm_options =  ['local','global','none']
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
-                         
-# Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
-
+                        
 # Prefix for object filename
 datamod_fprefix = 'New-data-20191203'
 id_list = ['A', 'B', 'C'] # First is used for training, next is used for testing
@@ -271,7 +270,6 @@ for i_run in range(n_runs):
     result_svm_cross_set.append(svm_acc)       
 
 # SAVE RESULTS
-# kNN - cross validation
 with open(os.path.join(dirname, 'data', gridsearch_file), 'wb') as output:
     pickle.dump([result_summary, param_list, result_rf_cross_val, 
                  result_knn_cross_val, result_svm_cross_val, result_rf_cross_set, 
