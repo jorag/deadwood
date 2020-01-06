@@ -41,7 +41,7 @@ datamod_fprefix = '20191220_PGNLM-paramsearch' # 'New-data-20191203-'
 obj_in_name = datamod_fprefix # + '.pkl'
 
 #%% Run parameters
-n_runs = 20
+n_runs = 10
 do_cross_set = False
 # SHUFFLE DATA BEFORE CROSS VALIDATION, SET RANDOM STATE TO K FOR REPRODUCABILITY
 crossval_split_k = 5
@@ -248,10 +248,8 @@ for i_run in range(n_runs):
     # Add parameters to output dict            
     param_dict = dict()
     param_dict['knn_k'] = knn_k; param_dict['rf_ntrees'] = rf_ntrees
-    param_dict['svm_kernel'] = svm_kernel
-    param_dict['norm_type'] = norm_type 
-    param_dict['min_p_live'] = min_p_live
-    param_dict['min_p_defo'] = min_p_defo
+    param_dict['svm_kernel'] = svm_kernel; param_dict['norm_type'] = norm_type 
+    param_dict['min_p_live'] = min_p_live; param_dict['min_p_defo'] = min_p_defo
     param_dict['min_tree_live'] = min_tree_live
     param_dict['diff_live_defo'] = diff_live_defo
     # Add to summary
