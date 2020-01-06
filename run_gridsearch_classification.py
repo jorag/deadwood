@@ -28,8 +28,9 @@ from dataclass import *
 
 
 #%% Files and paths
+twoclass_only = True
 # Output files
-gridsearch_file = 'gridsearch_pgnlm_20200106-5fold.pkl' #'gridsearch_pgnlm_20200103.pkl' #'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
+gridsearch_file = 'gridsearch_pgnlm_20200106-twoclass.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #'gridsearch_pgnlm_20200103.pkl' #'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -41,16 +42,16 @@ datamod_fprefix = '20191220_PGNLM-paramsearch' # 'New-data-20191203-'
 obj_in_name = datamod_fprefix # + '.pkl'
 
 #%% Run parameters
-n_runs = 10
+n_runs = 5
 do_cross_set = False
 # SHUFFLE DATA BEFORE CROSS VALIDATION, SET RANDOM STATE TO K FOR REPRODUCABILITY
-crossval_split_k = 5
+crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
 kernel_options = ['linear', 'rbf', 'sigmoid']
 # Set class labels for dictionary, Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 # Min and max size of classes
-min_class_size = 0.10
+min_class_size = 0.12
 max_class_size = 0.60
 # Normalization options to try
 norm_options =  ['local','global','none']
@@ -131,7 +132,8 @@ for i_run in range(n_runs):
                                 
     class_dict=class_dict_in
     n_classes = length(class_dict)
-    # Convert labels to numpy array
+    # Convert labels to numpy array 
+    #- 20200106 try using this as original labels when testing two-class classification
     labels = np.asarray(data_labels)
     # Find unique labels and counts
     u_labels, label_percent = np.unique(labels, return_counts=True)
@@ -171,6 +173,10 @@ for i_run in range(n_runs):
     prev_type = 'dummy'
     # Go through all satellite images and all data modalities in object
     for dataset_type in all_data.all_modalities:
+        # Remove "Other" class to test classification of "Live" vs. "Defoliated" 
+        if twoclass_only:
+            data_labels = np.delete(labels, np.where(labels == 0))
+            
         for dataset_id in id_list:           
             # Get satellite data
             try:
@@ -190,6 +196,10 @@ for i_run in range(n_runs):
             elif length(sat_data.shape) > 2:
                 # Remove singelton dimensions
                 sat_data = np.squeeze(sat_data)
+            
+            # Remove "Other" class to test classification of "Live" vs. "Defoliated" 
+            if twoclass_only:
+                sat_data = np.delete(sat_data, np.where(labels == 0), axis=0)
             
             # Do normalization
             sat_data = norm01(sat_data, norm_type=norm_type)
