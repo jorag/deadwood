@@ -21,7 +21,7 @@ from dataclass import *
 do_cross_set = False
 
 # Input file
-gridsearch_file = 'gridsearch_pgnlm_20200103.pkl' # 'gridsearch_DiffGPS.pkl'
+gridsearch_file = 'gridsearch_pgnlm_20200106-5fold.pkl' #'gridsearch_pgnlm_20200103.pkl' # 'gridsearch_DiffGPS.pkl'
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'

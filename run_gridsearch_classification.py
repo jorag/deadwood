@@ -29,7 +29,7 @@ from dataclass import *
 
 #%% Files and paths
 # Output files
-gridsearch_file = 'gridsearch_pgnlm_20200103.pkl' #'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
+gridsearch_file = 'gridsearch_pgnlm_20200106-5fold.pkl' #'gridsearch_pgnlm_20200103.pkl' #'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -41,17 +41,17 @@ datamod_fprefix = '20191220_PGNLM-paramsearch' # 'New-data-20191203-'
 obj_in_name = datamod_fprefix # + '.pkl'
 
 #%% Run parameters
-n_runs = 400
+n_runs = 20
 do_cross_set = False
 # SHUFFLE DATA BEFORE CROSS VALIDATION, SET RANDOM STATE TO K FOR REPRODUCABILITY
-crossval_split_k = 3
+crossval_split_k = 5
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
 kernel_options = ['linear', 'rbf', 'sigmoid']
 # Set class labels for dictionary, Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 # Min and max size of classes
-min_class_size = 0.05
-max_class_size = 0.80
+min_class_size = 0.10
+max_class_size = 0.60
 # Normalization options to try
 norm_options =  ['local','global','none']
 
@@ -115,9 +115,9 @@ for i_run in range(n_runs):
     # Normalization
     norm_type = np.random.choice(norm_options) # 'local' # 'global' # 'none' # 
     # Class boundaries
-    min_p_live = np.random.uniform(low=-0.1, high=0.4) # Set to negative to give a significant chance of having 0 as lower limit 
-    min_p_defo = np.random.uniform(low=-0.1, high=0.4) # Set to negative to give a significant chance of having 0 as lower limit
-    min_tree_live = np.random.randint(0, high=7)
+    min_p_live = np.random.uniform(low=-0.1, high=0.25) # Set to negative to give a significant chance of having 0 as lower limit 
+    min_p_defo = np.random.uniform(low=-0.1, high=0.25) # Set to negative to give a significant chance of having 0 as lower limit
+    min_tree_live = np.random.randint(0, high=5)
     diff_live_defo = np.random.uniform(low=-0.15, high=0.15)
     
     # Set labels
@@ -151,8 +151,6 @@ for i_run in range(n_runs):
         print(str(val)+' '+key+' - points: '+str(n_instances))
     
     # Collect performance measures in dict
-    #rf_mean_kappa = dict()
-    #knn_mean_kappa = dict()
     rf_acc = dict()
     knn_acc = dict()
     svm_acc = dict()
