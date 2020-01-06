@@ -26,11 +26,23 @@ import time
 from mytools import *
 from dataclass import *
 
-# Output files
-gridsearch_file = 'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
 
-# Parameters
-n_runs = 50
+#%% Files and paths
+# Output files
+gridsearch_file = 'gridsearch_pgnlm_20200103.pkl' #'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
+
+# Path to working directory 
+dirname = os.path.realpath('.') # For parent directory use '..'
+                        
+# Prefix for object filename
+datamod_fprefix = '20191220_PGNLM-paramsearch' # 'New-data-20191203-'
+          
+# Name of input object and file with satellite data path string
+obj_in_name = datamod_fprefix # + '.pkl'
+
+#%% Run parameters
+n_runs = 400
+do_cross_set = False
 # SHUFFLE DATA BEFORE CROSS VALIDATION, SET RANDOM STATE TO K FOR REPRODUCABILITY
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
@@ -43,19 +55,19 @@ max_class_size = 0.80
 # Normalization options to try
 norm_options =  ['local','global','none']
 
-# Path to working directory 
-dirname = os.path.realpath('.') # For parent directory use '..'
-                        
-# Prefix for object filename
-datamod_fprefix = 'New-data-20191203'
-id_list = ['A', 'B', 'C'] # First is used for training, next is used for testing
-          
-# Name of input object and file with satellite data path string
-obj_in_name = datamod_fprefix + '-' + '.pkl'
 
-## Read DataModalities object with ground in situ vegetation data
+
+#%% Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
+
+# List of dataset IDs, either a single letter or a letter + datestr combo
+try:
+    pgnlm_flag = True
+    id_list = list(all_data.pgnlm_param_dict.keys()) 
+except:
+    pgnlm_flag = False
+    id_list = ['A', 'B', 'C'] # First is used for training, next is used for testing
 
 # Read ground truth point measurements into a matrix 
 y_var_read = ['plc', 'pdc', 'n_trees']
@@ -70,7 +82,7 @@ for i_var_y in range(n_var_y):
     y[np.isnan(y)] = 0 # Replace NaNs with zeros
     y_data[:,i_var_y] = y
 
-# Read pre-existing result file and append, or create new output lists
+#%% Read pre-existing result file and append, or create new output lists
 try:
     # Read predefined file
     with open(os.path.join(dirname, 'data', gridsearch_file), 'rb') as infile:
@@ -81,8 +93,6 @@ try:
 except:
     # Initialize output lists
     param_list = []
-    #result_rf_kappa = []
-    #result_knn_kappa = []
     result_summary = []
     result_rf_cross_val = []
     result_rf_cross_set = []
@@ -105,8 +115,8 @@ for i_run in range(n_runs):
     # Normalization
     norm_type = np.random.choice(norm_options) # 'local' # 'global' # 'none' # 
     # Class boundaries
-    min_p_live = np.random.uniform(low=0.0, high=0.4)
-    min_p_defo = np.random.uniform(low=0.0, high=0.4)
+    min_p_live = np.random.uniform(low=-0.1, high=0.4) # Set to negative to give a significant chance of having 0 as lower limit 
+    min_p_defo = np.random.uniform(low=-0.1, high=0.4) # Set to negative to give a significant chance of having 0 as lower limit
     min_tree_live = np.random.randint(0, high=7)
     diff_live_defo = np.random.uniform(low=-0.15, high=0.15)
     
@@ -166,7 +176,10 @@ for i_run in range(n_runs):
         for dataset_id in id_list:           
             # Get satellite data
             try:
-                dataset_use = dataset_type+'-'+dataset_id
+                if pgnlm_flag:
+                    dataset_use = dataset_id
+                else:
+                    dataset_use = dataset_type+'-'+dataset_id
                 sat_data = all_data.read_data_points(dataset_use, modality_type=dataset_type)
                 curr_type = dataset_type # Dataset loaded ok
             except:
@@ -184,7 +197,7 @@ for i_run in range(n_runs):
             sat_data = norm01(sat_data, norm_type=norm_type)
             
             # Split into training and test datasets
-            if prev_type != curr_type: # New data type, do training
+            if do_cross_set and prev_type != curr_type: # New data type, do training
                 # Fit kNN
                 neigh = KNeighborsClassifier(n_neighbors=knn_k)
                 neigh.fit(sat_data, data_labels)
@@ -194,15 +207,12 @@ for i_run in range(n_runs):
                 # Fit SVM
                 svm_all = OneVsRestClassifier(SVC(kernel=svm_kernel))
                 svm_all.fit(sat_data, data_labels)
-            else: # Have one instance of the dataset already, Do testing 
+            elif do_cross_set: # Have one instance of the dataset already, Do testing 
                 # Score kNN
                 knn_score = neigh.score(sat_data, data_labels)
                 knn_acc[dataset_use] = knn_score
                 # Test kNN on test dataset
                 knn_prediction_result = neigh.predict(sat_data)
-                # kNN confusion matrix
-#                knn_confmat = confusion_matrix(data_labels, knn_prediction_result)
-
                 
                 # Score Random Forest - All data
                 rf_scores_all = rf_all.score(sat_data, data_labels)
@@ -210,8 +220,6 @@ for i_run in range(n_runs):
                 rf_acc[dataset_use] = rf_scores_all
                 # Test RF on test dataset
                 rf_prediction_result = rf_all.predict(sat_data)
-                # RF confusion matrix
-#                rf_confmat = confusion_matrix(data_labels, rf_prediction_result)
                 
                 # Score SVM - All data
                 svm_scores_all = svm_all.score(sat_data, data_labels)
@@ -253,21 +261,23 @@ for i_run in range(n_runs):
     summary_dict['largest_class_size'] = largest_class_size
     summary_dict['cross-val_rf_max'] = np.max(list(rf_mean_acc.values())) 
     summary_dict['cross-val_knn_max'] = np.max(list(knn_mean_acc.values())) 
-    summary_dict['cross-val_svm_max'] = np.max(list(svm_mean_acc.values())) 
-    summary_dict['cross-set_rf_max'] = np.max(list(rf_acc.values())) 
-    summary_dict['cross-set_knn_max'] = np.max(list(knn_acc.values())) 
-    summary_dict['cross-set_svm_max'] = np.max(list(svm_acc.values())) 
+    summary_dict['cross-val_svm_max'] = np.max(list(svm_mean_acc.values()))
     # Add to output result
-    result_summary.append(summary_dict)
-    param_list.append(param_dict)
-    #result_rf_kappa = []
-    #result_knn_kappa = []
     result_rf_cross_val.append(rf_mean_acc)
-    result_rf_cross_set.append(rf_acc)
     result_knn_cross_val.append(knn_mean_acc)
-    result_knn_cross_set.append(knn_acc)   
     result_svm_cross_val.append(svm_mean_acc)
-    result_svm_cross_set.append(svm_acc)       
+    # Add to summary and result if cross_set
+    if do_cross_set:
+        summary_dict['cross-set_rf_max'] = np.max(list(rf_acc.values())) 
+        summary_dict['cross-set_knn_max'] = np.max(list(knn_acc.values())) 
+        summary_dict['cross-set_svm_max'] = np.max(list(svm_acc.values())) 
+        result_rf_cross_set.append(rf_acc)
+        result_knn_cross_set.append(knn_acc)   
+        result_svm_cross_set.append(svm_acc)  
+    
+    # Add summary dict and params
+    result_summary.append(summary_dict)
+    param_list.append(param_dict)     
 
 # SAVE RESULTS
 with open(os.path.join(dirname, 'data', gridsearch_file), 'wb') as output:
