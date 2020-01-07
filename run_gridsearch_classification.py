@@ -30,7 +30,7 @@ from dataclass import *
 #%% Files and paths
 twoclass_only = True
 # Output files
-gridsearch_file = 'gridsearch_pgnlm_20200106-twoclass.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #'gridsearch_pgnlm_20200103.pkl' #'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
+gridsearch_file = 'gridsearch_pgnlm_20200107-twoclass.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #'gridsearch_pgnlm_20200103.pkl' #'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -49,10 +49,10 @@ crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
 kernel_options = ['linear', 'rbf', 'sigmoid']
 # Set class labels for dictionary, Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
-class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
+class_dict = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 # Min and max size of classes
 min_class_size = 0.12
-max_class_size = 0.60
+max_class_size = 0.70
 # Normalization options to try
 norm_options =  ['local','global','none']
 
@@ -130,13 +130,25 @@ for i_run in range(n_runs):
              else:
                  data_labels[i_point] = 2
                                 
-    class_dict=class_dict_in
-    n_classes = length(class_dict)
+    
+    #class_dict=class_dict_in
+    
     # Convert labels to numpy array 
     #- 20200106 try using this as original labels when testing two-class classification
-    labels = np.asarray(data_labels)
+    labels = np.array(data_labels) # copy array to keep for indexing sat_data, np.asarray means it will not copy unless needed 
+                    
+    # Remove "Other" class to test classification of "Live" vs. "Defoliated" 
+    if twoclass_only:
+        data_labels = np.delete(labels, np.where(labels == 0))
+        n_classes = 2
+        n_obs_y = length(data_labels)
+        print(n_obs_y)
+    else:
+        # Number of classes
+        n_classes = length(class_dict)
+        
     # Find unique labels and counts
-    u_labels, label_percent = np.unique(labels, return_counts=True)
+    u_labels, label_percent = np.unique(data_labels, return_counts=True)
     label_percent = label_percent/n_obs_y # Make percent/fraction
     largest_class_size = np.max(label_percent)
     # Check that all classes are represented 
@@ -160,23 +172,19 @@ for i_run in range(n_runs):
     knn_mean_acc = dict()
     svm_mean_acc = dict()
     
-    # Print number of instances for each class
-    n_class_samples = []
-    for key in class_dict.keys():
-        val = class_dict[key]
-        n_instances = length(labels[labels==val])
-        n_class_samples.append(n_instances)
-        print(str(val)+' '+key+' - points: '+str(n_instances))
+#    # Print number of instances for each class
+#    n_class_samples = []
+#    for key in class_dict.keys():
+#        val = class_dict[key]
+#        n_instances = length(labels[labels==val])
+#        n_class_samples.append(n_instances)
+#        print(str(val)+' '+key+' - points: '+str(n_instances))
     
     
     # TRAIN AND CROSS-VALIDATE
     prev_type = 'dummy'
     # Go through all satellite images and all data modalities in object
-    for dataset_type in all_data.all_modalities:
-        # Remove "Other" class to test classification of "Live" vs. "Defoliated" 
-        if twoclass_only:
-            data_labels = np.delete(labels, np.where(labels == 0))
-            
+    for dataset_type in all_data.all_modalities:            
         for dataset_id in id_list:           
             # Get satellite data
             try:
