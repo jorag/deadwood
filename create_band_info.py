@@ -27,7 +27,7 @@ datasets_idx = -1
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Open Spreadsheat
-xls_fullpath = os.path.join(dirname, 'input-paths', '2019_reprocess_dataset_overview.xls')
+xls_fullpath = os.path.join(dirname, 'input-paths', '2020_C3_dataset_overview.xls')
 datasets_xls = pd.ExcelFile(xls_fullpath)
 datasets_df = pd.read_excel(datasets_xls)
 paths_in = list(datasets_df['Path']) 

@@ -21,14 +21,16 @@ from visandtest import *
 from dataclass import *
 
 new_data = True
+new_data_xls_file = '2020_C3_dataset_overview.xls' # '2019_reprocess_dataset_overview.xls'
 # Prefix for output datamodalities object filename
-datamod_fprefix = 'New-data-20191205'
+datamod_fprefix = 'cov_mat-20200108'
 
 # List of datasets to process
 #dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl', 'Quad', 'GNLM', '19-vanZyl']
-dataset_list = ['iq', 'C3', 'cloude_3x3', 'genFD_3x3', 'vanZyl_3x3', 'yamaguchi_3x3', 'collocate_iq', 'collocate_C3', 'pgnlm_iq'] 
+#dataset_list = ['iq', 'C3', 'cloude_3x3', 'genFD_3x3', 'vanZyl_3x3', 'yamaguchi_3x3', 'collocate_iq', 'collocate_C3', 'pgnlm_iq'] 
 #dataset_list = ['collocate_iq', 'collocate_C3', 'pgnlm_iq']
-id_list = ['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
+dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3'] 
+id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 add_ndvi = False
 
 # Datasets to add optical bands from
@@ -42,7 +44,7 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Name of input object and file with satellite data path string
 obj_in_name = 'DiffGPS_FIELD_DATA'+'.pkl'
-obj_out_name = datamod_fprefix+'-'+'.pkl' # TODO: 20190930 remove trailing "-" 
+obj_out_name = datamod_fprefix+'.pkl' # TODO: 20190930 remove trailing "-" - done 20200108
 
 # Add to existing object or create from scratch
 root = tkinter.Tk()
@@ -61,7 +63,7 @@ with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
 if new_data:
     # Load band lists from Excel file
     # Open Spreadsheat
-    xls_fullpath = os.path.join(dirname, 'input-paths', '2019_reprocess_dataset_overview.xls')
+    xls_fullpath = os.path.join(dirname, 'input-paths', new_data_xls_file)
     datasets_xls = pd.ExcelFile(xls_fullpath)
     df = pd.read_excel(datasets_xls)
 else:
