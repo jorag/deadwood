@@ -20,15 +20,16 @@ from geopixpos import *
 from visandtest import *
 from dataclass import *
 
-new_data = True
-new_data_xls_file = '2020_C3_dataset_overview.xls' # '2019_reprocess_dataset_overview.xls'
+
+# Check if the new band list format, where everything is stored in a .xls, is used
+new_datalist_format = True
+new_datalist_xls_file = '2020_C3_dataset_overview.xls' # '2019_reprocess_dataset_overview.xls'
 # Prefix for output datamodalities object filename
 datamod_fprefix = 'cov_mat-20200108'
+base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on 
 
 # List of datasets to process
-#dataset_list = ['19-Quad', 'PGNLM3', 'Coh', 'vanZyl', 'Quad', 'GNLM', '19-vanZyl']
 #dataset_list = ['iq', 'C3', 'cloude_3x3', 'genFD_3x3', 'vanZyl_3x3', 'yamaguchi_3x3', 'collocate_iq', 'collocate_C3', 'pgnlm_iq'] 
-#dataset_list = ['collocate_iq', 'collocate_C3', 'pgnlm_iq']
 dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3'] 
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 add_ndvi = False
@@ -43,15 +44,14 @@ opt_bands_include = [] # ['b02','b03','b04','b05','b06','b07','b08','b08a','b11'
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Name of input object and file with satellite data path string
-obj_in_name = 'DiffGPS_FIELD_DATA'+'.pkl'
-obj_out_name = datamod_fprefix+'.pkl' # TODO: 20190930 remove trailing "-" - done 20200108
+obj_out_name = datamod_fprefix+'.pkl' 
 
-# Add to existing object or create from scratch
+# Create object from scratch OR add to existing object
 root = tkinter.Tk()
 root.withdraw()
 result1 = tkmb.askquestion('Create new object?', 'If not, data will be added to existing one', icon='warning')
 if result1 == 'yes':
-    obj_in_name = 'DiffGPS_FIELD_DATA'+'.pkl'
+    obj_in_name = base_obj_name
 else:
     obj_in_name = obj_out_name
 #root.destroy()   
@@ -60,10 +60,9 @@ else:
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
                       
-if new_data:
+if new_datalist_format:
     # Load band lists from Excel file
-    # Open Spreadsheat
-    xls_fullpath = os.path.join(dirname, 'input-paths', new_data_xls_file)
+    xls_fullpath = os.path.join(dirname, 'input-paths', new_datalist_xls_file)
     datasets_xls = pd.ExcelFile(xls_fullpath)
     df = pd.read_excel(datasets_xls)
 else:
@@ -71,15 +70,15 @@ else:
     with open(os.path.join(dirname, 'data', 'band_dicts'), 'rb') as input:
         sar_bands_dict, opt_bands_dict, geo_bands_dict = pickle.load(input)
 
+
 # ADD SATELLITE DATA
 # Loop through all satellite images
 for dataset_id in id_list:
     for dataset_in in dataset_list:
         dataset_use = dataset_in +'-'+dataset_id 
-        
-        
+            
         # Set name of output object
-        if new_data:
+        if new_datalist_format:
             # Use path from Excel file
             try: 
                 sat_file = df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'Path'].values[0]
@@ -92,7 +91,7 @@ for dataset_id in id_list:
                 # Something went wrong, zero out some variables to ensure no follow up errors
                 sar_bands_use = []
                 continue
-        else:
+        else:a
             sat_pathfile_name = dataset_use + '-path'
             print(sat_pathfile_name)
 
