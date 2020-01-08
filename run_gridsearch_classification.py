@@ -42,7 +42,7 @@ datamod_fprefix = '20191220_PGNLM-paramsearch' # 'New-data-20191203-'
 obj_in_name = datamod_fprefix # + '.pkl'
 
 #%% Run parameters
-n_runs = 5
+n_runs = 600
 do_cross_set = False
 # SHUFFLE DATA BEFORE CROSS VALIDATION, SET RANDOM STATE TO K FOR REPRODUCABILITY
 crossval_split_k = 3
@@ -52,7 +52,8 @@ kernel_options = ['linear', 'rbf', 'sigmoid']
 class_dict = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 # Min and max size of classes
 min_class_size = 0.12
-max_class_size = 0.70
+max_class_size = 0.72
+min_samples_use = 0.40 # Minimum number of samples to use
 # Normalization options to try
 norm_options =  ['local','global','none']
 
@@ -72,9 +73,10 @@ except:
 
 # Read ground truth point measurements into a matrix 
 y_var_read = ['plc', 'pdc', 'n_trees']
-n_obs_y = length(all_data.idx_list) # Number of observations
+n_samples_total = length(all_data.idx_list) # Number of observations
+n_samples_use = np.copy(n_samples_total) # Number samples to use
 n_var_y = length(y_var_read) # Number of ecological variables read 
-y_data = np.empty((n_obs_y, n_var_y))
+y_data = np.empty((n_samples_use, n_var_y))
 # Loop through list of variables and add to Y mat out
 for i_var_y in range(n_var_y):
     y = all_data.read_data_points(y_var_read[i_var_y])
@@ -131,30 +133,29 @@ for i_run in range(n_runs):
                  data_labels[i_point] = 2
                                 
     
-    #class_dict=class_dict_in
-    
-    # Convert labels to numpy array 
-    #- 20200106 try using this as original labels when testing two-class classification
-    labels = np.array(data_labels) # copy array to keep for indexing sat_data, np.asarray means it will not copy unless needed 
+    # Copy array to keep for indexing sat_data when doing two-class classification
+    labels = np.array(data_labels) # use np.array since asarray does not copy unless needed 
                     
     # Remove "Other" class to test classification of "Live" vs. "Defoliated" 
     if twoclass_only:
         data_labels = np.delete(labels, np.where(labels == 0))
         n_classes = 2
-        n_obs_y = length(data_labels)
-        print(n_obs_y)
+        n_samples_use = length(data_labels)
+        print(n_samples_use)
     else:
         # Number of classes
         n_classes = length(class_dict)
         
     # Find unique labels and counts
     u_labels, label_percent = np.unique(data_labels, return_counts=True)
-    label_percent = label_percent/n_obs_y # Make percent/fraction
+    label_percent = label_percent/n_samples_use # Make percent/fraction
     largest_class_size = np.max(label_percent)
     # Check that all classes are represented 
     if (length(u_labels) != n_classes or np.min(label_percent) < min_class_size or 
-             largest_class_size > max_class_size):
+             largest_class_size > max_class_size or 
+             n_samples_use/n_samples_total < min_samples_use):
         print(label_percent)
+        print(n_samples_use/n_samples_total)
         continue 
              
     
