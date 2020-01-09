@@ -352,6 +352,45 @@ def polar2complex(amp_in, ang_in):
     return array_out 
 
 
+def get_sar_features(filtered, x_list=None, y_list=None, feature_type='not set'):
+    """ Get features from SAR data tensor.
+    
+    e.g. extract certain parameters from C3 covariance matrix.
+    Works for both a full image and a list of pixels (used for training or 
+    testing).
+    """
+    if x_list is not None and y_list is not None:
+        # Extract pixels
+        filtered = filtered[x_list,y_list,:]
+    
+    # Check if current processing type indicates that a subset of features 
+    # should be extracted, or if array should be returned as-is
+    if feature_type.lower() in ['iq2c3']:
+        temp = filtered[:, [0,2,4,8]]
+        # TODO 20191221 - Make this work for whole images aswell!!
+        filtered = np.zeros((filtered.shape[0],5))
+        filtered[:,0] = np.real(temp[:,0]) # C11
+        filtered[:,1] = np.real(temp[:,2]) # C22
+        filtered[:,2] = np.real(temp[:,3]) # C33
+        filtered[:,3] = np.abs(temp[:,1]) # C13 abs
+        filtered[:,4] = np.angle(temp[:,1]) # C13 angle
+    elif feature_type.lower() in ['c3snap_filtered']:
+        temp = filtered[:, [0,3,4,5,8]]
+        filtered = np.zeros((filtered.shape[0],5))
+        filtered[:,0] = temp[:,0] # C11
+        filtered[:,1] = temp[:,3] # C22
+        filtered[:,2] = temp[:,4] # C33
+        # Make complex values and use abs and angle formulas as for iq2c3 
+        # (ensure same angle calculation)
+        filtered[:,3] = np.abs(temp[:,1]+ 1j* temp[:,2]) 
+        filtered[:,4] = np.angle(temp[:,1]+ 1j* temp[:,2]) 
+    else:
+        # TODO 20191221 - Make this work for whole images aswell!!
+        print('Warning! Feature type '+feature_type+ ' not defined in get_sar_features!!')
+    
+    return filtered
+
+
 def rsquare(y, y_hat):
     """Calculate the goodness of fit, R²
     

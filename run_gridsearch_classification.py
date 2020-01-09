@@ -30,7 +30,9 @@ from dataclass import *
 #%% Files and paths
 twoclass_only = False
 # Output files
-gridsearch_file = 'gridsearch_C3_20200108-threeclass.pkl' # 'gridsearch_C3_20200108-twoclass.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #'gridsearch_pgnlm_20200103.pkl' #'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
+gridsearch_file = 'gridsearch_C3features_20200109-threeclass.pkl' #'gridsearch_C3_20200108-threeclass.pkl' #'gridsearch_C3_20200108-twoclass.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #'gridsearch_pgnlm_20200103.pkl' #'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
+
+c3_feature_type = 'c3snap_filtered' # 'not defined' #
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -42,8 +44,8 @@ datamod_fprefix = 'cov_mat-20200108.pkl' #'20191220_PGNLM-paramsearch' # 'New-da
 obj_in_name = datamod_fprefix # + '.pkl'
 
 #%% Run parameters
-n_runs = 10
-do_cross_set = True
+n_runs = 800
+do_cross_set = False
 # SHUFFLE DATA BEFORE CROSS VALIDATION, SET RANDOM STATE TO K FOR REPRODUCABILITY
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
@@ -51,18 +53,18 @@ kernel_options = ['linear', 'rbf', 'sigmoid']
 # Set class labels for dictionary, Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 class_dict = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 # Min and max size of classes
-min_class_size = 0.12
-max_class_size = 0.72
+min_class_size = 0.05 #0.12
+max_class_size = 0.80 #0.72
 min_samples_use = 0.40 # Minimum number of samples to use
 # Normalization options to try
 norm_options =  ['local','global','none']
 # For drawing PLC and PDC, n_trees etc.
-min_plc_draw = -0.1 # Set to negative to give a significant chance of having 0 as lower limit
-min_pdc_draw = -0.1 # Set to negative to give a significant chance of having 0 as lower limit
-max_plc_draw = 0.25
-max_pdc_draw = 0.25
+min_plc_draw = -0.1 #0 # Set to negative to give a significant chance of having 0 as lower limit
+min_pdc_draw = -0.1 #0 # Set to negative to give a significant chance of having 0 as lower limit
+max_plc_draw = 0.25 # 0.4 # 
+max_pdc_draw = 0.25 # 0.4 # 
 min_ntree_draw = 0
-max_ntree_draw = 5
+max_ntree_draw = 5 # 7 #
 min_diff_draw = -0.15
 max_diff_draw = 0.15
 
@@ -217,6 +219,9 @@ for i_run in range(n_runs):
             # Remove "Other" class to test classification of "Live" vs. "Defoliated" 
             if twoclass_only:
                 sat_data = np.delete(sat_data, np.where(labels == 0), axis=0)
+            
+            # Extract SAR covariance matrix features?
+            sat_data = get_sar_features(sat_data, feature_type=c3_feature_type)
             
             # Do normalization
             sat_data = norm01(sat_data, norm_type=norm_type)
