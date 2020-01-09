@@ -91,7 +91,7 @@ for dataset_id in id_list:
                 # Something went wrong, zero out some variables to ensure no follow up errors
                 sar_bands_use = []
                 continue
-        else:a
+        else:
             sat_pathfile_name = dataset_use + '-path'
             print(sat_pathfile_name)
 
