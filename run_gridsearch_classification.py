@@ -42,7 +42,7 @@ datamod_fprefix = 'cov_mat-20200108.pkl' #'20191220_PGNLM-paramsearch' # 'New-da
 obj_in_name = datamod_fprefix # + '.pkl'
 
 #%% Run parameters
-n_runs = 10000
+n_runs = 10
 do_cross_set = True
 # SHUFFLE DATA BEFORE CROSS VALIDATION, SET RANDOM STATE TO K FOR REPRODUCABILITY
 crossval_split_k = 3
@@ -56,7 +56,15 @@ max_class_size = 0.72
 min_samples_use = 0.40 # Minimum number of samples to use
 # Normalization options to try
 norm_options =  ['local','global','none']
-
+# For drawing PLC and PDC, n_trees etc.
+min_plc_draw = -0.1 # Set to negative to give a significant chance of having 0 as lower limit
+min_pdc_draw = -0.1 # Set to negative to give a significant chance of having 0 as lower limit
+max_plc_draw = 0.25
+max_pdc_draw = 0.25
+min_ntree_draw = 0
+max_ntree_draw = 5
+min_diff_draw = -0.15
+max_diff_draw = 0.15
 
 
 #%% Read DataModalities object with ground in situ vegetation data
@@ -118,10 +126,10 @@ for i_run in range(n_runs):
     # Normalization
     norm_type = np.random.choice(norm_options) # 'local' # 'global' # 'none' # 
     # Class boundaries
-    min_p_live = np.random.uniform(low=-0.1, high=0.25) # Set to negative to give a significant chance of having 0 as lower limit 
-    min_p_defo = np.random.uniform(low=-0.1, high=0.25) # Set to negative to give a significant chance of having 0 as lower limit
-    min_tree_live = np.random.randint(0, high=5)
-    diff_live_defo = np.random.uniform(low=-0.15, high=0.15)
+    min_p_live = np.random.uniform(low=min_plc_draw, high=max_plc_draw)  
+    min_p_defo = np.random.uniform(low=min_pdc_draw, high=max_pdc_draw) 
+    min_tree_live = np.random.randint(min_ntree_draw, high=max_ntree_draw)
+    diff_live_defo = np.random.uniform(low=min_diff_draw, high=max_diff_draw)
     
     # Set labels
     data_labels = np.zeros((length(y_data)))
