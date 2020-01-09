@@ -28,22 +28,22 @@ from dataclass import *
 
 
 #%% Files and paths
-twoclass_only = True
+twoclass_only = False
 # Output files
-gridsearch_file = 'gridsearch_pgnlm_20200107-twoclass.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #'gridsearch_pgnlm_20200103.pkl' #'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
+gridsearch_file = 'gridsearch_C3_20200108-threeclass.pkl' # 'gridsearch_C3_20200108-twoclass.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #'gridsearch_pgnlm_20200103.pkl' #'gridsearch_20191205.pkl' # 'gridsearch_DiffGPS.pkl'
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
                         
 # Prefix for object filename
-datamod_fprefix = '20191220_PGNLM-paramsearch' # 'New-data-20191203-'
+datamod_fprefix = 'cov_mat-20200108.pkl' #'20191220_PGNLM-paramsearch' # 'New-data-20191203-'
           
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix # + '.pkl'
 
 #%% Run parameters
-n_runs = 600
-do_cross_set = False
+n_runs = 10000
+do_cross_set = True
 # SHUFFLE DATA BEFORE CROSS VALIDATION, SET RANDOM STATE TO K FOR REPRODUCABILITY
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)

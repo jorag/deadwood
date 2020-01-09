@@ -22,11 +22,11 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 
 #%% Input files and plot options
 # Plot cross-set results?
-do_cross_set = False
+do_cross_set = True
 # Input file
-gridsearch_file = 'gridsearch_pgnlm_20200107-twoclass.pkl' #'gridsearch_pgnlm_20200103.pkl' # 'gridsearch_DiffGPS.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #                        
+gridsearch_file = 'gridsearch_C3_20200108-threeclass.pkl' # 'gridsearch_C3_20200108-twoclass.pkl' # 'gridsearch_pgnlm_20200107-twoclass.pkl' #'gridsearch_pgnlm_20200103.pkl' # 'gridsearch_DiffGPS.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #                        
 # Prefix for object filename
-datamod_fprefix = '20191220_PGNLM-paramsearch' #'New-data-20191205-.pkl' # 'All-data-0919-.pkl'         
+datamod_fprefix = 'cov_mat-20200108.pkl' #'20191220_PGNLM-paramsearch' #'New-data-20191205-.pkl' # 'All-data-0919-.pkl'         
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix #+'-' + '.pkl'
 
