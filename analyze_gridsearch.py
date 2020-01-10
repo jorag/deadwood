@@ -87,6 +87,7 @@ lcs_unique, lcs_indice, lcs_inverse, lcs_counts = np.unique(largest_class_size,
 
                                                             
 # Which results to process
+# for result_list in [result_knn_cross_val, result_rf_cross_val]:
 result_list = result_rf_cross_val
                                                             
 # Intialize output result list
@@ -122,21 +123,76 @@ for lcs_index, lcs_size in enumerate(lcs_unique):
 
 # Initialize output arrays
 n_param_sets = length(best_result_params)
-knn_k_vec = np.zeros(n_param_sets)
+knn_k = np.zeros(n_param_sets)
+rf_ntree = np.zeros(n_param_sets)
+live_min = np.zeros(n_param_sets)
+defo_min = np.zeros(n_param_sets)
+tree_min = np.zeros(n_param_sets)
 
 # Loop over result list
 for i_params, parameters in enumerate(best_result_params):
-    knn_k_vec[i_params] = parameters['knn_k'] # Makes no sense for RF results
+    knn_k[i_params] = parameters['knn_k']
+    rf_ntree[i_params] = parameters['rf_ntrees']
+    live_min[i_params] = parameters['min_p_live']
+    defo_min[i_params] = parameters['min_p_defo']
+    tree_min[i_params] = parameters['min_tree_live']
+    
 
-# Plot histogram 
-knn_k_bins = np.arange(1,11) # Low and high of randint for knn k
+#%% Plot histograms
+
+# Live
+live_bins = np.linspace(-0.1, 0.4, num = 25) 
 
 fig = plt.figure()
-plt.hist(knn_k_vec, knn_k_bins, facecolor='g', alpha=0.5, label='knn k')
+plt.hist(live_min, live_bins, facecolor='g', alpha=0.75, label='Min PLC')
 plt.legend(loc='upper right')
 plt.ylabel('Counts')
-plt.xlabel('k')
+plt.xlabel('Minimum Proprotion Live Crown')
 plt.title('Parameters with best accuracy results')
+
+# Defoliated
+defo_bins = np.linspace(-0.1, 0.4, num = 25) 
+
+fig = plt.figure()
+plt.hist(defo_min, defo_bins, facecolor='r', alpha=0.75, label='Min PLC')
+plt.legend(loc='upper right')
+plt.ylabel('Counts')
+plt.xlabel('Minimum Proprotion Defoliated Crown')
+plt.title('Parameters with best accuracy results')
+
+# Defoliated
+tree_bins = np.arange(0,8)
+
+fig = plt.figure()
+plt.hist(tree_min, tree_bins, facecolor='y', alpha=0.75, label='Min PLC')
+plt.legend(loc='upper right')
+plt.ylabel('Counts')
+plt.xlabel('Minimum Number of Trees')
+plt.title('Parameters with best accuracy results')
+
+plot_classifier_params = True
+if plot_classifier_params:
+    # kNN k
+    knn_k_bins = np.arange(1,11) # Low and high of randint for knn k
+    
+    fig = plt.figure()
+    plt.hist(knn_k, knn_k_bins, facecolor='r', alpha=0.95, label='knn k')
+    plt.legend(loc='upper right')
+    plt.ylabel('Counts')
+    plt.xlabel('k')
+    plt.title('Parameters with best accuracy results')
+    
+    # RF n_trees
+    rf_ntree_bins = np.arange(5,201)   # Low and high of randint for knn k
+    
+    fig = plt.figure()
+    plt.hist(rf_ntree, rf_ntree_bins, facecolor='b', alpha=0.95, label='RF n_tree')
+    plt.legend(loc='upper right')
+    plt.ylabel('Counts')
+    plt.xlabel('RF n_trees classification parameter')
+    plt.title('Parameters with best accuracy results')
+
+
 
 #%% Get list of datasets
 dataset_keys = result_rf_cross_val[0].keys() # TODO: consider storing dataset keys in result_summary or other variable
@@ -262,42 +318,3 @@ plt.xlabel('Largest class size'); plt.ylabel('Accuracy')
 plt.ylim((0,1)); plt.xlim((0,1))
 plt.title('SVM max accuracy - cross validation')
 plt.show()
-
-#%% Do plots for cross-set classification
-if do_cross_set: 
-    fig = plt.figure()
-    plt.scatter(largest_class_size, best_knn_xset_gain, c='r', marker='o')
-    plt.scatter(largest_class_size, best_rf_xset_gain, c='b', marker='x')
-    plt.scatter(largest_class_size, best_svm_xset_gain, c='g', marker='+')
-    plt.xlabel('Largest class size'); plt.ylabel('Max accuracy gain')
-    plt.title('Gain - Train on one set, test on others')
-    plt.legend(['KNN', 'RF', 'SVM'])
-    plt.show()
-
-    # PLOT OVERALL ACCURACY - cross set
-    fig = plt.figure()
-    plt.scatter(largest_class_size, xset_knn_max, c='r')
-    plt.plot([0,1], [0,1], c='g')
-    plt.xlabel('Largest class size'); plt.ylabel('Accuracy')
-    #plt.gca().set_aspect('equal', adjustable='box')
-    plt.ylim((0,1)); plt.xlim((0,1))
-    #plt.legend(['other', 'Live', 'Defoliated'])
-    plt.title('KNN max accuracy - Train on one set, test on others')
-    plt.show()
-
-    fig = plt.figure()
-    plt.scatter(largest_class_size, xset_knn_max, c='b')
-    plt.plot([0,1], [0,1], c='g')
-    plt.xlabel('Largest class size'); plt.ylabel('Accuracy')
-    plt.ylim((0,1)); plt.xlim((0,1))
-    plt.title('RF max accuracy - Train on one set, test on others')
-    plt.show()
-    
-    fig = plt.figure()
-    plt.scatter(largest_class_size, xset_svm_max, c='g')
-    plt.plot([0,1], [0,1], c='g')
-    plt.xlabel('Largest class size'); plt.ylabel('Accuracy')
-    plt.ylim((0,1)); plt.xlim((0,1))
-    plt.title('SVM max accuracy - Train on one set, test on others')
-    plt.show()
-
