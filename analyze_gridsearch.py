@@ -82,13 +82,39 @@ if do_cross_set:
 lcs_unique, lcs_indice, lcs_inverse, lcs_counts = np.unique(largest_class_size,
                     return_index=True, return_inverse=True, return_counts=True)
 
+# Intialize output result list
+best_result_params = []
+best_result_acc = np.zeros(lcs_unique.shape)
 
+# loop over datasets here???
+current_dataset = 'C-20200101-0608'
 for lcs_index, lcs_size in enumerate(lcs_unique):
     print(lcs_size)
     print(largest_class_size[lcs_indice[lcs_index]])
-    curr_ind = lcs_inverse[lcs_inverse==lcs_index]
-    print( np.mean(largest_class_size[np.where(lcs_inverse==lcs_index)]) )
-
+    #curr_ind = lcs_inverse[lcs_inverse==lcs_index]
+    #print( largest_class_size[np.where(lcs_inverse==lcs_index)][0] )
+    
+    # Find runs with parameters that result in this largest class size (lcs)
+    curr_ind = np.where(lcs_inverse==lcs_index)
+    # Loop over classification results that match the largest dataset size
+    best_candidates_acc = -1
+    for i_run in curr_ind[0]:
+        # Get accuracy for dataset for current parameter set
+        curr_accuracy = result_rf_cross_val[i_run][current_dataset]
+        # Check if the result is better than the current best
+        if curr_accuracy > best_candidates_acc:
+            # New high score, make it new best candidate
+            best_candidates_acc = curr_accuracy
+            # Store parameters
+            best_candidates_params = [param_list[i_run]]
+        elif curr_accuracy == best_candidates_acc:
+            # Add parameters to list of best parameters
+            best_candidates_params.append(param_list[i_run])
+            
+    # Add to overall list of best parameters
+    best_result_params += best_candidates_params
+    best_result_acc[lcs_index] = best_candidates_acc
+        
 #%% Get list of datasets
 dataset_keys = result_rf_cross_val[0].keys() # TODO: consider storing dataset keys in result_summary or other variable
 dataset_list = list(dataset_keys)
