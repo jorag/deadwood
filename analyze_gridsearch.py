@@ -82,6 +82,10 @@ if do_cross_set:
 lcs_unique, lcs_indice, lcs_inverse, lcs_counts = np.unique(largest_class_size,
                     return_index=True, return_inverse=True, return_counts=True)
 
+                                                            
+# Which results to process
+result_list = result_rf_cross_val
+                                                            
 # Intialize output result list
 best_result_params = []
 best_result_acc = np.zeros(lcs_unique.shape)
@@ -89,18 +93,13 @@ best_result_acc = np.zeros(lcs_unique.shape)
 # loop over datasets here???
 current_dataset = 'C-20200101-0608'
 for lcs_index, lcs_size in enumerate(lcs_unique):
-    print(lcs_size)
-    print(largest_class_size[lcs_indice[lcs_index]])
-    #curr_ind = lcs_inverse[lcs_inverse==lcs_index]
-    #print( largest_class_size[np.where(lcs_inverse==lcs_index)][0] )
-    
     # Find runs with parameters that result in this largest class size (lcs)
     curr_ind = np.where(lcs_inverse==lcs_index)
     # Loop over classification results that match the largest dataset size
     best_candidates_acc = -1
     for i_run in curr_ind[0]:
         # Get accuracy for dataset for current parameter set
-        curr_accuracy = result_rf_cross_val[i_run][current_dataset]
+        curr_accuracy = result_list[i_run][current_dataset]
         # Check if the result is better than the current best
         if curr_accuracy > best_candidates_acc:
             # New high score, make it new best candidate
@@ -114,7 +113,29 @@ for lcs_index, lcs_size in enumerate(lcs_unique):
     # Add to overall list of best parameters
     best_result_params += best_candidates_params
     best_result_acc[lcs_index] = best_candidates_acc
+
         
+#%% Find parameters that gives the highest accuracy for each dataset
+
+# Initialize output arrays
+n_param_sets = length(best_result_params)
+knn_k_vec = np.zeros(n_param_sets)
+
+# Loop over result list
+for i_params, parameters in enumerate(best_result_params):
+    knn_k_vec[i_params] = parameters['knn_k'] # Makes no sense for RF results
+
+# Plot histogram 
+knn_k_bins = np.arange(1,11) # Low and high of randint for knn k
+
+fig = plt.figure()
+#plt.hist(knn_k_vec, knn_k_bins, density = True, facecolor='g', alpha=0.5, label='knn k')
+plt.hist(knn_k_vec, knn_k_bins, facecolor='g', alpha=0.5, label='knn k')
+plt.legend(loc='upper right')
+plt.ylabel('Counts')
+plt.xlabel('k')
+plt.title('Parameters with best accuracy results')
+
 #%% Get list of datasets
 dataset_keys = result_rf_cross_val[0].keys() # TODO: consider storing dataset keys in result_summary or other variable
 dataset_list = list(dataset_keys)
@@ -129,9 +150,7 @@ for i_run, result_dict in enumerate(result_rf_cross_val):
         rf_result_vec[i_dataset, 0] += result_dict[key] - best_res
         rf_best_set_vec[i_dataset, 0] += 1-np.ceil(best_res-result_dict[key])
             
-#%% Index to get all classification results for that class size
 
-#%% Find parameters that gives the highest accuracy for each datasset
 
 #%% Summary of Random Forest (rf) results
 plot_dataset_rf = True

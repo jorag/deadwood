@@ -122,7 +122,7 @@ time_start = time.time()
 for i_run in range(n_runs):
     print('Iteration: ', i_run)
     # PROCESSING PARAMETERS
-    knn_k = np.random.randint(1, high=11)
+    knn_k = np.random.randint(1, high=11) # TODO 20200110- store high?
     rf_ntrees = np.random.randint(5, high=200) # Number of trees in the Random Forest algorithm
     svm_kernel = str(np.random.choice(kernel_options))
     # Normalization
