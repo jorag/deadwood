@@ -23,12 +23,15 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 #%% Input files and plot options
 # Plot cross-set results?
 do_cross_set = False
+plot_dataset_rf = True
+plot_dataset_knn = True
+
 # Input file
-gridsearch_file = 'gridsearch_C3features_20200109-threeclass.pkl' #'gridsearch_C3_20200108-threeclass.pkl' #'gridsearch_pgnlm_20200103.pkl' #'gridsearch_C3_20200108-twoclass.pkl' # 'gridsearch_pgnlm_20200107-twoclass.pkl' #'gridsearch_DiffGPS.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #                        
+gridsearch_file = 'gridsearch_C3features_20200109-threeclass.pkl' #'gridsearch_C3_20200108-threeclass.pkl' #'gridsearch_pgnlm_20200103.pkl' #'gridsearch_C3_20200108-twoclass.pkl' # 'gridsearch_pgnlm_20200107-twoclass.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #                        
 # Prefix for object filename
-datamod_fprefix = 'cov_mat-20200108.pkl' #'20191220_PGNLM-paramsearch' #'New-data-20191205-.pkl' # 'All-data-0919-.pkl'         
+datamod_fprefix = 'cov_mat-20200108.pkl' #'20191220_PGNLM-paramsearch'       
 # Name of input object and file with satellite data path string
-obj_in_name = datamod_fprefix #+'-' + '.pkl'
+obj_in_name = datamod_fprefix
 
 #%% Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
@@ -75,7 +78,6 @@ if do_cross_set:
 
 
 #%% Summary of Random Forest (rf) results
-plot_dataset_rf = True
 if plot_dataset_rf:
     # Get list of datasets
     dataset_keys = result_rf_cross_val[0].keys() # TODO: consider storing dataset keys in result_summary or other variable
@@ -113,7 +115,6 @@ if plot_dataset_rf:
     xval_knn_bestdiff = [d[knn_best_diff] for d in result_rf_cross_val]
     
 #%% Summary of kNN results
-plot_dataset_knn = True
 if plot_dataset_knn:
     # Get list of datasets
     dataset_keys = result_knn_cross_val[0].keys() # TODO: consider storing dataset keys in result_summary or other variable
