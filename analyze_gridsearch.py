@@ -96,27 +96,32 @@ best_result_acc = np.zeros(lcs_unique.shape)
 
 # loop over datasets here???
 current_dataset = 'C-20200101-0608'
-for lcs_index, lcs_size in enumerate(lcs_unique):
-    # Find runs with parameters that result in this largest class size (lcs)
-    curr_ind = np.where(lcs_inverse==lcs_index)
-    # Loop over classification results that match the largest dataset size
-    best_candidates_acc = -1
-    for i_run in curr_ind[0]:
-        # Get accuracy for dataset for current parameter set
-        curr_accuracy = result_list[i_run][current_dataset]
-        # Check if the result is better than the current best
-        if curr_accuracy > best_candidates_acc:
-            # New high score, make it new best candidate
-            best_candidates_acc = curr_accuracy
-            # Store parameters
-            best_candidates_params = [param_list[i_run]]
-        elif curr_accuracy == best_candidates_acc:
-            # Add parameters to list of best parameters
-            best_candidates_params.append(param_list[i_run])
-            
-    # Add to overall list of best parameters
-    best_result_params += best_candidates_params
-    best_result_acc[lcs_index] = best_candidates_acc
+
+dataset_keys = result_rf_cross_val[0].keys() # TODO: consider storing dataset keys in result_summary or other variable
+dataset_list = list(dataset_keys)
+
+for current_dataset in dataset_list:
+    for lcs_index, lcs_size in enumerate(lcs_unique):
+        # Find runs with parameters that result in this largest class size (lcs)
+        curr_ind = np.where(lcs_inverse==lcs_index)
+        # Loop over classification results that match the largest dataset size
+        best_candidates_acc = -1
+        for i_run in curr_ind[0]:
+            # Get accuracy for dataset for current parameter set
+            curr_accuracy = result_list[i_run][current_dataset]
+            # Check if the result is better than the current best
+            if curr_accuracy > best_candidates_acc:
+                # New high score, make it new best candidate
+                best_candidates_acc = curr_accuracy
+                # Store parameters
+                best_candidates_params = [param_list[i_run]]
+            elif curr_accuracy == best_candidates_acc:
+                # Add parameters to list of best parameters
+                best_candidates_params.append(param_list[i_run])
+                
+        # Add to overall list of best parameters
+        best_result_params += best_candidates_params
+        best_result_acc[lcs_index] = best_candidates_acc
 
         
 #%% Find parameters that gives the highest accuracy for each dataset
@@ -128,6 +133,7 @@ rf_ntree = np.zeros(n_param_sets)
 live_min = np.zeros(n_param_sets)
 defo_min = np.zeros(n_param_sets)
 tree_min = np.zeros(n_param_sets)
+diff_live_defo = np.zeros(n_param_sets)
 
 # Loop over result list
 for i_params, parameters in enumerate(best_result_params):
@@ -136,12 +142,14 @@ for i_params, parameters in enumerate(best_result_params):
     live_min[i_params] = parameters['min_p_live']
     defo_min[i_params] = parameters['min_p_defo']
     tree_min[i_params] = parameters['min_tree_live']
+    diff_live_defo[i_params] = parameters['diff_live_defo']
     
 
 #%% Plot histograms
 
 # Live
-live_bins = np.linspace(-0.1, 0.4, num = 25) 
+live_bin_n = 50
+live_bins = np.linspace(-0.1, 0.4, num = live_bin_n) 
 
 fig = plt.figure()
 plt.hist(live_min, live_bins, facecolor='g', alpha=0.75, label='Min PLC')
@@ -151,24 +159,37 @@ plt.xlabel('Minimum Proprotion Live Crown')
 plt.title('Parameters with best accuracy results')
 
 # Defoliated
-defo_bins = np.linspace(-0.1, 0.4, num = 25) 
+defo_bin_n = live_bin_n
+defo_bins = np.linspace(-0.1, 0.4, num = defo_bin_n) 
 
 fig = plt.figure()
-plt.hist(defo_min, defo_bins, facecolor='r', alpha=0.75, label='Min PLC')
+plt.hist(defo_min, defo_bins, facecolor='r', alpha=0.75, label='Min PDC')
 plt.legend(loc='upper right')
 plt.ylabel('Counts')
 plt.xlabel('Minimum Proprotion Defoliated Crown')
 plt.title('Parameters with best accuracy results')
 
-# Defoliated
+# Min number of trees
 tree_bins = np.arange(0,8)
 
 fig = plt.figure()
-plt.hist(tree_min, tree_bins, facecolor='y', alpha=0.75, label='Min PLC')
+plt.hist(tree_min, tree_bins, facecolor='y', alpha=0.75, label='Min n_trees')
 plt.legend(loc='upper right')
 plt.ylabel('Counts')
 plt.xlabel('Minimum Number of Trees')
 plt.title('Parameters with best accuracy results')
+
+# Diff live defoliated
+diff_bin_n = 50
+diff_bins = np.linspace(-0.15, 0.15, num = diff_bin_n) 
+
+fig = plt.figure()
+plt.hist(diff_live_defo, diff_bins, facecolor='m', alpha=0.75, label='Diff')
+plt.legend(loc='upper right')
+plt.ylabel('Counts')
+plt.xlabel('Difference Proprotion Live vs. Defoliated Crown')
+plt.title('Parameters with best accuracy results')
+
 
 plot_classifier_params = True
 if plot_classifier_params:
