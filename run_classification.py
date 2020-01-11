@@ -29,31 +29,39 @@ from dataclass import *
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
+# Prefix for object filename
+datamod_fprefix = 'cov_mat-20200108' #'20191220_PGNLM-paramsearch' # 'New-data-20191203-' #'New-data-20191203-.pkl'
+          
+# Name of input object and file with satellite data path string
+obj_in_name = datamod_fprefix  + '.pkl'
+                          
 # Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
 
 # PROCESSING PARAMETERS
 crossval_split_k = 3
-crossval_kfold = StratifiedKFold(n_splits=crossval_split_k)
+crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
 knn_k = 3
-rf_ntrees = 15 # Number of trees in the Random Forest algorithm
+rf_ntrees = 150 # Number of trees in the Random Forest algorithm
 separate_bar_plots = False # Combination of RF and kNN result, or separate plots
 
 # Prefix for output cross validation object filename
 crossval_fprefix = 'new-kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
 
-# Prefix for object filename
-datamod_fprefix = 'New-data-20191203'
-id_list = ['A', 'B', 'C']
-
-# Name of input object and file with satellite data path string
-obj_in_name = datamod_fprefix + '-' + '.pkl'
 
 ## Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
 
+# List of dataset IDs, either a single letter or a letter + datestr combo
+try:
+    pgnlm_flag = True
+    id_list = list(all_data.pgnlm_param_dict.keys()) 
+except:
+    pgnlm_flag = False
+    id_list = ['A', 'B', 'C'] # First is used for training, next is used for testing
+
 # Set class labels for dictionary - TODO: Consider moving this to get_stat_data
-class_dict_in = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
+class_dict = dict([['Live', 1], ['Defoliated', 2], ['other', 0]])
 
 # Read ground truth point measurements into a matrix 
 y_var_read = ['plc', 'pdc', 'n_trees']
@@ -68,15 +76,34 @@ for i_var_y in range(n_var_y):
     y[np.isnan(y)] = 0 # Replace NaNs with zeros
     y_data[:,i_var_y] = y
 
+# Normalization
+norm_type = 'local' # 'global' # 'none' # 
+# Class boundaries
+min_p_live = 0.05
+min_p_defo = 0.05 
+min_tree_live = 1
+diff_live_defo = 0.0
+
 # Set labels
 data_labels = np.zeros((length(y_data)))
-data_labels[np.where(y_data[:,1]>y_data[:,0])] = 2 # Defoliated
-#data_labels[np.where(y_data[:,1]>0.05)] = 2 # Defoliated
-data_labels[np.where(y_data[:,1]<=0.075)] = 0 # Other
-data_labels[np.where(y_data[:,0] > 0.075)] = 1 # Live
-data_labels[np.where(y_data[:,2]<=2)] = 0 # Other
-#data_labels = np.random.randint(3, size=(length(y_data)))
-class_dict=class_dict_in
+for i_point in range(length(data_labels)):
+    if y_data[i_point, 2] >= min_tree_live and (y_data[i_point, 0]>min_p_live or y_data[i_point, 1]>min_p_defo): 
+         if y_data[i_point, 0] >= y_data[i_point, 1] - diff_live_defo:
+             data_labels[i_point] = 1
+         else:
+             data_labels[i_point] = 2
+
+
+
+## Set labels
+#data_labels = np.zeros((length(y_data)))
+#data_labels[np.where(y_data[:,1]>y_data[:,0])] = 2 # Defoliated
+##data_labels[np.where(y_data[:,1]>0.05)] = 2 # Defoliated
+#data_labels[np.where(y_data[:,1]<=0.075)] = 0 # Other
+#data_labels[np.where(y_data[:,0] > 0.075)] = 1 # Live
+#data_labels[np.where(y_data[:,2]<=2)] = 0 # Other
+##data_labels = np.random.randint(3, size=(length(y_data)))
+#class_dict=class_dict_in
 n_classes = length(class_dict)
 
 # Plot classifier result for entire image
@@ -162,14 +189,26 @@ plt.show()
 
 # TRAIN AND CROSS-VALIDATE
 # Go through all satellite images and all data modalities in object
-for dataset_id in id_list: 
-    for dataset_type in all_data.all_modalities:
-        print(dataset_type)            
+#for dataset_id in id_list: 
+#    for dataset_type in all_data.all_modalities:
+#        print(dataset_type)            
+#        # Get satellite data
+#        try:
+#            dataset_use = dataset_type+'-'+dataset_id
+#            sat_data = all_data.read_data_points(dataset_use, modality_type=dataset_type)
+#            print(dataset_use)
+#        except:
+#            continue
+for dataset_type in all_data.all_modalities:            
+    for dataset_id in id_list:           
         # Get satellite data
         try:
-            dataset_use = dataset_type+'-'+dataset_id
+            if pgnlm_flag:
+                dataset_use = dataset_id
+            else:
+                dataset_use = dataset_type+'-'+dataset_id
             sat_data = all_data.read_data_points(dataset_use, modality_type=dataset_type)
-            print(dataset_use)
+            curr_type = dataset_type # Dataset loaded ok
         except:
             continue
         
