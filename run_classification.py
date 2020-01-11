@@ -40,7 +40,7 @@ obj_in_name = datamod_fprefix  + '.pkl'
 # PROCESSING PARAMETERS
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
-knn_k = 3
+knn_k = 7
 rf_ntrees = 150 # Number of trees in the Random Forest algorithm
 separate_bar_plots = False # Combination of RF and kNN result, or separate plots
 
@@ -93,17 +93,7 @@ for i_point in range(length(data_labels)):
          else:
              data_labels[i_point] = 2
 
-
-
-## Set labels
-#data_labels = np.zeros((length(y_data)))
-#data_labels[np.where(y_data[:,1]>y_data[:,0])] = 2 # Defoliated
-##data_labels[np.where(y_data[:,1]>0.05)] = 2 # Defoliated
-#data_labels[np.where(y_data[:,1]<=0.075)] = 0 # Other
-#data_labels[np.where(y_data[:,0] > 0.075)] = 1 # Live
-#data_labels[np.where(y_data[:,2]<=2)] = 0 # Other
-##data_labels = np.random.randint(3, size=(length(y_data)))
-#class_dict=class_dict_in
+#Number of classes
 n_classes = length(class_dict)
 
 # Plot classifier result for entire image
@@ -117,9 +107,6 @@ rf_confmat_file =  datamod_fprefix + crossval_fprefix + 'conf_mat_rf.pkl'
 # Parameter save file
 classify_params_file = datamod_fprefix + crossval_fprefix + 'cross_validation_params.pkl' 
 
-
-## Image plot parameter - TODO: Differentiate for SAR and optical data
-#norm_type = 'local' # 'global' # 
 
 # Read or create result dicts - kNN
 try:
@@ -183,22 +170,9 @@ fig = plt.figure()
 plt.scatter(y_data[:,0], y_data[:,1], c=c_vec[plot_labels], marker='o', label=plot_labels)
 plt.xlabel('Live Crown Proportion'); plt.ylabel('Defoliated Crown Proportion')
 plt.ylim((-0.1,1)); plt.xlim((-0.1,1))
-#plt.legend(['other', 'Live', 'Defoliated'])
-#plt.legend()
 plt.show()
 
 # TRAIN AND CROSS-VALIDATE
-# Go through all satellite images and all data modalities in object
-#for dataset_id in id_list: 
-#    for dataset_type in all_data.all_modalities:
-#        print(dataset_type)            
-#        # Get satellite data
-#        try:
-#            dataset_use = dataset_type+'-'+dataset_id
-#            sat_data = all_data.read_data_points(dataset_use, modality_type=dataset_type)
-#            print(dataset_use)
-#        except:
-#            continue
 for dataset_type in all_data.all_modalities:            
     for dataset_id in id_list:           
         # Get satellite data
