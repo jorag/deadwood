@@ -16,6 +16,7 @@ from mytools import *
 from geopixpos import *
 from visandtest import *
 from dataclass import *
+from mpl_toolkits.mplot3d import Axes3D # noqa: F401 unused import
 
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -190,6 +191,23 @@ plt.ylabel('Counts')
 plt.xlabel('Difference Proprotion Live vs. Defoliated Crown')
 plt.title('Parameters with best accuracy results')
 
+
+# 3D plot, PLC, PDC, Diff
+
+# Get standard colour/plotstyle vector
+colour_vec = mycolourvec()
+colour_vec.append('gray')
+# Convert to numpy array for indexation
+colour_vec = np.asarray(colour_vec)
+
+fig = plt.figure()
+ax = Axes3D(fig)
+
+ax.scatter(live_min, defo_min, diff_live_defo, c=colour_vec[tree_min.astype(int)], marker='o')
+
+ax.set_xlabel('Live')
+ax.set_ylabel('Defoliated')
+ax.set_zlabel('Diff PLC-PDC')
 
 plot_classifier_params = True
 if plot_classifier_params:
