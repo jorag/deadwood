@@ -89,20 +89,25 @@ lcs_unique, lcs_indice, lcs_inverse, lcs_counts = np.unique(largest_class_size,
                                                             
 # Which results to process
 # for result_list in [result_knn_cross_val, result_rf_cross_val]:
-result_list = result_rf_cross_val
+result_list = result_knn_cross_val
                                                             
 # Intialize output result list
 best_result_params = []
 best_result_acc = np.zeros(lcs_unique.shape)
 
 # loop over datasets here???
-current_dataset = 'C-20200101-0608'
+#current_dataset = 'C-20200101-0608'
+
+# Limit max class size to consider to those under this threshold
+max_class_thresh = 0.65 # 1
 
 dataset_keys = result_rf_cross_val[0].keys() # TODO: consider storing dataset keys in result_summary or other variable
 dataset_list = list(dataset_keys)
 
 for current_dataset in dataset_list:
     for lcs_index, lcs_size in enumerate(lcs_unique):
+        if lcs_size > max_class_thresh:
+            break
         # Find runs with parameters that result in this largest class size (lcs)
         curr_ind = np.where(lcs_inverse==lcs_index)
         # Loop over classification results that match the largest dataset size
@@ -149,7 +154,7 @@ for i_params, parameters in enumerate(best_result_params):
 #%% Plot histograms
 
 # Live
-live_bin_n = 50
+live_bin_n = 25
 live_bins = np.linspace(-0.1, 0.4, num = live_bin_n) 
 
 fig = plt.figure()
