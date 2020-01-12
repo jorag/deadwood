@@ -30,7 +30,7 @@ from dataclass import *
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Prefix for object filename
-datamod_fprefix = 'cov_mat-20200108' #'20191220_PGNLM-paramsearch' # 'New-data-20191203-' #'New-data-20191203-.pkl'
+datamod_fprefix = 'PGNLM-SNAP_C3_20200112' #'20191220_PGNLM-paramsearch' #'cov_mat-20200108' # 'New-data-20191203-' #'New-data-20191203-.pkl'
           
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix  + '.pkl'
@@ -79,10 +79,10 @@ for i_var_y in range(n_var_y):
 # Normalization
 norm_type = 'local' # 'global' # 'none' # 
 # Class boundaries
-min_p_live = 0.05
-min_p_defo = 0.05 
+min_p_live = 0.025
+min_p_defo = 0.040 
 min_tree_live = 1
-diff_live_defo = 0.0
+diff_live_defo = 0.0025
 
 # Set labels
 data_labels = np.zeros((length(y_data)))
@@ -143,7 +143,7 @@ except:
     rf_confmat_all = dict(); rf_confmat_sar = dict(); rf_confmat_opt = dict()
 
 
-# Convert labels to numpy array
+#%% Convert labels to numpy array
 labels = np.asarray(data_labels)
 # Print number of instances for each class
 for key in class_dict.keys():
@@ -151,7 +151,7 @@ for key in class_dict.keys():
     n_instances = length(labels[labels==val])
     print(str(val)+' '+key+' - points: '+str(n_instances))
 
-# Collect performance measures in dict
+#%% Collect performance measures in dict
 rf_mean_acc = dict()
 knn_mean_acc = dict()
 rf_mean_kappa = dict()
@@ -173,7 +173,16 @@ plt.ylim((-0.1,1)); plt.xlim((-0.1,1))
 plt.show()
 
 # TRAIN AND CROSS-VALIDATE
-for dataset_type in all_data.all_modalities:            
+for dataset_type in all_data.all_modalities: 
+    # Check if PGNLM filtered or C3 matrix and select feature type
+    if dataset_type.lower()[0:5] in ['pgnlm']:
+        c3_feature_type = 'iq2c3'
+    elif dataset_type.lower()[-2:] in ['c3']:
+        c3_feature_type = 'c3snap_filtered'
+    else:
+        print('No feature type found for: '+dataset_type)
+        c3_feature_type = 'NA'
+        
     for dataset_id in id_list:           
         # Get satellite data
         try:
@@ -184,6 +193,7 @@ for dataset_type in all_data.all_modalities:
             sat_data = all_data.read_data_points(dataset_use, modality_type=dataset_type)
             curr_type = dataset_type # Dataset loaded ok
         except:
+            print('Skipping: '+dataset_type+'-'+dataset_id)
             continue
         
         # Ensure that the output array has the proper shape (2 dimensions)
@@ -200,6 +210,9 @@ for dataset_type in all_data.all_modalities:
 
         # Normalize data - should probably be done when data is stored in object...
         print(np.max(sat_data,axis=0))
+        
+        # Extract SAR covariance matrix features?
+        sat_data = get_sar_features(sat_data, feature_type=c3_feature_type)
         
         # Split into training and test datasets
         data_train, data_test, labels_train, labels_test = train_test_split(sat_data, data_labels, test_size=0.2, random_state=0)  
@@ -306,7 +319,7 @@ with open(os.path.join(dirname, 'data', classify_params_file), 'wb') as output:
     pickle.dump([knn_k, rf_ntrees], output, pickle.HIGHEST_PROTOCOL)
 
 
-# Convert labels to numpy array
+#%% Convert labels to numpy array
 labels = np.asarray(data_labels)
 # Print number of instances for each class
 n_class_samples = []
@@ -326,7 +339,7 @@ alf = 0.7 # alpha
 #sorted(rf_mean_acc, key=rf_mean_acc.get, reverse=True)
 #sorted(linreg_pdc_r2, key=linreg_pdc_r2.get, reverse=True)
 
-# Mean Accuracy - both in same plot (kNN and RF)
+#%% Mean Accuracy - both in same plot (kNN and RF)
 plt.figure()
 plt.bar(x_bars*2+ofs, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
 plt.bar(x_bars*2-ofs, list(knn_mean_acc.values()), align='center', color='r', alpha=alf)
@@ -337,7 +350,7 @@ plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
 plt.legend(['Largest class %', 'RF', 'kNN'])
 plt.show()
 
-# Mean Kappa - both in same plot (kNN and RF)
+#%% Mean Kappa - both in same plot (kNN and RF)
 plt.figure()
 plt.bar(x_bars*2+ofs, list(rf_mean_kappa.values()), align='center', color='b', alpha=alf)
 plt.bar(x_bars*2-ofs, list(knn_mean_kappa.values()), align='center', color='r', alpha=alf)

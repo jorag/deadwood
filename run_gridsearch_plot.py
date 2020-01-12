@@ -27,7 +27,7 @@ plot_dataset_rf = True
 plot_dataset_knn = True
 
 # Input file
-gridsearch_file = 'gridsearch_C3features_20200109-threeclass.pkl' #'gridsearch_C3_20200108-threeclass.pkl' #'gridsearch_pgnlm_20200103.pkl' #'gridsearch_C3_20200108-twoclass.pkl' # 'gridsearch_pgnlm_20200107-twoclass.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #                        
+gridsearch_file = 'gridsearch_pgnlm_20200103.pkl' #'gridsearch_C3features_20200109-threeclass.pkl' #'gridsearch_C3_20200108-threeclass.pkl' #'gridsearch_C3_20200108-twoclass.pkl' # 'gridsearch_pgnlm_20200107-twoclass.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #                        
 # Prefix for object filename
 datamod_fprefix = 'cov_mat-20200108.pkl' #'20191220_PGNLM-paramsearch'       
 # Name of input object and file with satellite data path string
@@ -107,12 +107,12 @@ if plot_dataset_rf:
     plt.show()
     
     # Find best set
-    knn_best_diff = dataset_list[np.argmax(rf_result_vec)]
-    knn_best_vote = dataset_list[np.argmax(rf_best_set_vec)]
-    print('kNN, best average deviation from max accuracy: ' + knn_best_diff)
-    print('kNN, most max accuracy results: ' + knn_best_vote)
+    rf_best_diff = dataset_list[np.argmax(rf_result_vec)]
+    rf_best_vote = dataset_list[np.argmax(rf_best_set_vec)]
+    print('kNN, best average deviation from max accuracy: ' + rf_best_diff)
+    print('kNN, most max accuracy results: ' + rf_best_vote)
     # Result for all runs
-    xval_knn_bestdiff = [d[knn_best_diff] for d in result_rf_cross_val]
+    xval_knn_bestdiff = [d[rf_best_diff] for d in result_rf_cross_val]
     
 #%% Summary of kNN results
 if plot_dataset_knn:
@@ -120,18 +120,28 @@ if plot_dataset_knn:
     dataset_keys = result_knn_cross_val[0].keys() # TODO: consider storing dataset keys in result_summary or other variable
     n_sets = length(dataset_keys)
     knn_result_vec = np.zeros((n_sets ,1))
+    knn_best_set_vec = np.zeros((n_sets ,1))
     for i_run, result_dict in enumerate(result_knn_cross_val):
         # Get best result
         best_res = result_summary[i_run]['cross-val_knn_max']
         for i_dataset, key in enumerate(result_dict):
             # Find diff from best result
             knn_result_vec[i_dataset, 0] += result_dict[key] - best_res
+            knn_best_set_vec[i_dataset, 0] += 1-np.ceil(best_res-result_dict[key])
                       
     fig = plt.figure()
     plt.title('KNN dataset result, diff from max accuracy')
     plt.scatter(np.arange(n_sets), knn_result_vec, c='b', marker='o')
     plt.ylabel('Dataset nr.')
     plt.show()
+    
+    # Find best set
+    knn_best_diff = dataset_list[np.argmax(knn_result_vec)]
+    knn_best_vote = dataset_list[np.argmax(knn_best_set_vec)]
+    print('kNN, best average deviation from max accuracy: ' + knn_best_diff)
+    print('kNN, most max accuracy results: ' + knn_best_vote)
+    # Result for all runs
+    xval_knn_bestdiff = [d[knn_best_diff] for d in result_knn_cross_val]
     
 if plot_dataset_rf and plot_dataset_knn:
     sum_result_vec = rf_result_vec+knn_result_vec
