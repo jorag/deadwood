@@ -25,20 +25,22 @@ from dataclass import *
 new_datalist_format = True
 new_datalist_xls_file = '2020_C3_dataset_overview.xls' # '2019_reprocess_dataset_overview.xls'
 # Prefix for output datamodalities object filename
-datamod_fprefix = 'cov_mat-20200108'
+datamod_fprefix = 'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on 
 
 # List of datasets to process
 #dataset_list = ['iq', 'C3', 'cloude_3x3', 'genFD_3x3', 'vanZyl_3x3', 'yamaguchi_3x3', 'collocate_iq', 'collocate_C3', 'pgnlm_iq'] 
-dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3'] 
+#dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3'] 
+dataset_list = ['geo_opt']
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
-add_ndvi = False
+add_ndvi = True
 
 # Datasets to add optical bands from
-opt_dataset_list = []
+opt_dataset_list = ['geo_opt']
 
 # Which Sentinel-2 bands to use
-opt_bands_include = [] # ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
+#opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
+opt_bands_include = ['b02','b03','b04','b05','b08'] # b02, b03, b04, b08, all 10 m resolution
     
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
@@ -85,11 +87,24 @@ for dataset_id in id_list:
                 # Get indices for bands, lat, lon, SAR, and optical
                 lat_band = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'Lat_band'].values[0])[0]
                 lon_band = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'Lon_band'].values[0])[0]
-                sar_bands_use = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) & (df['Processing_key'] == dataset_in), 'SAR_bands'].values[0])
+                sar_bands_use = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) 
+                    & (df['Processing_key'] == dataset_in), 'SAR_bands'].values[0])
+                opt_bands_use = ast.literal_eval(df.loc[(df['Dataset_key'] == dataset_id) 
+                    & (df['Processing_key'] == dataset_in), 'OPT_bands'].values[0])
+    
+                # If optical bands part of dataset, assume all are present and create dict
+                # TODO 20200113 - Fix this assumption
+                if opt_bands_use:
+                    # List of optical band names (added zero for correct alphabetical sorting)
+                    opt_band_names = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
+                    
+                    # Add OPT bands
+                    opt_bands_dict = dict()
+                    opt_bands_dict[dataset_use] = dict(zip(opt_band_names , opt_bands_use))
+                    
                 print(sat_file)
             except:
-                # Something went wrong, zero out some variables to ensure no follow up errors
-                sar_bands_use = []
+                # Something went wrong
                 continue
         else:
             sat_pathfile_name = dataset_use + '-path'
@@ -116,21 +131,21 @@ for dataset_id in id_list:
             # or use output (possibly from memory) from filtering
             raster_data_array = dataset.ReadAsArray()
         except:
-            # Something went wrong, zero out some variables to ensure no follow up errors
-            sar_bands_use = []
+            # Something went wrong
             continue
         
-        # Get array with SAR data
-        sar_data_temp = raster_data_array[sar_bands_use,:,:]   
-        # Convert to 2D array
-        sar_data_temp, n_rows, n_cols = imtensor2array(sar_data_temp)
-        # Reshape to 3D image tensor (3 channels)
-        sar_data_temp = np.reshape(sar_data_temp, (n_rows, n_cols, sar_data_temp.shape[1]))
-        # SAR info to add to object
-        kw_sar = dict([['bands_use', sar_bands_use]])
+        # If SAR data should be added
+        if sar_bands_use:
+            # Get array with SAR data
+            sar_data_temp = raster_data_array[sar_bands_use,:,:]   
+            # Convert to 2D array
+            sar_data_temp, n_rows, n_cols = imtensor2array(sar_data_temp)
+            # Reshape to 3D image tensor (3 channels)
+            sar_data_temp = np.reshape(sar_data_temp, (n_rows, n_cols, sar_data_temp.shape[1]))
+            # SAR info to add to object
+            kw_sar = dict([['bands_use', sar_bands_use]])
         
-        # Get array with MULTISPECTRAL OPTICAL data
-        # Check to see if optical data should be included
+        # If MULTISPECTRAL OPTICAL data should be added
         if dataset_in in opt_dataset_list:
             opt_bands_use = [] # Check which of the available bands should be included 
             for key in opt_bands_include:
@@ -158,12 +173,15 @@ for dataset_id in id_list:
 #                                     raster_data_array[lon_band,:,:], 
 #                                     lat=coord2[0], lon=coord2[1], pixels_out ='npsingle')
 #            print(point, x_p-x_p2, y_p-y_p2)
-    
-            # Get SAR pixels
-            sar_pixels = sar_data_temp[x_p, y_p, :] 
-            # Add SAR modality
-            all_data.add_modality(point, dataset_in, sar_pixels.tolist(), dataset_use, **kw_sar)
             
+            # If SAR data should be added
+            if sar_bands_use:
+                # Get SAR pixels
+                sar_pixels = sar_data_temp[x_p, y_p, :] 
+                # Add SAR modality
+                all_data.add_modality(point, dataset_in, sar_pixels.tolist(), dataset_use, **kw_sar)
+            
+            # If MULTISPECTRAL OPTICAL data should be added
             if dataset_in in opt_dataset_list:
                 # Get OPT pixels
                 opt_pixels = opt_data_temp[x_p, y_p, :] 
@@ -171,9 +189,10 @@ for dataset_id in id_list:
                 all_data.add_modality(point, 'optical', opt_pixels.tolist(), 'optical-'+dataset_id, **kw_opt)
                 # Add NDVI
                 if add_ndvi:
+                    # TODO 20200113 - Clean up this!
                     kw_ndvi = dict([['bands_use', ['b04', 'b08']]])
-                    nir_pixels = opt_data_temp[x_p, y_p, opt_bands_dict[dataset_use]['b08']] 
-                    red_pixels = opt_data_temp[x_p, y_p, opt_bands_dict[dataset_use]['b04']]
+                    nir_pixels = opt_data_temp[x_p, y_p, opt_bands_include.index('b08')] 
+                    red_pixels = opt_data_temp[x_p, y_p, opt_bands_include.index('b04')]
                     ndvi_pixels = (nir_pixels-red_pixels)/(nir_pixels+red_pixels)
                     all_data.add_modality(point, 'NDVI', ndvi_pixels.tolist(), 'NDVI-'+dataset_id, **kw_ndvi)
     

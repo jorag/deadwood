@@ -30,21 +30,21 @@ from dataclass import *
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Prefix for object filename
-datamod_fprefix = 'PGNLM-SNAP_C3_20200112' #'20191220_PGNLM-paramsearch' #'cov_mat-20200108' # 'New-data-20191203-' #'New-data-20191203-.pkl'
+datamod_fprefix = 'PGNLM-SNAP_C3_geo_OPT_20200113' #'20191220_PGNLM-paramsearch' #'cov_mat-20200108' # 'New-data-20191203-' #'New-data-20191203-.pkl'
           
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix  + '.pkl'
                           
 #%% Classify LIVE FOREST vs. DEFOLIATED FOREST (and vs. OTHER?)
-twoclass_only = True
+twoclass_only = False
 
 # Normalization
 norm_type = 'local' # 'global' # 'none' # 
 # Class boundaries
-min_p_live = 0.0250
-min_p_defo = 0.0250 #0.060 
-min_tree_live = 2
-diff_live_defo = 0.025 #0 # 
+min_p_live =  0.05 
+min_p_defo = 0 # 0.05 # 
+min_tree_live = 2 # 0 # 
+diff_live_defo = 0.075 # 0 # 
 
 #%% PROCESSING PARAMETERS
 crossval_split_k = 3
