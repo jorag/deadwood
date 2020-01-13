@@ -27,7 +27,7 @@ plot_dataset_rf = True
 plot_dataset_knn = True
 
 # Input file
-gridsearch_file = 'gridsearch_pgnlm_20200103.pkl' #'gridsearch_C3features_20200109-threeclass.pkl' #'gridsearch_C3_20200108-threeclass.pkl' #'gridsearch_C3_20200108-twoclass.pkl' # 'gridsearch_pgnlm_20200107-twoclass.pkl' # 'gridsearch_pgnlm_20200106-5fold.pkl' #                        
+gridsearch_file = 'gridsearch_pgnlm_20200107-twoclass.pkl' #'gridsearch_pgnlm_20200103.pkl' #'gridsearch_C3features_20200109-threeclass.pkl' #'gridsearch_C3_20200108-threeclass.pkl' #'gridsearch_C3_20200108-twoclass.pkl' #'gridsearch_pgnlm_20200106-5fold.pkl' #                        
 # Prefix for object filename
 datamod_fprefix = 'cov_mat-20200108.pkl' #'20191220_PGNLM-paramsearch'       
 # Name of input object and file with satellite data path string
@@ -109,8 +109,8 @@ if plot_dataset_rf:
     # Find best set
     rf_best_diff = dataset_list[np.argmax(rf_result_vec)]
     rf_best_vote = dataset_list[np.argmax(rf_best_set_vec)]
-    print('kNN, best average deviation from max accuracy: ' + rf_best_diff)
-    print('kNN, most max accuracy results: ' + rf_best_vote)
+    print('RF, best average deviation from max accuracy: ' + rf_best_diff)
+    print('RF, most max accuracy results: ' + rf_best_vote)
     # Result for all runs
     xval_knn_bestdiff = [d[rf_best_diff] for d in result_rf_cross_val]
     
