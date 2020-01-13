@@ -35,20 +35,35 @@ datamod_fprefix = 'PGNLM-SNAP_C3_20200112' #'20191220_PGNLM-paramsearch' #'cov_m
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix  + '.pkl'
                           
-# Classify LIVE FOREST vs. DEFOLIATED FOREST vs. OTHER
+#%% Classify LIVE FOREST vs. DEFOLIATED FOREST (and vs. OTHER?)
+twoclass_only = True
 
-# PROCESSING PARAMETERS
+# Normalization
+norm_type = 'local' # 'global' # 'none' # 
+# Class boundaries
+min_p_live = 0.0250
+min_p_defo = 0.0250 #0.060 
+min_tree_live = 2
+diff_live_defo = 0.025 #0 # 
+
+#%% PROCESSING PARAMETERS
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
-knn_k = 7
+knn_k = 5
 rf_ntrees = 150 # Number of trees in the Random Forest algorithm
-separate_bar_plots = False # Combination of RF and kNN result, or separate plots
+
+#%% Plot options
+combined_bar_plots = False # Combination of RF and kNN result
+separate_bar_plots = False # Separate of RF and kNN result
+separate_dataset_plots = True # Separate plot for each dataset ID (A, B, C)
+plot_class_boundaries = False
+plot_kappa = False
+plot_image_result = False 
 
 # Prefix for output cross validation object filename
 crossval_fprefix = 'new-kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
 
-
-## Read DataModalities object with ground in situ vegetation data
+#%% Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
     all_data = pickle.load(input)
 
@@ -76,14 +91,6 @@ for i_var_y in range(n_var_y):
     y[np.isnan(y)] = 0 # Replace NaNs with zeros
     y_data[:,i_var_y] = y
 
-# Normalization
-norm_type = 'local' # 'global' # 'none' # 
-# Class boundaries
-min_p_live = 0.025
-min_p_defo = 0.040 
-min_tree_live = 1
-diff_live_defo = 0.0025
-
 # Set labels
 data_labels = np.zeros((length(y_data)))
 for i_point in range(length(data_labels)):
@@ -95,9 +102,6 @@ for i_point in range(length(data_labels)):
 
 #Number of classes
 n_classes = length(class_dict)
-
-# Plot classifier result for entire image
-plot_image_result = False
 
 # Output files
 knn_file =  datamod_fprefix + crossval_fprefix + 'cross_validation_knn.pkl'
@@ -144,7 +148,18 @@ except:
 
 
 #%% Convert labels to numpy array
-labels = np.asarray(data_labels)
+labels = np.array(data_labels)
+
+# Remove "Other" class to test classification of "Live" vs. "Defoliated" 
+if twoclass_only:
+    data_labels = np.delete(labels, np.where(labels == 0))
+    n_classes = 2
+    n_samples_use = length(data_labels)
+    print(n_samples_use)
+else:
+    # Number of classes
+    n_classes = length(class_dict)
+
 # Print number of instances for each class
 for key in class_dict.keys():
     val = class_dict[key]
@@ -164,15 +179,17 @@ plot_labels = labels.astype(int)
 c_vec = mycolourvec()
 # Convert to numpy array for indexation
 c_vec = np.asarray(c_vec)
-# Plot x
-xs = np.arange(length(y_data)) # range(n_datasets)
-fig = plt.figure()
-plt.scatter(y_data[:,0], y_data[:,1], c=c_vec[plot_labels], marker='o', label=plot_labels)
-plt.xlabel('Live Crown Proportion'); plt.ylabel('Defoliated Crown Proportion')
-plt.ylim((-0.1,1)); plt.xlim((-0.1,1))
-plt.show()
 
-# TRAIN AND CROSS-VALIDATE
+# Plot x
+if plot_class_boundaries:
+    xs = np.arange(length(y_data)) # range(n_datasets)
+    fig = plt.figure()
+    plt.scatter(y_data[:,0], y_data[:,1], c=c_vec[plot_labels], marker='o', label=plot_labels)
+    plt.xlabel('Live Crown Proportion'); plt.ylabel('Defoliated Crown Proportion')
+    plt.ylim((-0.1,1)); plt.xlim((-0.1,1))
+    plt.show()
+
+#%% TRAIN AND CROSS-VALIDATE
 for dataset_type in all_data.all_modalities: 
     # Check if PGNLM filtered or C3 matrix and select feature type
     if dataset_type.lower()[0:5] in ['pgnlm']:
@@ -203,16 +220,22 @@ for dataset_type in all_data.all_modalities:
         elif length(sat_data.shape) > 2:
             # Remove singelton dimensions
             sat_data = np.squeeze(sat_data)
-        #print(sat_data)
+        
+         # Remove "Other" class to test classification of "Live" vs. "Defoliated" 
+        if twoclass_only:
+            sat_data = np.delete(sat_data, np.where(labels == 0), axis=0)
         
         # Name of input object and file with satellite data path string
         sat_pathfile_name = dataset_use + '-path'
-
-        # Normalize data - should probably be done when data is stored in object...
-        print(np.max(sat_data,axis=0))
         
         # Extract SAR covariance matrix features?
         sat_data = get_sar_features(sat_data, feature_type=c3_feature_type)
+        
+        # Normalize data
+        print(np.max(sat_data,axis=0))
+        # Do normalization
+        sat_data = norm01(sat_data, norm_type=norm_type)
+        print(np.max(sat_data,axis=0))
         
         # Split into training and test datasets
         data_train, data_test, labels_train, labels_test = train_test_split(sat_data, data_labels, test_size=0.2, random_state=0)  
@@ -238,14 +261,14 @@ for dataset_type in all_data.all_modalities:
         
         # Get split for cofusion matrix calculation
         skf = StratifiedKFold(n_splits=crossval_split_k)
-        skf.get_n_splits(sat_data, labels)
+        skf.get_n_splits(sat_data, data_labels)
         # Initialize output confusion matrix and kappa
         knn_all_confmat = np.zeros((n_classes , n_classes))
         knn_all_kappa = []
         # Use split
-        for train_index, test_index in skf.split(sat_data, labels):
+        for train_index, test_index in skf.split(sat_data, data_labels):
            # Split into training and test set
-           y_train, y_test = labels[train_index], labels[test_index]
+           y_train, y_test = data_labels[train_index], data_labels[test_index]
            X_train, X_test = sat_data[train_index], sat_data[test_index]
            # Fit classifier
            knn_all.fit(X_train, y_train)
@@ -276,14 +299,14 @@ for dataset_type in all_data.all_modalities:
         
         # Get split for cofusion matrix calculation
         skf = StratifiedKFold(n_splits=crossval_split_k)
-        skf.get_n_splits(sat_data, labels)
+        skf.get_n_splits(sat_data, data_labels)
         # Initialize output confusion matrix
         rf_all_confmat = np.zeros((n_classes , n_classes))
         rf_all_kappa = []
         # Use split
-        for train_index, test_index in skf.split(sat_data, labels):
+        for train_index, test_index in skf.split(sat_data, data_labels):
            # Split into training and test set
-           y_train, y_test = labels[train_index], labels[test_index]
+           y_train, y_test = data_labels[train_index], data_labels[test_index]
            X_train, X_test = sat_data[train_index], sat_data[test_index]
            # Fit classifier
            rf_all.fit(X_train, y_train)
@@ -319,13 +342,11 @@ with open(os.path.join(dirname, 'data', classify_params_file), 'wb') as output:
     pickle.dump([knn_k, rf_ntrees], output, pickle.HIGHEST_PROTOCOL)
 
 
-#%% Convert labels to numpy array
-labels = np.asarray(data_labels)
-# Print number of instances for each class
+#%% Print number of instances for each class
 n_class_samples = []
 for key in class_dict.keys():
     val = class_dict[key]
-    n_instances = length(labels[labels==val])
+    n_instances = length(data_labels[data_labels==val])
     n_class_samples.append(n_instances)
     print(str(val)+' '+key+' - points: '+str(n_instances))
 
@@ -340,43 +361,81 @@ alf = 0.7 # alpha
 #sorted(linreg_pdc_r2, key=linreg_pdc_r2.get, reverse=True)
 
 #%% Mean Accuracy - both in same plot (kNN and RF)
-plt.figure()
-plt.bar(x_bars*2+ofs, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
-plt.bar(x_bars*2-ofs, list(knn_mean_acc.values()), align='center', color='r', alpha=alf)
-plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*n_datasets)
-plt.xticks(x_bars*2, list(rf_mean_acc.keys()))
-plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k))
-plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
-plt.legend(['Largest class %', 'RF', 'kNN'])
-plt.show()
+if combined_bar_plots:
+    plt.figure()
+    plt.bar(x_bars*2+ofs, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
+    plt.bar(x_bars*2-ofs, list(knn_mean_acc.values()), align='center', color='r', alpha=alf)
+    plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*n_datasets)
+    plt.xticks(x_bars*2, list(rf_mean_acc.keys()))
+    plt.yticks(np.linspace(0.1,1,num=10))
+    plt.grid(True)
+    plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k)+', normalization: '+norm_type)
+    plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
+    plt.legend(['Largest class %', 'RF', 'kNN'])
+    plt.show()
 
 #%% Mean Kappa - both in same plot (kNN and RF)
-plt.figure()
-plt.bar(x_bars*2+ofs, list(rf_mean_kappa.values()), align='center', color='b', alpha=alf)
-plt.bar(x_bars*2-ofs, list(knn_mean_kappa.values()), align='center', color='r', alpha=alf)
-plt.xticks(x_bars*2, list(rf_mean_kappa.keys()))
-plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k))
-plt.ylabel(r'Mean $\kappa$, n_splits = '+str(crossval_split_k)) 
-plt.legend(['RF', 'kNN'])
-plt.show()
+if plot_kappa:
+    plt.figure()
+    plt.bar(x_bars*2+ofs, list(rf_mean_kappa.values()), align='center', color='b', alpha=alf)
+    plt.bar(x_bars*2-ofs, list(knn_mean_kappa.values()), align='center', color='r', alpha=alf)
+    plt.xticks(x_bars*2, list(rf_mean_kappa.keys()))
+    plt.yticks(np.linspace(0.1,1,num=10))
+    plt.grid(True)
+    plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k)+', normalization: '+norm_type)
+    plt.ylabel(r'Mean $\kappa$, n_splits = '+str(crossval_split_k)) 
+    plt.legend(['RF', 'kNN'])
+    plt.show()
 
 # Mean Accuracy - Separate plots (kNN and RF)
 if separate_bar_plots:
     # RF
     plt.figure()
     plt.bar(x_bars, list(rf_mean_acc.values()), align='center', color='b', alpha=alf)
-    plt.xticks(x_bars, list(rf_mean_acc.keys())); plt.title('RF, n_trees: '+str(rf_ntrees))
+    plt.title('RF, n_trees: '+str(rf_ntrees)+', normalization: '+norm_type)
     plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
     plt.show()
     # kNN
     plt.figure()
     plt.bar(x_bars, list(knn_mean_acc.values()), align='center', color='r', alpha=alf)
-    plt.xticks(x_bars, list(knn_mean_acc.keys())); plt.title('kNN, k: '+str(knn_k))
+    plt.xticks(x_bars, list(knn_mean_acc.keys()))
+    plt.yticks(np.linspace(0.1,1,num=10))
+    plt.grid(True)
+    plt.title('kNN, k: '+str(knn_k)+', normalization: '+norm_type)
     plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
     plt.show()
+    
+# Mean Accuracy - Separate plots for all datasets
+if separate_dataset_plots:
+    for dataset_id in id_list:
+        key_list = []
+        rf_accuracy = []
+        knn_accuracy = []
+        for dataset_key in list(rf_mean_acc.keys()):
+            if dataset_key[-1] == dataset_id:
+                key_list.append(dataset_key)
+                rf_accuracy.append(rf_mean_acc[dataset_key])
+                knn_accuracy.append(knn_mean_acc[dataset_key])
+        
+        if key_list:
+            # Plot
+            x_bars = np.arange(length(rf_accuracy))
+            plt.figure()
+            plt.bar(x_bars*2+ofs, rf_accuracy , align='center', color='b', alpha=alf)
+            plt.bar(x_bars*2-ofs, knn_accuracy, align='center', color='r', alpha=alf)
+            plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*length(rf_accuracy))
+            plt.xticks(x_bars*2, key_list )
+            plt.yticks(np.linspace(0.1,1,num=10))
+            plt.grid(True)
+            plt.title('RF, n_trees: '+str(rf_ntrees)+ ' - kNN, k: '+str(knn_k)+', normalization: '+norm_type+
+                      '\n Min:'+', live = '+str(min_p_live)+', defo = '+
+                       str(min_p_defo)+', diff = '+str(diff_live_defo)+', trees = '+str(min_tree_live))
+            plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
+            plt.legend(['Largest class %', 'RF', 'kNN'])
+            plt.show()
 
 
-## TEST ON COMPLETE IMAGE
+#%% TEST ON COMPLETE IMAGE
 #if plot_image_result:
 #    ## Read satellite data
 #    try:
