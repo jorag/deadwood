@@ -36,21 +36,21 @@ datamod_fprefix = 'PGNLM-SNAP_C3_geo_OPT_20200113' #'20191220_PGNLM-paramsearch'
 obj_in_name = datamod_fprefix  + '.pkl'
                           
 #%% Classify LIVE FOREST vs. DEFOLIATED FOREST (and vs. OTHER?)
-twoclass_only = False
+twoclass_only = True
 
 # Normalization
 norm_type = 'local' # 'global' # 'none' # 
 # Class boundaries
-min_p_live =  0.05 
-min_p_defo = 0 # 0.05 # 
-min_tree_live = 2 # 0 # 
-diff_live_defo = 0.075 # 0 # 
+min_p_live = 0.05 #0.075 # 0 #
+min_p_defo = min_p_live #0.075 # 0  # 
+min_tree_live = 0 # 0 # 
+diff_live_defo = 0 # 0.075 # 
 
 #%% PROCESSING PARAMETERS
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
 knn_k = 5
-rf_ntrees = 150 # Number of trees in the Random Forest algorithm
+rf_ntrees = 200 # Number of trees in the Random Forest algorithm
 
 #%% Plot options
 combined_bar_plots = False # Combination of RF and kNN result
@@ -58,7 +58,8 @@ separate_bar_plots = False # Separate of RF and kNN result
 separate_dataset_plots = True # Separate plot for each dataset ID (A, B, C)
 plot_class_boundaries = False
 plot_kappa = False
-plot_image_result = False 
+plot_image_result = False
+plot_rf_dataset_comp = True 
 
 # Prefix for output cross validation object filename
 crossval_fprefix = 'new-kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
@@ -91,14 +92,16 @@ for i_var_y in range(n_var_y):
     y[np.isnan(y)] = 0 # Replace NaNs with zeros
     y_data[:,i_var_y] = y
 
-# Set labels
+
+## Set labels 
 data_labels = np.zeros((length(y_data)))
 for i_point in range(length(data_labels)):
-    if y_data[i_point, 2] >= min_tree_live and (y_data[i_point, 0]>min_p_live or y_data[i_point, 1]>min_p_defo): 
-         if y_data[i_point, 0] >= y_data[i_point, 1] - diff_live_defo:
-             data_labels[i_point] = 1
-         else:
-             data_labels[i_point] = 2
+    if y_data[i_point, 2] >= min_tree_live: 
+        if y_data[i_point, 0] >= min_p_live:
+            data_labels[i_point] = 1
+        elif y_data[i_point, 1] > min_p_defo:
+            data_labels[i_point] = 2
+                         
 
 #Number of classes
 n_classes = length(class_dict)
@@ -433,6 +436,49 @@ if separate_dataset_plots:
             plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
             plt.legend(['Largest class %', 'RF', 'kNN'])
             plt.show()
+
+#%% Mean RF Accuracy - combined plot for all datasets
+if plot_rf_dataset_comp:
+     # Disp
+     sar_data_dict = dict(zip(['PGNLM-20191224-1814', 'IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3' ], 
+                              ['PGNLM', 'IDAN', 'boxcar', 'refined Lee'])) 
+    
+     ofs_use = np.copy(ofs)
+     plt.figure()
+     x_bars = np.arange(length(rf_accuracy))
+     datakey_list = list(rf_mean_acc.keys())
+     datakey_list.sort()
+     for i_dataset, dataset_id in enumerate(id_list):
+        key_list = []
+        rf_accuracy = []
+        
+        for dataset_key in datakey_list:
+            if dataset_key[-1] == dataset_id:
+                key_list.append(dataset_key)
+                rf_accuracy.append(rf_mean_acc[dataset_key])
+        
+        if key_list:
+            ofs_use = ofs_use * -1
+            # Plot
+            plt.bar(x_bars*2+ofs_use, rf_accuracy , align='center', color=c_vec[i_dataset], alpha=alf)
+            #plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*length(rf_accuracy))
+        
+     
+     # Get display names from dict
+     xtick_list = key_list
+     #for i_dataset, dataset_id in enumerate(id_list):
+         
+    
+     plt.xticks(x_bars*2, xtick_list )
+     plt.yticks(np.linspace(0.1,1,num=10))
+     plt.grid(True)
+     plt.title('RF, n_trees: '+str(rf_ntrees)+ ', normalization: '+norm_type+
+              '\n Min:'+', live = '+str(min_p_live)+', defo = '+
+               str(min_p_defo)+', trees = '+str(min_tree_live))
+     plt.ylabel('Mean accuracy, n_splits = '+str(crossval_split_k)); plt.ylim((0,1))
+     plt.legend(id_list)
+    
+     plt.show()
 
 
 #%% TEST ON COMPLETE IMAGE
