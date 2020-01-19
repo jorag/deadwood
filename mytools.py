@@ -377,7 +377,7 @@ def get_sar_features(filtered, x_list=None, y_list=None, feature_type='not set',
             filtered[:,2] = np.real(temp[:,3]) # C33
             filtered[:,3] = np.abs(temp[:,1]) # C13 abs
             filtered[:,4] = np.angle(temp[:,1]) # C13 angle
-        elif feature_type.lower() in ['c3snap_filtered']:
+        elif feature_type.lower() in ['c3_snap_5feat', 'c3snap_filtered']:
             temp = filtered[:, [0,3,4,5,8]]
             filtered = np.zeros((filtered.shape[0],5))
             filtered[:,0] = temp[:,0] # C11
@@ -403,7 +403,7 @@ def get_sar_features(filtered, x_list=None, y_list=None, feature_type='not set',
             filtered[:,:,2] = np.real(temp[:,:,3]) # C33
             filtered[:,:,3] = np.abs(temp[:,:,1]) # C13 abs
             filtered[:,:,4] = np.angle(temp[:,:,1]) # C13 angle
-        elif feature_type.lower() in ['c3snap_filtered']:
+        elif feature_type.lower() in ['c3_snap_5feat','c3snap_filtered']:
             temp = filtered[:,:, [0,3,4,5,8]]
             filtered = np.zeros((filtered.shape[0], filtered.shape[1], 5))
             filtered[:,:,0] = temp[:,:,0] # C11
@@ -413,6 +413,14 @@ def get_sar_features(filtered, x_list=None, y_list=None, feature_type='not set',
             # (ensure same angle calculation)
             filtered[:,:,3] = np.abs(temp[:,:,1]+ 1j* temp[:,:,2]) 
             filtered[:,:,4] = np.angle(temp[:,:,1]+ 1j* temp[:,:,2])
+        elif feature_type.lower() in ['c3_snap_intensities','c3snap2intensities']:
+            temp = filtered[:,:, [0,3,4,5,8]]
+            filtered = np.zeros((filtered.shape[0], filtered.shape[1], 3))
+            filtered[:,:,0] = temp[:,:,0] # C11
+            filtered[:,:,1] = temp[:,:,3] # C22
+            filtered[:,:,2] = temp[:,:,4] # C33
+        elif feature_type.lower() in ['c3_pgnlm_5feat_intensities','c3pgnlm5feat2intensities']:
+            filtered = filtered[:,:, [0,1,2]]
         elif feature_type.lower() in ['abs']:
             filtered = np.abs(filtered, dtype='double') 
         else:
