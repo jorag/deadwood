@@ -386,7 +386,9 @@ def get_sar_features(filtered, x_list=None, y_list=None, feature_type='not set',
             # Make complex values and use abs and angle formulas as for iq2c3 
             # (ensure same angle calculation)
             filtered[:,3] = np.abs(temp[:,1]+ 1j* temp[:,2]) 
-            filtered[:,4] = np.angle(temp[:,1]+ 1j* temp[:,2]) 
+            filtered[:,4] = np.angle(temp[:,1]+ 1j* temp[:,2])
+        elif feature_type.lower() in ['c3_pgnlm_5feat_intensities','c3pgnlm5feat2intensities']:
+            filtered = filtered[:, [0,1,2]]
         else:
             # TODO 20191221 - Make this work for whole images aswell!!
             print('Warning! Feature type '+feature_type+ ' not defined in get_sar_features!!')
