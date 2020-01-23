@@ -30,7 +30,7 @@ from dataclass import *
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Prefix for object filename
-datamod_fprefix = 'PGNLM-SNAP_C3_geo_OPT_20200113' #'20191220_PGNLM-paramsearch' #'cov_mat-20200108' # 'New-data-20191203-' #'New-data-20191203-.pkl'
+datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113' #'20191220_PGNLM-paramsearch' #'cov_mat-20200108' # 'New-data-20191203-' #'New-data-20191203-.pkl'
           
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix  + '.pkl'
@@ -55,11 +55,12 @@ rf_ntrees = 200 # Number of trees in the Random Forest algorithm
 #%% Plot options
 combined_bar_plots = False # Combination of RF and kNN result
 separate_bar_plots = False # Separate of RF and kNN result
-separate_dataset_plots = True # Separate plot for each dataset ID (A, B, C)
+separate_dataset_plots = False # Separate plot for each dataset ID (A, B, C)
 plot_class_boundaries = False
 plot_kappa = False
 plot_image_result = False
 plot_rf_dataset_comp = True 
+plot_rf_pgnlm_comp = True
 
 # Prefix for output cross validation object filename
 crossval_fprefix = 'new-kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
@@ -196,7 +197,10 @@ if plot_class_boundaries:
 for dataset_type in all_data.all_modalities: 
     # Check if PGNLM filtered or C3 matrix and select feature type
     if dataset_type.lower()[0:5] in ['pgnlm']:
-        c3_feature_type = 'iq2c3'
+        if dataset_type.lower()[6:10] in ['2019', 'best']:
+            c3_feature_type = 'iq2c3'
+        else:
+            c3_feature_type =  'c3_pgnlm_5feat_intensities'
     elif dataset_type.lower()[-2:] in ['c3']:
         c3_feature_type = 'c3snap_filtered'
     else:
@@ -449,7 +453,7 @@ if plot_rf_dataset_comp:
      #sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM-20191224-1814', 'NDVI', 'optical']
      #sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM', 'NDVI', 'optical']
      
-     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM-20191224-1814']
+     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM-wex9'] #
      sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM']
      
      opt_names_dataset = ['NDVI', 'optical']
@@ -470,7 +474,8 @@ if plot_rf_dataset_comp:
         for dataset_key in sar_names_dataset:
             key_list.append(dataset_key+'-'+dataset_id)
             rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
-    
+            
+        print(rf_accuracy)
         if key_list:
             ofs_use = ofs_use * -1
             # Plot
@@ -483,7 +488,8 @@ if plot_rf_dataset_comp:
      for dataset_key in opt_names_dataset:
             key_list.append(dataset_key+'-A')
             rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
-
+    
+     print(rf_accuracy)
      plt.bar(x_bars[-2:]*2, rf_accuracy , align='center', color='g', alpha=alf)
         
      # Get display names from dict
@@ -501,6 +507,48 @@ if plot_rf_dataset_comp:
      plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017', 'S2 26 July 2017'])
     
      plt.show()
+
+#%% PGNLM compare
+if plot_rf_pgnlm_comp:
+     # Disp
+     id_list_use = ['A', 'C']
+     c_vec2 = ['r', 'b', 'g']
+    
+     ofs_use = np.copy(ofs)
+     
+     #x_bars = np.arange(length(sar_names_dataset))
+     #datakey_list = list(rf_mean_acc.keys())
+     #datakey_list.sort()
+     for i_dataset, dataset_id in enumerate(id_list_use):
+        plt.figure()
+        key_list = []
+        rf_accuracy = []
+        
+        for dataset_key in list(rf_mean_acc.keys()):
+            if dataset_key.lower()[0:5] in ['pgnlm'] and dataset_key[-1] == dataset_id:
+                key_list.append(dataset_key)
+                rf_accuracy.append(pct_f*rf_mean_acc[dataset_key])
+    
+        if key_list:
+            x_bars = np.arange(length(rf_accuracy))
+            ofs_use = ofs_use * -1
+            # Plot
+            plt.bar(x_bars*2+ofs_use, rf_accuracy , align='center', color=c_vec2[i_dataset], alpha=alf)
+            #plt.bar(x_bars*2+ofs_use, rf_accuracy , align='center', color=c_vec[i_dataset], alpha=alf)
+            #plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*length(rf_accuracy))
+
+        
+            # Get display names from dict
+            xtick_list = key_list
+            plt.xticks(x_bars*2, xtick_list )
+            plt.yticks(pct_f*np.linspace(0.1,1,num=10))
+            plt.grid(True)
+             #plt.title('RF, n_trees: '+str(rf_ntrees)+ ', normalization: '+norm_type+
+             #         '\n Min:'+', live = '+str(min_p_live)+', defo = '+
+             #          str(min_p_defo)+', trees = '+str(min_tree_live))
+            plt.ylabel('Mean accuracy %, '+str(crossval_split_k)+'-fold cross validation'); plt.ylim((0,pct_f*1))
+            plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017'])
+            plt.show()
 
 
 #%% TEST ON COMPLETE IMAGE
