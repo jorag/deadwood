@@ -161,18 +161,18 @@ def norm01(input_array, norm_type='global', min_cap=None, max_cap=None, min_cap_
     max_cap: Truncate values above this value to max_cap_value before normalizing
     """
     
+    # Ensure that original input is not modified
+    output_array = np.array(input_array, copy=True)
+    
     # Replace values outside envolope/cap with NaNs (or specifie value)
     if min_cap is not None:
-        input_array[input_array  < min_cap] = min_cap_value
+        output_array[output_array   < min_cap] = min_cap_value
                    
     if max_cap is not None:
-        input_array[input_array > max_cap] = max_cap_value
+        output_array[output_array  > max_cap] = max_cap_value
     
     # Normalize data for selected normalization option
-    if norm_type.lower() in ['none']:
-        # No normalization (do not return yet, might print min, max, and mean)
-        output_array = input_array
-    elif norm_type.lower() in ['global', 'all', 'set']:
+    if norm_type.lower() in ['global', 'all', 'set']:
         # Normalize to 0-1 (globally)
         output_array = input_array - np.nanmin(input_array)
         output_array = output_array/np.nanmax(output_array)
