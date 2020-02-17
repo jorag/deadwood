@@ -386,24 +386,27 @@ def gpxgeobox(gpx_in, lat_band, lon_band, margin=(0,0), log_type='default'):
 
 def read_wkt_csv(input_file, input_mode='z+m'):
     import csv
-    import ast
-    import re
-    
+    output_areas = []
+    # Open and read .csv file
     with open(defo_file, newline='') as csvfile:
         wktreader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        for row in wktreader:
-            #print(', '.join(row))
+        
+        for i_row, row in enumerate(wktreader):
+            # Read each row and ignore header row 
+            # 20200217 - TODO: consider skipping first row instead
             row_str = row[0]
             if row_str[0:4].lower() in ['wkt']:
                 pass
             else:
+                # Create output object
+                aoi = roipoly(str(i_row))
+                # Find index of (outer) enclosing double parantheses
                 l_ind = row_str.find('(')
                 r_ind = row_str.rfind(')')
-                #print(row_str[l_ind:r_ind+1])
-                #print(row_str)
-                polygon_str = row_str[l_ind+2:r_ind-1] #-1 when not found...
-                print(polygon_str)
-                # Split string for each vertex in the polygon
+                # Skip double paranteses
+                polygon_str = row_str[l_ind+2:r_ind-1] 
+
+                # Split string for each vertex (comma separated) in the polygon
                 vertex_list = polygon_str.split(',')
                 for vertex_str in vertex_list:
                     # Split each vertex into long, lat (and z, m)
@@ -411,29 +414,67 @@ def read_wkt_csv(input_file, input_mode='z+m'):
                     lon = float(coords[0])
                     lat = float(coords[1])
                     print(lat, lon)
+                    aoi.add((lat, lon))
                     #print(vertex_str)
                 
-                #vertex_tuple = ast.literal_eval(row_str[l_ind+1:r_ind]) 
-                #print(vertex_tuple[0])
-                # Use ast literal eval to get tuple of tuples
-                # Index to get tuple for each vertex
-                # When Polygon ZM, index to get two first elements of tuple (lat & long)
+                # Add to output list
+                output_areas.append(aoi)
+                    
+    return output_areas
 
+
+class roipoly:
+    def __init__(self, name, first_coord='lat', **kwargs):
+        self.name = name
+        # Initialize default values
+        self.n_vertices = 0
+        self.vertices = []
+        self.lat_list = []
+        self.lon_list = []
+        
+        if first_coord.lower() in ['lat', 'latitude']:
+            self.lat_ind = 0
+            self.lon_ind = 1
+        elif first_coord.lower() in ['lon', 'long', 'longitude']:
+            self.lat_ind = 1
+            self.lon_ind = 0
+        
+        # Specify extra parameters with keywordargs (overwrite default values)
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+            
+            
+    def add(self, vertex):
+        """"Add a single vertex"""
+        self.vertices.append(vertex)
+        self.n_vertices += 1
+        self.lat_list.append(vertex[self.lat_ind])
+        self.lon_list.append(vertex[self.lon_ind])
+        
+        
+    def bounding_coords(self):
+        """"Get a bounding rectangle"""
+        lat_bounds = [np.min(self.lat_list), np.max(self.lat_list)]
+        lon_bounds = [np.min(self.lon_list), np.max(self.lon_list)]
+        # Return two list, in specified order
+        if self.lat_ind == 0:
+            return lat_bounds, lon_bounds
+        elif self.lon_ind == 0:
+            return lon_bounds, lat_bounds
+        
+        
 
 if __name__ == '__main__':
     import os
     # Path to working directory 
     dirname = os.path.realpath('.') # For parent directory use '..'
     
-    # Read satellite data specified by input-path file
+    # Get full data path from specified by input-path file
     with open(os.path.join(dirname, 'input-paths', 'defo1-aoi-path')) as infile:
         defo_file = infile.readline().strip()
     
-    read_wkt_csv(defo_file)
-    
-    with open(defo_file) as infile:
-        line1 = infile.readline().strip()
-        line2 = infile.readline().strip()
+    # Test reading the polygon
+    output_aois = read_wkt_csv(defo_file)
     
    
     
