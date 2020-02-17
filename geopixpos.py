@@ -383,4 +383,59 @@ def gpxgeobox(gpx_in, lat_band, lon_band, margin=(0,0), log_type='default'):
 
     return (r_min,r_max), (c_min,c_max)
 
+
+def read_wkt_csv(input_file, input_mode='z+m'):
+    import csv
+    import ast
+    import re
+    
+    with open(defo_file, newline='') as csvfile:
+        wktreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for row in wktreader:
+            #print(', '.join(row))
+            row_str = row[0]
+            if row_str[0:4].lower() in ['wkt']:
+                pass
+            else:
+                l_ind = row_str.find('(')
+                r_ind = row_str.rfind(')')
+                #print(row_str[l_ind:r_ind+1])
+                #print(row_str)
+                polygon_str = row_str[l_ind+2:r_ind-1] #-1 when not found...
+                print(polygon_str)
+                # Split string for each vertex in the polygon
+                vertex_list = polygon_str.split(',')
+                for vertex_str in vertex_list:
+                    # Split each vertex into long, lat (and z, m)
+                    coords = vertex_str.split()
+                    lon = float(coords[0])
+                    lat = float(coords[1])
+                    print(lat, lon)
+                    #print(vertex_str)
+                
+                #vertex_tuple = ast.literal_eval(row_str[l_ind+1:r_ind]) 
+                #print(vertex_tuple[0])
+                # Use ast literal eval to get tuple of tuples
+                # Index to get tuple for each vertex
+                # When Polygon ZM, index to get two first elements of tuple (lat & long)
+
+
+if __name__ == '__main__':
+    import os
+    # Path to working directory 
+    dirname = os.path.realpath('.') # For parent directory use '..'
+    
+    # Read satellite data specified by input-path file
+    with open(os.path.join(dirname, 'input-paths', 'defo1-aoi-path')) as infile:
+        defo_file = infile.readline().strip()
+    
+    read_wkt_csv(defo_file)
+    
+    with open(defo_file) as infile:
+        line1 = infile.readline().strip()
+        line2 = infile.readline().strip()
+    
+   
+    
+    
     
