@@ -365,6 +365,18 @@ def gpxgeobox(gpx_in, lat_band, lon_band, margin=(0,0), log_type='default'):
     lat_bounds = [bounds.attrib['minlat'], bounds.attrib['maxlat']]
     lon_bounds = [bounds.attrib['minlon'], bounds.attrib['maxlon']]
         
+    # Get indices
+    row_ind, col_ind = geobox(lat_bounds, lon_bounds, lat_band, lon_band, 
+                              margin=margin, log_type=log_type)
+
+    return row_ind, col_ind
+
+
+def geobox(lat_bounds, lon_bounds, lat_band, lon_band, margin=(0,0), log_type='default'):
+    """Get indices for bounding box from lat and long bounds.
+    
+    Input: lat_bounds, lon_bounds, lat_band, lon_band
+    """
     # Go through all combinations and find row and column indices
     row_ind = []
     col_ind = []
