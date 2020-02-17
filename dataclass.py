@@ -15,18 +15,17 @@ class DataModalities:
         add_to_point(point_name, update_key, update_value, update_type) - add fields to data points
         add_meta(point_name, meta_type, point_meta) - add meta info to point using add_to_point()
         add_modality(point_name, modality_type, modality_data) - add new modality using add_to_point()
-        split(split_type=, train_pct=, test_pct=, val_pct=) - split in training/test/val sets 
         assign_labels(self, class_dict=) - add numeric labels to points by dict with class names+labels
         read_data_array(modalities, set_type) - read data (train/test/val) array with select modalities
         set_log_type(log_type) - set log type for mytools.logit function
         print_points(point_name=) - print points in point_name list
     """
     def __init__(self, name, **kwargs):
-        # Two most important attributes, name and path to dataset
+        # Set default values
         self.name = name
         self.data_paths = dict() # Keys generated when data points are added
         self.classdef_params = dict() # Params for splitting forest class into live/defoliated 
-        # Set default values
+        
         # Class settings
         self.meta_missing_value = None
         self.meta_types = 'meta'
@@ -48,110 +47,11 @@ class DataModalities:
         self.data_points = []
         
         # Mapping of class names to class numbers as a dict
-        self.class_dict = dict([]) # Use 0 as 'other' class?
+        self.class_dict = dict([]) 
         
-        # Add option to specify  parameter with keywordargs (overwirte default values)
-        # May be useful for loading object
+        # Specify extra parameters with keywordargs (overwrite default values)
         for key, value in kwargs.items():
             setattr(self, key, value)
-
-            
-    def split(self, split_type = 'random', train_pct = 0.8, test_pct = 0.2, val_pct = 0, **kwargs):
-        # Split in training, validation, and test sets
-        n_points = self.__last_idx + 1
-        if n_points < 2:
-            print('No data to split!')
-            return
-        
-        # Input check of split fractions
-        if train_pct + test_pct + val_pct != 1:
-            logit('Warning! Dataset split fractions /train/test/val) do not sum to 1!', self.log_type)
-            pct_sum = train_pct + test_pct + val_pct
-            train_pct /= pct_sum 
-            test_pct /= pct_sum 
-            val_pct /= pct_sum 
-
-        # Switch between different split types
-        # Weighted
-        if split_type in ['weighted', 'class_weight']:
-            # Find the unique labels and counts
-            unique_labels = np.unique(self.point_label)
-
-            # Initilaize sets
-            self.set_train = []
-            self.set_val = []
-            self.set_test = []
-            # Go though classes and split according to fractions
-            for i_label in unique_labels:
-                # Get list of indice for points in class (as nparray for indexing)
-                idx_list = np.asarray(self.idx_list)
-                current_points = idx_list[self.point_label == i_label]
-                # Find split fraction for class
-                n_points_label = current_points.shape[0]
-                # Cast as int due to np.random.choices FutureWarning
-                n_train = int(np.floor(train_pct * n_points_label))
-                n_val = int(np.floor(val_pct * n_points_label))
-                # Ensure that number in each set sums to the number of points
-                n_test = int(n_points_label - n_train - n_val)
-                
-                # Draw training set
-                set_train_labels = np.random.choice(current_points, size=n_train, replace=False, p=None)
-                self.set_train.extend(set_train_labels.tolist())
-                # Remaining points
-                remaining_points = list(set(current_points) - set(set_train_labels))
-                # Draw test set, remaining points are validation set
-                set_test_labels = np.random.choice(remaining_points, size=n_test, replace=False, p=None)
-                self.set_test.extend(set_test_labels.tolist())
-                set_val_labels = list(set(remaining_points) - set(set_test_labels))
-                self.set_val.extend(set_val_labels)
-                    
-        # Random split types
-        elif split_type in ['random', 'rnd', 'unsupervised', 'class_weight_random']:
-            if split_type in ['class_weight_random']:
-                # Get labels for dataset
-                labels = self.read_data_labels(self.idx_list)
-                # Get weight according to class occurance to incorperate relative class probablities 
-                p_use = get_label_weights(labels)
-            else:
-                p_use = None
-                                
-            # Cast as int due to np.random.choices FutureWarning
-            n_train = int(np.ceil(train_pct*n_points))
-            n_val = int(np.floor(val_pct*n_points))
-            # Ensure that number in each set sums to the number of points
-            n_test = int(n_points - n_train - n_val)
-            
-            # Draw training set
-            self.set_train = np.random.choice(self.idx_list, size=n_train, replace=False, p=p_use)
-            self.set_train.tolist()
-            
-            # Remaining points
-            remaining_points = list(set(self.idx_list) - set(self.set_train))
-            if n_val == 0:
-                self.set_test = remaining_points
-                self.set_val = []
-            else:
-                if split_type in ['class_weight_random']:
-                    # Get weight according to remaining class occurances 
-                    # use to incorperate relative class probablities 
-                    temp_labels = np.asarray(labels)
-                    p_use = get_label_weights(temp_labels[remaining_points])
-                else:
-                    p_use = None
-                # Draw test set, remaining points are validation set
-                self.set_test = np.random.choice(remaining_points, size=n_test, replace=False, p=p_use)
-                self.set_test.tolist()
-                self.set_val = list(set(remaining_points) - set(self.set_test))
-            
-            # Loop over points in each set, and update set membership
-            for i_point in self.set_train:
-                self.data_points[i_point].set = 'train'
-            
-            for i_point in self.set_test:
-                self.data_points[i_point].set = 'test'
-                
-            for i_point in self.set_val:
-                self.data_points[i_point].set = 'val'
 
             
     def add_points(self, point_name):
@@ -163,7 +63,7 @@ class DataModalities:
         
         # Add data points to DataModalities list
         for i_point in range(length(point_name)):
-            # Internal id (index)
+            # Internal ID (index)
             self.__last_idx += 1
             self.idx_list.append(self.__last_idx)
             # Add data points to DataModalities list
