@@ -30,7 +30,8 @@ base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data obje
 # List of datasets to process
 #dataset_list = ['iq', 'C3', 'cloude_3x3', 'genFD_3x3', 'vanZyl_3x3', 'yamaguchi_3x3', 'collocate_iq', 'collocate_C3', 'pgnlm_iq'] 
 #dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3'] 
-dataset_list = ['geo_opt']
+#dataset_list = ['geo_opt']
+dataset_list = ['IDAN_50_C3']
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 add_ndvi = True
 
@@ -44,6 +45,12 @@ opt_bands_include = ['b02','b03','b04','b05','b08'] # b02, b03, b04, b08, all 10
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
+# Get full data path from specified by input-path file
+with open(os.path.join(dirname, 'input-paths', 'defo1-aoi-path')) as infile:
+    defo_file = infile.readline().strip()
+
+# Reading polygons into list
+defo_aois = read_wkt_csv(defo_file)
                       
 # Load band lists from Excel file
 xls_fullpath = os.path.join(dirname, 'input-paths', new_datalist_xls_file)
@@ -52,8 +59,7 @@ df = pd.read_excel(datasets_xls)
 
 
 
-# ADD SATELLITE DATA
-# Loop through all satellite images
+# %% LOOP THROUGH SATELLITE DATA
 for dataset_id in id_list:
     for dataset_in in dataset_list:
         dataset_use = dataset_in +'-'+dataset_id 
@@ -85,21 +91,19 @@ for dataset_id in id_list:
             # Something went wrong
             continue
           
-        # Try reading the dataset
+        # %% Try reading the dataset
         try:
             # Load data
             dataset = gdal.Open(sat_file)
             gdalinfo_log(dataset, log_type='default')
             
             # Read ALL bands - note that it will be zero indexed
-            # 20191127: IF-test here to switch between reading data from file, 
-            # or use output (possibly from memory) from filtering
             raster_data_array = dataset.ReadAsArray()
         except:
             # Something went wrong
             continue
         
-        # If SAR data should be added
+        # %% If SAR data should be added
         if sar_bands_use:
             # Get array with SAR data
             sar_data_temp = raster_data_array[sar_bands_use,:,:]   
@@ -109,7 +113,7 @@ for dataset_id in id_list:
             sar_data_temp = np.reshape(sar_data_temp, (n_rows, n_cols, sar_data_temp.shape[1]))
 
         
-        # If MULTISPECTRAL OPTICAL data should be added
+        # %% If MULTISPECTRAL OPTICAL data should be added
         if dataset_in in opt_dataset_list:
             opt_bands_use = [] # Check which of the available bands should be included 
             for key in opt_bands_include:
@@ -119,10 +123,7 @@ for dataset_id in id_list:
             opt_data_temp, n_rows, n_cols = imtensor2array(opt_data_temp)
             # Reshape to 3D image tensor (3 channels)
             opt_data_temp = np.reshape(opt_data_temp, (n_rows, n_cols, opt_data_temp.shape[1]))
-            
 
-        # If MULTISPECTRAL OPTICAL data should be added
-        if dataset_in in opt_dataset_list:
             # Get OPT pixels
             opt_pixels = opt_data_temp
             # Add NDVI
@@ -131,5 +132,26 @@ for dataset_id in id_list:
                 nir_pixels = opt_data_temp[:, :, opt_bands_include.index('b08')] 
                 red_pixels = opt_data_temp[:, :, opt_bands_include.index('b04')]
                 ndvi_pixels = (nir_pixels-red_pixels)/(nir_pixels+red_pixels)
+        # %% Read lat and lon bands
+        lat = raster_data_array[lat_band,:,:]
+        lon = raster_data_array[lon_band,:,:]
+        
+        # Get defo AOI
+        i_defo = 0
+        lat_bounds, lon_bounds = defo_aois[i_defo].bounding_coords()
+        
+        row_ind, col_ind = geobox(lat_bounds, lon_bounds, lat, lon, margin=(0,0), log_type='default')
+    
+        x_min = row_ind[0]
+        x_max = row_ind[1]
+        size_x = int(x_max - x_min) # convert int64 to int for GDAL GeoTIFF write
+        y_min = col_ind[0]
+        y_max = col_ind[1]
+        size_y = int(y_max - y_min) # convert int64 to int for GDAL GeoTIFF write
+        
+        # Read input (SAR) and guide (Optical), lat and lon (rewrite to AOI)
+        noisy = raster_data_array[sar_bands_use, x_min:x_max, y_min:y_max]
+    
+        
     
 

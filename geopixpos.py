@@ -400,7 +400,7 @@ def read_wkt_csv(input_file, input_mode='z+m'):
     import csv
     output_areas = []
     # Open and read .csv file
-    with open(defo_file, newline='') as csvfile:
+    with open(input_file, newline='') as csvfile:
         wktreader = csv.reader(csvfile, delimiter=',', quotechar='"')
         
         for i_row, row in enumerate(wktreader):
@@ -411,7 +411,7 @@ def read_wkt_csv(input_file, input_mode='z+m'):
                 pass
             else:
                 # Create output object
-                aoi = roipoly(str(i_row))
+                aoi = roipoly(str(i_row), source_file=input_file)
                 # Find index of (outer) enclosing double parantheses
                 l_ind = row_str.find('(')
                 r_ind = row_str.rfind(')')
