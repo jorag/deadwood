@@ -150,7 +150,25 @@ for dataset_id in id_list:
         size_y = int(y_max - y_min) # convert int64 to int for GDAL GeoTIFF write
         
         # Read input (SAR) and guide (Optical), lat and lon (rewrite to AOI)
-        noisy = raster_data_array[sar_bands_use, x_min:x_max, y_min:y_max]
+        sat_data = raster_data_array[sar_bands_use, x_min:x_max, y_min:y_max]
+        
+        # Check if PGNLM filtered or C3 matrix and select feature type
+        if dataset_in.lower()[0:5] in ['pgnlm']:
+            if dataset_in.lower()[6:10] in ['2019', 'best']:
+                c3_feature_type = 'iq2c3'
+            else:
+                c3_feature_type =  'c3_pgnlm_5feat_intensities'
+        elif dataset_in.lower()[-2:] in ['c3']:
+            c3_feature_type = 'c3snap_filtered'
+        else:
+            print('No feature type found for: '+dataset_type)
+            c3_feature_type = 'NA'
+        
+        # Extract SAR covariance matrix features?
+        sat_data = get_sar_features(sat_data, feature_type=c3_feature_type, input_type='img')
+        
+        # %% Plot 3D backscatter values 
+        modalitypoints3d('reciprocity', sat_data, np.ones(length(sat_data),dtype='int'), labels_dict=None)
     
         
     
