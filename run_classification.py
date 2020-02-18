@@ -61,6 +61,7 @@ plot_kappa = False
 plot_image_result = False
 plot_rf_dataset_comp = True 
 plot_rf_pgnlm_comp = True
+print_result = True
 
 # Prefix for output cross validation object filename
 crossval_fprefix = 'new-kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
@@ -94,7 +95,7 @@ for i_var_y in range(n_var_y):
     y_data[:,i_var_y] = y
 
 
-## Set labels 
+#%% Set labels 
 data_labels = np.zeros((length(y_data)))
 for i_point in range(length(data_labels)):
     if y_data[i_point, 2] >= min_tree_live: 
@@ -107,7 +108,7 @@ for i_point in range(length(data_labels)):
 #Number of classes
 n_classes = length(class_dict)
 
-# Output files
+# %% Output files
 knn_file =  datamod_fprefix + crossval_fprefix + 'cross_validation_knn.pkl'
 knn_confmat_file =  datamod_fprefix + crossval_fprefix + 'conf_mat_knn.pkl'
 rf_file = datamod_fprefix + crossval_fprefix + 'cross_validation_rf.pkl'
@@ -200,7 +201,6 @@ for dataset_type in all_data.all_modalities:
         if dataset_type.lower()[6:10] in ['2019', 'best']:
             c3_feature_type = 'iq2c3'
         else:
-            # TODO 20200218 - THIS ONLY RETURNS INTENSITIES, NOT 5 FEATURES AS FOR SNAP! 
             c3_feature_type =  'c3_pgnlm5feat'
     elif dataset_type.lower()[-2:] in ['c3']:
         c3_feature_type = 'c3snap_filtered'
@@ -229,7 +229,7 @@ for dataset_type in all_data.all_modalities:
             # Remove singelton dimensions
             sat_data = np.squeeze(sat_data)
         
-         # Remove "Other" class to test classification of "Live" vs. "Defoliated" 
+        # Remove "Other" class to test classification of "Live" vs. "Defoliated" 
         if twoclass_only:
             sat_data = np.delete(sat_data, np.where(labels == 0), axis=0)
         
@@ -240,11 +240,12 @@ for dataset_type in all_data.all_modalities:
         sat_data = get_sar_features(sat_data, feature_type=c3_feature_type)
         print(sat_data.shape)
         
-        # Normalize data
-        #print(np.max(sat_data,axis=0))
+        if print_result:
+            print(np.max(sat_data,axis=0))
         # Do normalization
         sat_data = norm01(sat_data, norm_type=norm_type)
-        #print(np.max(sat_data,axis=0))
+        if print_result:
+            print(np.max(sat_data,axis=0))
         
         # Split into training and test datasets
         data_train, data_test, labels_train, labels_test = train_test_split(sat_data, data_labels, test_size=0.2, random_state=0)  
@@ -254,8 +255,6 @@ for dataset_type in all_data.all_modalities:
         # Fit kNN
         neigh.fit(data_train, labels_train) 
         
-        # Score kNN
-        #print(neigh.score(data_test, labels_test)) 
         # Test kNN on test dataset
         prediction_result = neigh.predict(data_test)
         
@@ -264,8 +263,10 @@ for dataset_type in all_data.all_modalities:
         knn_scores_all = cross_val_score(knn_all, sat_data, data_labels, cv=crossval_kfold)
         # Add to output dict
         knn_cv_all[dataset_use] = knn_scores_all
-        #print('kNN - ' + dataset_use + ' :')
-        #print(np.mean(knn_scores_all)) 
+        if print_result:
+            print('kNN - ' + dataset_use + ' :')
+            print(neigh.score(data_test, labels_test)) # Score kNN
+            print(np.mean(knn_scores_all)) 
         knn_mean_acc[dataset_use] = np.mean(knn_scores_all)
         
         # Get split for cofusion matrix calculation
@@ -293,8 +294,9 @@ for dataset_type in all_data.all_modalities:
         # Add to output dict
         knn_confmat_all[dataset_use] = knn_all_confmat
         knn_mean_kappa[dataset_use] = np.mean(knn_all_kappa)
-        #print(knn_all_confmat)
-        #print('kappa = ', np.mean(knn_all_kappa))
+        if print_result:
+            print(knn_all_confmat)
+            print('kappa = ', np.mean(knn_all_kappa))
         
         
         # Cross validate - Random Forest - All data
@@ -302,8 +304,9 @@ for dataset_type in all_data.all_modalities:
         rf_scores_all = cross_val_score(rf_all, sat_data, data_labels, cv=crossval_kfold)
         # Add to output dict
         rf_cv_all[dataset_use] = rf_scores_all
-        #print('Random Forest - ' + dataset_use + ' :')
-        #print(np.mean(rf_scores_all)) 
+        if print_result:
+            print('Random Forest - ' + dataset_use + ' :')
+            print(np.mean(rf_scores_all)) 
         rf_mean_acc[dataset_use] = np.mean(rf_scores_all)
         
         # Get split for cofusion matrix calculation
@@ -331,8 +334,9 @@ for dataset_type in all_data.all_modalities:
         # Add to output dict
         rf_confmat_all[dataset_use] = rf_all_confmat
         rf_mean_kappa[dataset_use] = np.mean(rf_all_kappa)
-        #print(rf_all_confmat)
-        #print('kappa = ', np.mean(rf_all_kappa))
+        if print_result:
+            print(rf_all_confmat)
+            print('kappa = ', np.mean(rf_all_kappa))
 
 
 # SAVE RESULTS
@@ -365,9 +369,6 @@ x_bars = np.arange(n_datasets) # range(n_datasets)
 ofs = 0.25 # offset
 alf = 0.7 # alpha
 
-# # Try sorting dictionaries alphabetically
-#sorted(rf_mean_acc, key=rf_mean_acc.get, reverse=True)
-#sorted(linreg_pdc_r2, key=linreg_pdc_r2.get, reverse=True)
 
 #%% Mean Accuracy - both in same plot (kNN and RF)
 if combined_bar_plots:
