@@ -352,13 +352,15 @@ def polar2complex(amp_in, ang_in):
     return array_out 
 
 
-def get_sar_features(filtered, x_list=None, y_list=None, feature_type='not set', input_type='vec'):
+def get_sar_features(input, x_list=None, y_list=None, feature_type='not set', input_type='vec'):
     """ Get features from SAR data tensor.
     
     e.g. extract certain parameters from C3 covariance matrix.
     Works for both a full image and a list of pixels (used for training or 
     testing).
     """
+    # Ensure that input is not modified
+    filtered = np.copy(input)
     
     # List of data vectors
     if input_type.lower() in ['vec', 'vector', 'list']:
@@ -389,11 +391,14 @@ def get_sar_features(filtered, x_list=None, y_list=None, feature_type='not set',
             filtered[:,4] = np.angle(temp[:,1]+ 1j* temp[:,2])
         elif feature_type.lower() in ['c3_pgnlm2intensities','c3pgnlm5feat2intensities']:
             filtered = filtered[:, [0,1,2]]
-        elif feature_type.lower() in ['c3_pgnlm','c3pgnlm5feat']:
-            pass #filtered = filtered[:, [0,1,2]]
+        elif feature_type.lower() in ['c3_pgnlm','c3pgnlm5feat', 'c3pgnlm5feat25feat']:
+            pass
+        elif feature_type.lower() in ['same', 'all']:
+            pass 
         else:
             # TODO 20191221 - Make this work for whole images aswell!!
             print('Warning! Feature type '+feature_type+ ' not defined in get_sar_features!!')
+    
     # Image array of data vectors
     elif input_type.lower() in ['img', 'image', 'full']:
         # Check if current processing type indicates that a subset of features 
@@ -425,10 +430,12 @@ def get_sar_features(filtered, x_list=None, y_list=None, feature_type='not set',
             filtered[:,:,2] = temp[:,:,4] # C33
         elif feature_type.lower() in ['c3_pgnlm2intensities','c3pgnlm5feat2intensities']:
             filtered = filtered[:,:, [0,1,2]]
-        elif feature_type.lower() in ['c3_pgnlm','c3pgnlm5feat']:
-            pass #filtered = filtered[:, [0,1,2]]
+        elif feature_type.lower() in ['c3_pgnlm','c3pgnlm5feat', 'c3pgnlm5feat25feat']:
+            pass 
         elif feature_type.lower() in ['abs']:
             filtered = np.abs(filtered, dtype='double') 
+        elif feature_type.lower() in ['same', 'all']:
+            pass 
         else:
             # TODO 20191221 - Make this work for whole images aswell!!
             print('Warning! Feature type '+feature_type+ ' not defined in get_sar_features!!')
