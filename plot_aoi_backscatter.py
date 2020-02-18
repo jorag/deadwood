@@ -114,7 +114,7 @@ for dataset_id in id_list:
             if dataset_in.lower()[6:10] in ['2019', 'best']:
                 c3_feature_type = 'iq2c3'
             else:
-                c3_feature_type =  'c3_pgnlm_5feat_intensities'
+                c3_feature_type =  'c3_pgnlm2intensities'
         elif dataset_in.lower()[-2:] in ['c3']:
             c3_feature_type = 'c3_snap_intensities'
         else:

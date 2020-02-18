@@ -387,8 +387,10 @@ def get_sar_features(filtered, x_list=None, y_list=None, feature_type='not set',
             # (ensure same angle calculation)
             filtered[:,3] = np.abs(temp[:,1]+ 1j* temp[:,2]) 
             filtered[:,4] = np.angle(temp[:,1]+ 1j* temp[:,2])
-        elif feature_type.lower() in ['c3_pgnlm_5feat_intensities','c3pgnlm5feat2intensities']:
+        elif feature_type.lower() in ['c3_pgnlm2intensities','c3pgnlm5feat2intensities']:
             filtered = filtered[:, [0,1,2]]
+        elif feature_type.lower() in ['c3_pgnlm','c3pgnlm5feat']:
+            pass #filtered = filtered[:, [0,1,2]]
         else:
             # TODO 20191221 - Make this work for whole images aswell!!
             print('Warning! Feature type '+feature_type+ ' not defined in get_sar_features!!')
@@ -421,8 +423,10 @@ def get_sar_features(filtered, x_list=None, y_list=None, feature_type='not set',
             filtered[:,:,0] = temp[:,:,0] # C11
             filtered[:,:,1] = temp[:,:,3] # C22
             filtered[:,:,2] = temp[:,:,4] # C33
-        elif feature_type.lower() in ['c3_pgnlm_5feat_intensities','c3pgnlm5feat2intensities']:
+        elif feature_type.lower() in ['c3_pgnlm2intensities','c3pgnlm5feat2intensities']:
             filtered = filtered[:,:, [0,1,2]]
+        elif feature_type.lower() in ['c3_pgnlm','c3pgnlm5feat']:
+            pass #filtered = filtered[:, [0,1,2]]
         elif feature_type.lower() in ['abs']:
             filtered = np.abs(filtered, dtype='double') 
         else:

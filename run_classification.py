@@ -201,7 +201,7 @@ for dataset_type in all_data.all_modalities:
             c3_feature_type = 'iq2c3'
         else:
             # TODO 20200218 - THIS ONLY RETURNS INTENSITIES, NOT 5 FEATURES AS FOR SNAP! 
-            c3_feature_type =  'c3_pgnlm_5feat_intensities'
+            c3_feature_type =  'c3_pgnlm5feat'
     elif dataset_type.lower()[-2:] in ['c3']:
         c3_feature_type = 'c3snap_filtered'
     else:
