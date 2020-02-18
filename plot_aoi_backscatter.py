@@ -45,18 +45,24 @@ opt_bands_include = ['b02','b03','b04','b05','b08'] # b02, b03, b04, b08, all 10
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
 
+# %% Read defoliated AOI                          
 # Get full data path from specified by input-path file
 with open(os.path.join(dirname, 'input-paths', 'defo1-aoi-path')) as infile:
     defo_file = infile.readline().strip()
-
 # Reading polygons into list
-defo_aois = read_wkt_csv(defo_file)
-                      
-# Load band lists from Excel file
+defo_aoi_list = read_wkt_csv(defo_file)
+
+# %% Read live AOI                          
+# Get full data path from specified by input-path file
+with open(os.path.join(dirname, 'input-paths', 'live1-aoi-path')) as infile:
+    live_file = infile.readline().strip()
+# Reading polygons into list
+live_aoi_list = read_wkt_csv(live_file)
+                   
+# %% Load band lists from Excel file
 xls_fullpath = os.path.join(dirname, 'input-paths', new_datalist_xls_file)
 datasets_xls = pd.ExcelFile(xls_fullpath)
 df = pd.read_excel(datasets_xls)
-
 
 
 # %% LOOP THROUGH SATELLITE DATA
@@ -103,6 +109,18 @@ for dataset_id in id_list:
             # Something went wrong
             continue
         
+        # %% Check input data type for feature extraction
+        if dataset_in.lower()[0:5] in ['pgnlm']:
+            if dataset_in.lower()[6:10] in ['2019', 'best']:
+                c3_feature_type = 'iq2c3'
+            else:
+                c3_feature_type =  'c3_pgnlm_5feat_intensities'
+        elif dataset_in.lower()[-2:] in ['c3']:
+            c3_feature_type = 'c3_snap_intensities'
+        else:
+            print('No feature type found for: '+dataset_type)
+            c3_feature_type = 'NA'
+                
         # %% If SAR data should be added
         if sar_bands_use:
             # Get array with SAR data
@@ -137,35 +155,29 @@ for dataset_id in id_list:
         lon = raster_data_array[lon_band,:,:]
         
         # Get defo AOI
-        i_defo = 0
-        lat_bounds, lon_bounds = defo_aois[i_defo].bounding_coords()
-        
-        row_ind, col_ind = geobox(lat_bounds, lon_bounds, lat, lon, margin=(0,0), log_type='default')
+        #i_defo = 0
+        #lat_bounds, lon_bounds = defo_aois[i_defo].bounding_coords()
+        for i_defo, defo_aoi in enumerate(defo_aoi_list):
+            # Get LAT and LONG for bounding rectangle and get pixel coordinates 
+            lat_bounds, lon_bounds = defo_aoi.bounding_coords()
+            row_ind, col_ind = geobox(lat_bounds, lon_bounds, lat, lon, margin=(0,0), log_type='default')
+            x_min = row_ind[0]; x_max = row_ind[1]
+            y_min = col_ind[0]; y_max = col_ind[1]
     
-        x_min = row_ind[0]
-        x_max = row_ind[1]
-        size_x = int(x_max - x_min) # convert int64 to int for GDAL GeoTIFF write
-        y_min = col_ind[0]
-        y_max = col_ind[1]
-        size_y = int(y_max - y_min) # convert int64 to int for GDAL GeoTIFF write
-        
-        # Read input (SAR) and guide (Optical), lat and lon (rewrite to AOI)
-        sat_data = raster_data_array[sar_bands_use, x_min:x_max, y_min:y_max]
-        
-        # Check if PGNLM filtered or C3 matrix and select feature type
-        if dataset_in.lower()[0:5] in ['pgnlm']:
-            if dataset_in.lower()[6:10] in ['2019', 'best']:
-                c3_feature_type = 'iq2c3'
+            # Get SAR data from area
+            sat_data = raster_data_array[sar_bands_use, x_min:x_max, y_min:y_max]
+            # Reshape to get channels last
+            sat_data = np.transpose(sat_data, (1,2,0))
+            
+            # Extract SAR covariance matrix features
+            sat_data = get_sar_features(sat_data, feature_type=c3_feature_type, input_type='img')
+            # Flatten
+            
+            # Create a new array or append to existing one
+            if i_defo == 0:
+                defo_data = np.copy(sat_data)
             else:
-                c3_feature_type =  'c3_pgnlm_5feat_intensities'
-        elif dataset_in.lower()[-2:] in ['c3']:
-            c3_feature_type = 'c3snap_filtered'
-        else:
-            print('No feature type found for: '+dataset_type)
-            c3_feature_type = 'NA'
-        
-        # Extract SAR covariance matrix features?
-        sat_data = get_sar_features(sat_data, feature_type=c3_feature_type, input_type='img')
+                defo_data = np.stack((defo_data, sat_data), axis=0)
         
         # %% Plot 3D backscatter values 
         modalitypoints3d('reciprocity', sat_data, np.ones(length(sat_data),dtype='int'), labels_dict=None)
