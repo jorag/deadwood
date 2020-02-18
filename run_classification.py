@@ -200,6 +200,7 @@ for dataset_type in all_data.all_modalities:
         if dataset_type.lower()[6:10] in ['2019', 'best']:
             c3_feature_type = 'iq2c3'
         else:
+            # TODO 20200218 - THIS ONLY RETURNS INTENSITIES, NOT 5 FEATURES AS FOR SNAP! 
             c3_feature_type =  'c3_pgnlm_5feat_intensities'
     elif dataset_type.lower()[-2:] in ['c3']:
         c3_feature_type = 'c3snap_filtered'
@@ -237,12 +238,13 @@ for dataset_type in all_data.all_modalities:
         
         # Extract SAR covariance matrix features?
         sat_data = get_sar_features(sat_data, feature_type=c3_feature_type)
+        print(sat_data.shape)
         
         # Normalize data
-        print(np.max(sat_data,axis=0))
+        #print(np.max(sat_data,axis=0))
         # Do normalization
         sat_data = norm01(sat_data, norm_type=norm_type)
-        print(np.max(sat_data,axis=0))
+        #print(np.max(sat_data,axis=0))
         
         # Split into training and test datasets
         data_train, data_test, labels_train, labels_test = train_test_split(sat_data, data_labels, test_size=0.2, random_state=0)  
@@ -253,7 +255,7 @@ for dataset_type in all_data.all_modalities:
         neigh.fit(data_train, labels_train) 
         
         # Score kNN
-        print(neigh.score(data_test, labels_test)) 
+        #print(neigh.score(data_test, labels_test)) 
         # Test kNN on test dataset
         prediction_result = neigh.predict(data_test)
         
@@ -262,8 +264,8 @@ for dataset_type in all_data.all_modalities:
         knn_scores_all = cross_val_score(knn_all, sat_data, data_labels, cv=crossval_kfold)
         # Add to output dict
         knn_cv_all[dataset_use] = knn_scores_all
-        print('kNN - ' + dataset_use + ' :')
-        print(np.mean(knn_scores_all)) 
+        #print('kNN - ' + dataset_use + ' :')
+        #print(np.mean(knn_scores_all)) 
         knn_mean_acc[dataset_use] = np.mean(knn_scores_all)
         
         # Get split for cofusion matrix calculation
@@ -291,8 +293,8 @@ for dataset_type in all_data.all_modalities:
         # Add to output dict
         knn_confmat_all[dataset_use] = knn_all_confmat
         knn_mean_kappa[dataset_use] = np.mean(knn_all_kappa)
-        print(knn_all_confmat)
-        print('kappa = ', np.mean(knn_all_kappa))
+        #print(knn_all_confmat)
+        #print('kappa = ', np.mean(knn_all_kappa))
         
         
         # Cross validate - Random Forest - All data
@@ -300,8 +302,8 @@ for dataset_type in all_data.all_modalities:
         rf_scores_all = cross_val_score(rf_all, sat_data, data_labels, cv=crossval_kfold)
         # Add to output dict
         rf_cv_all[dataset_use] = rf_scores_all
-        print('Random Forest - ' + dataset_use + ' :')
-        print(np.mean(rf_scores_all)) 
+        #print('Random Forest - ' + dataset_use + ' :')
+        #print(np.mean(rf_scores_all)) 
         rf_mean_acc[dataset_use] = np.mean(rf_scores_all)
         
         # Get split for cofusion matrix calculation
@@ -329,8 +331,8 @@ for dataset_type in all_data.all_modalities:
         # Add to output dict
         rf_confmat_all[dataset_use] = rf_all_confmat
         rf_mean_kappa[dataset_use] = np.mean(rf_all_kappa)
-        print(rf_all_confmat)
-        print('kappa = ', np.mean(rf_all_kappa))
+        #print(rf_all_confmat)
+        #print('kappa = ', np.mean(rf_all_kappa))
 
 
 # SAVE RESULTS
