@@ -26,7 +26,7 @@ def showimpoint(all_data, geotransform, lat, lon, n_pixel_x=500, n_pixel_y=500, 
     plt.figure()
     plt.imshow(im_generate) 
     plt.show()  # display it
-    return
+    
 
 def showimage(all_data, bands=[0,1,2]):
     """Show image in tensor with the shape (channel,x,y)"""
@@ -38,7 +38,6 @@ def showimage(all_data, bands=[0,1,2]):
     plt.figure()
     plt.imshow(im_generate) 
     plt.show()  # display it
-    return
 
 
 def showallbands(dataset_array):
@@ -56,8 +55,6 @@ def showallbands(dataset_array):
         plt.imshow(im_generate[:,:,i_band])
         plt.title('BAND '+ str(i_band) +' Min = '+str(band_min)+' Mean = '+str(band_mean)+' Max = '+str(band_max))
         plt.show()  # display it
-    
-    return
 
 
 def modalitypoints3d(modality_type, dataset_array, labels_array, labels_dict=None):
@@ -69,11 +66,11 @@ def modalitypoints3d(modality_type, dataset_array, labels_array, labels_dict=Non
         # https://stackoverflow.com/questions/1985856/how-to-make-a-3d-scatter-plot-in-python
     """
     
-    if modality_type.lower() in ['sar_quad', 'quad', 'hhhvvv']:
+    if modality_type.lower() in ['sar_quad', 'quad', 'hhhvvhvv']:
         xlabel = 'HH'; xs = dataset_array[:,0]
         ylabel = 'HV'; ys = dataset_array[:,1]
         zlabel = 'VV'; zs = dataset_array[:,3]
-    elif modality_type.lower() in ['sar_rec', 'reciprocity', 'hhhvvhvv']:
+    elif modality_type.lower() in ['sar_rec', 'reciprocity', 'hhhvvv']:
         xlabel = 'HH'; xs = dataset_array[:,0]
         ylabel = 'HV/VH'; ys = dataset_array[:,1]
         zlabel = 'VV'; zs = dataset_array[:,2]
@@ -118,5 +115,3 @@ def modalitypoints3d(modality_type, dataset_array, labels_array, labels_dict=Non
     # https://stackoverflow.com/questions/13685386/matplotlib-equal-unit-length-with-equal-aspect-ratio-z-axis-is-not-equal-to?noredirect=1&lq=1
     #plt.axis('scaled')
     plt.show()
-    
-    return
