@@ -155,8 +155,6 @@ for dataset_id in id_list:
         lon = raster_data_array[lon_band,:,:]
         
         # Get defo AOI
-        #i_defo = 0
-        #lat_bounds, lon_bounds = defo_aois[i_defo].bounding_coords()
         for i_defo, defo_aoi in enumerate(defo_aoi_list):
             # Get LAT and LONG for bounding rectangle and get pixel coordinates 
             lat_bounds, lon_bounds = defo_aoi.bounding_coords()
@@ -181,13 +179,19 @@ for dataset_id in id_list:
             # Create a new array or append to existing one
             if i_defo == 0:
                 defo_data = np.copy(sat_data)
-                # Plot here and after reshape to compare?
-                # Or do a .allclose test with 5 channels from original
-                #defo_data[:,:,0]
+                # Check that reshaping is correct 
+                org_data = raster_data_array[[0,5,8], x_min:x_max, y_min:y_max]
+                ref_data = defo_data.reshape(c_first_shape)
+                print(org_data.shape)
+                print(ref_data.shape)
+                print(np.allclose(org_data, ref_data))
             else:
                 defo_data = np.hstack((defo_data, sat_data))
         
-        #%% Plot 3D backscatter values 
+        #%% Plot 3D backscatter values
+        # Merge arrays with live and defoliated data
+        
+        # Plot
         modalitypoints3d('reciprocity', sat_data.transpose((1,0)), np.ones(length(sat_data),dtype='int'), labels_dict=None)
     
         
