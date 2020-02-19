@@ -11,8 +11,6 @@ import numpy as np
 import gdal
 import pandas as pd
 import os # Necessary for relative paths
-import xml.etree.ElementTree as ET
-import pickle
 import ast
 # My moduels
 from mytools import *
@@ -29,9 +27,9 @@ base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data obje
 
 # List of datasets to process
 #dataset_list = ['iq', 'C3', 'cloude_3x3', 'genFD_3x3', 'vanZyl_3x3', 'yamaguchi_3x3', 'collocate_iq', 'collocate_C3', 'pgnlm_iq'] 
-#dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3'] 
+dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3'] 
 #dataset_list = ['geo_opt']
-dataset_list = ['IDAN_50_C3']
+#dataset_list = ['IDAN_50_C3']
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 add_ndvi = True
 
@@ -174,15 +172,10 @@ for dataset_id in id_list:
             sat_data = np.transpose(sat_data, (2,0,1))
             c_first_shape = sat_data.shape
             sat_data = np.reshape(sat_data, (c_first_shape[0],c_first_shape[1]*c_first_shape[2]), order='C')
-            print(sat_data.shape)
             
             # Create a new array or append to existing one
             if i_defo == 0:
                 defo_data = np.copy(sat_data)
-                # Check that reshaping is correct 
-                #org_data = raster_data_array[[0,5,8], x_min:x_max, y_min:y_max]
-                #ref_data = defo_data.reshape(c_first_shape)
-                #print(np.allclose(org_data, ref_data))
             else:
                 defo_data = np.hstack((defo_data, sat_data))
                 
@@ -206,26 +199,25 @@ for dataset_id in id_list:
             sat_data = np.transpose(sat_data, (2,0,1))
             c_first_shape = sat_data.shape
             sat_data = np.reshape(sat_data, (c_first_shape[0],c_first_shape[1]*c_first_shape[2]), order='C')
-            print(sat_data.shape)
             
             # Create a new array or append to existing one
             if i_live == 0:
                 live_data = np.copy(sat_data)
-                # Check that reshaping is correct 
-                #org_data = raster_data_array[[0,5,8], x_min:x_max, y_min:y_max]
-                #ref_data = live_data.reshape(c_first_shape)
-                #print(np.allclose(org_data, ref_data))
             else:
                 live_data = np.hstack((live_data, sat_data))
         
         #%% Plot 3D backscatter values
+        print(defo_data.shape)
+        print(live_data.shape)
         # Merge arrays with live and defoliated data
         x = np.hstack((live_data, defo_data))
         # Create labels
-        y = np.hstack((1*np.ones(length(live_data),dtype='int'), 2*np.ones(length(defo_data),dtype='int')))
+        y = np.hstack((1*np.ones(length(live_data),dtype='int'), 0*np.ones(length(defo_data),dtype='int')))
+        
+        labels_dict = None # dict((['live', 'defo'], ['live', 'defo']))
         
         # Plot
-        modalitypoints3d('reciprocity', x.transpose((1,0)), y, labels_dict=None)
+        modalitypoints3d('reciprocity', x.transpose((1,0)), y, labels_dict=labels_dict, title=dataset_use)
     
         
     

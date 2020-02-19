@@ -57,7 +57,7 @@ def showallbands(dataset_array):
         plt.show()  # display it
 
 
-def modalitypoints3d(modality_type, dataset_array, labels_array, labels_dict=None):
+def modalitypoints3d(modality_type, dataset_array, labels_array, labels_dict=None, title=None):
     """Show all (transect) points in a 3D plot with colour and annotation
     
     Different annotations and channels used for different modalities.
@@ -98,7 +98,12 @@ def modalitypoints3d(modality_type, dataset_array, labels_array, labels_dict=Non
     ax.set_ylabel(ylabel)
     ax.set_zlabel(zlabel)
     
-    ax.set_title(modality_type)
+    # Set title
+    if title is not None:
+        plt.title(title)
+    else:
+        ax.set_title(modality_type)
+    
     # TODO: Check if dict instead
     if labels_dict is not None:
         # Get legend text
@@ -114,4 +119,5 @@ def modalitypoints3d(modality_type, dataset_array, labels_array, labels_dict=Non
     # TODO: Fix scaling og plot
     # https://stackoverflow.com/questions/13685386/matplotlib-equal-unit-length-with-equal-aspect-ratio-z-axis-is-not-equal-to?noredirect=1&lq=1
     #plt.axis('scaled')
+
     plt.show()
