@@ -166,21 +166,29 @@ for dataset_id in id_list:
     
             # Get SAR data from area
             sat_data = raster_data_array[sar_bands_use, x_min:x_max, y_min:y_max]
-            # Reshape to get channels last
-            sat_data = np.transpose(sat_data, (1,2,0))
+            print(sat_data.shape)
             
-            # Extract SAR covariance matrix features
+            # Extract SAR covariance mat features, reshape to get channels last
+            sat_data = np.transpose(sat_data, (1,2,0))
             sat_data = get_sar_features(sat_data, feature_type=c3_feature_type, input_type='img')
-            # Flatten
+            
+            # Flatten, reshape to channels first due to ordering of reshape
+            sat_data = np.transpose(sat_data, (2,0,1))
+            c_first_shape = sat_data.shape
+            sat_data = np.reshape(sat_data, (c_first_shape[0],c_first_shape[1]*c_first_shape[2]), order='C')
+            print(sat_data.shape)
             
             # Create a new array or append to existing one
             if i_defo == 0:
                 defo_data = np.copy(sat_data)
+                # Plot here and after reshape to compare?
+                # Or do a .allclose test with 5 channels from original
+                #defo_data[:,:,0]
             else:
-                defo_data = np.stack((defo_data, sat_data), axis=0)
+                defo_data = np.hstack((defo_data, sat_data))
         
-        # %% Plot 3D backscatter values 
-        modalitypoints3d('reciprocity', sat_data, np.ones(length(sat_data),dtype='int'), labels_dict=None)
+        #%% Plot 3D backscatter values 
+        modalitypoints3d('reciprocity', sat_data.transpose((1,0)), np.ones(length(sat_data),dtype='int'), labels_dict=None)
     
         
     
