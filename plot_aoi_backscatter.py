@@ -33,7 +33,7 @@ datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on 
 
 # List of datasets to process
-dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219']
+dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219', 'geo_opt']
 #dataset_list = ['boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219'] 
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 add_ndvi = False
@@ -132,37 +132,26 @@ for dataset_id in id_list:
             #c3_feature_type = 'c3_snap_intensities'
             c3_feature_type = 'c3snap5feat'
         else:
-            print('No feature type found for: '+dataset_type)
+            print('No feature type found for: '+dataset_in)
             c3_feature_type = 'NA'
                 
         # %% If SAR data should be added
         if sar_bands_use:
             # Get array with SAR data
-            sar_data_temp = raster_data_array[sar_bands_use,:,:]   
-            # Convert to 2D array
-            sar_data_temp, n_rows, n_cols = imtensor2array(sar_data_temp)
-            # Reshape to 3D image tensor (3 channels)
-            sar_data_temp = np.reshape(sar_data_temp, (n_rows, n_cols, sar_data_temp.shape[1]))
-
-        
+            sat_data_temp = raster_data_array[sar_bands_use,:,:]   
+            
         # %% If MULTISPECTRAL OPTICAL data should be added
         if dataset_in in opt_dataset_list:
             opt_bands_use = [] # Check which of the available bands should be included 
             for key in opt_bands_include:
                 opt_bands_use.append(opt_bands_dict[dataset_use][key])
-            opt_data_temp = raster_data_array[opt_bands_use,:,:]
-            # Convert to 2D array
-            opt_data_temp, n_rows, n_cols = imtensor2array(opt_data_temp)
-            # Reshape to 3D image tensor (3 channels)
-            opt_data_temp = np.reshape(opt_data_temp, (n_rows, n_cols, opt_data_temp.shape[1]))
-
-            # Get OPT pixels
-            opt_pixels = opt_data_temp
+            sat_data_temp = raster_data_array[opt_bands_use,:,:]
+            
             # Add NDVI
             if add_ndvi:
                 # TODO 20200113 - Clean up this!
-                nir_pixels = opt_data_temp[:, :, opt_bands_include.index('b08')] 
-                red_pixels = opt_data_temp[:, :, opt_bands_include.index('b04')]
+                nir_pixels = sat_data_temp[opt_bands_include.index('b08'), :, :] 
+                red_pixels = sat_data_temp[opt_bands_include.index('b04'), :, :]
                 ndvi_pixels = (nir_pixels-red_pixels)/(nir_pixels+red_pixels)
         #%% Read lat and lon bands
         lat = raster_data_array[lat_band,:,:]
@@ -177,7 +166,7 @@ for dataset_id in id_list:
             y_min = col_ind[0]; y_max = col_ind[1]
     
             # Get SAR data from area
-            sat_data = raster_data_array[sar_bands_use, x_min:x_max, y_min:y_max]
+            sat_data = sat_data_temp[:, x_min:x_max, y_min:y_max]
             
             # Extract SAR covariance mat features, reshape to get channels last
             sat_data = np.transpose(sat_data, (1,2,0))
@@ -203,7 +192,7 @@ for dataset_id in id_list:
             y_min = col_ind[0]; y_max = col_ind[1]
     
             # Get SAR data from area
-            sat_data = raster_data_array[sar_bands_use, x_min:x_max, y_min:y_max]
+            sat_data = sat_data_temp[:, x_min:x_max, y_min:y_max]
             
             # Extract SAR covariance mat features, reshape to get channels last
             sat_data = np.transpose(sat_data, (1,2,0))
@@ -267,10 +256,11 @@ if True: #plot_rf_dataset_comp:
      #sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM-20191224-1814', 'NDVI', 'optical']
      #sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM', 'NDVI', 'optical']
      
-     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM_20200219'] #
-     sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM']
+     sar_names_dataset = ['C3', 'IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM_20200219'] #
+     sar_names_display = ['nofilter', 'IDAN', 'boxcar', 'refined Lee', 'PGNLM']
      
-     opt_names_dataset = ['NDVI', 'optical']
+     opt_names_dataset = ['geo_opt']
+     opt_names_display = ['optical'] # 'geo_opt'
      n_opt = length(opt_names_dataset)
      
      sar_data_dict = dict(zip(sar_names_dataset, sar_names_display)) 
@@ -297,17 +287,17 @@ if True: #plot_rf_dataset_comp:
             #plt.bar(x_bars*2+ofs_use, rf_accuracy , align='center', color=c_vec[i_dataset], alpha=alf)
             #plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*length(rf_accuracy))
      
-#     key_list = []
-#     rf_accuracy = []
-#     for dataset_key in opt_names_dataset:
-#            key_list.append(dataset_key+'-A')
-#            rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
-#    
-#     print(rf_accuracy)
-#     plt.bar(x_bars[-2:]*2, rf_accuracy , align='center', color='g', alpha=alf)
+     key_list = []
+     rf_accuracy = []
+     for dataset_key in opt_names_dataset:
+            key_list.append(dataset_key+'-A')
+            rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
+    
+     print(rf_accuracy)
+     plt.bar(x_bars[-n_opt:]*2, rf_accuracy , align='center', color='g', alpha=alf)
         
      # Get display names from dict
-     xtick_list = sar_names_display #+opt_names_dataset
+     xtick_list = sar_names_display + opt_names_display
      #for i_dataset, dataset_id in enumerate(id_list):
          
     
@@ -318,6 +308,6 @@ if True: #plot_rf_dataset_comp:
      #         '\n Min:'+', live = '+str(min_p_live)+', defo = '+
      #          str(min_p_defo)+', trees = '+str(min_tree_live))
      plt.ylabel('Mean accuracy %, '+str(crossval_split_k)+'-fold cross validation'); plt.ylim((0,pct_f*1))
-     #plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017', 'S2 26 July 2017'])
+     plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017', 'S2 26 July 2017'])
     
      plt.show()
