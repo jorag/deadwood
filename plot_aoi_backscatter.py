@@ -54,6 +54,8 @@ crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random
 knn_k = 5
 rf_ntrees = 200 # Number of trees in the Random Forest algorithm
 
+knn_mean_acc = dict()
+rf_mean_acc = dict()
 
 # %% Read defoliated AOI                          
 # Get full data path from specified by input-path file
@@ -239,8 +241,83 @@ for dataset_id in id_list:
         knn_scores_all = cross_val_score(knn_all, x, y, cv=crossval_kfold)
         #print('kNN - ' + dataset_use + ' :')
         print(np.mean(knn_scores_all))
+        knn_mean_acc[dataset_use] = np.mean(knn_scores_all)
         
         rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
         rf_scores_all = cross_val_score(rf_all, x, y, cv=crossval_kfold)
         #print('Random Forest - ' + dataset_use + ' :')
-        print(np.mean(rf_scores_all)) 
+        print(np.mean(rf_scores_all))
+        rf_mean_acc[dataset_use] = np.mean(rf_scores_all)
+        
+#%% Plot classification summary
+# Plot summary statistics
+n_datasets = length(rf_mean_acc)
+x_bars = np.arange(n_datasets) # range(n_datasets)
+ofs = 0.25 # offset
+alf = 0.7 # alpha
+
+if True: #plot_rf_dataset_comp:
+     # Disp
+     id_list_use = ['A', 'C']
+     c_vec2 = ['r', 'b', 'g']
+     
+     # Percent factor
+     pct_f = 100
+     
+     #sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM-20191224-1814', 'NDVI', 'optical']
+     #sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM', 'NDVI', 'optical']
+     
+     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM_20200219'] #
+     sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM']
+     
+     opt_names_dataset = ['NDVI', 'optical']
+     n_opt = length(opt_names_dataset)
+     
+     sar_data_dict = dict(zip(sar_names_dataset, sar_names_display)) 
+    
+     ofs_use = np.copy(ofs)
+     plt.figure()
+     x_bars = np.arange(length(sar_names_dataset)+ n_opt)
+     #x_bars = np.arange(length(sar_names_dataset))
+     #datakey_list = list(rf_mean_acc.keys())
+     #datakey_list.sort()
+     for i_dataset, dataset_id in enumerate(id_list_use):
+        key_list = []
+        rf_accuracy = []
+        
+        for dataset_key in sar_names_dataset:
+            key_list.append(dataset_key+'-'+dataset_id)
+            rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
+            
+        print(rf_accuracy)
+        if key_list:
+            ofs_use = ofs_use * -1
+            # Plot
+            plt.bar(x_bars[:-n_opt]*2+ofs_use, rf_accuracy , align='center', color=c_vec2[i_dataset], alpha=alf)
+            #plt.bar(x_bars*2+ofs_use, rf_accuracy , align='center', color=c_vec[i_dataset], alpha=alf)
+            #plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*length(rf_accuracy))
+     
+#     key_list = []
+#     rf_accuracy = []
+#     for dataset_key in opt_names_dataset:
+#            key_list.append(dataset_key+'-A')
+#            rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
+#    
+#     print(rf_accuracy)
+#     plt.bar(x_bars[-2:]*2, rf_accuracy , align='center', color='g', alpha=alf)
+        
+     # Get display names from dict
+     xtick_list = sar_names_display #+opt_names_dataset
+     #for i_dataset, dataset_id in enumerate(id_list):
+         
+    
+     plt.xticks(x_bars*2, xtick_list )
+     plt.yticks(pct_f*np.linspace(0.1,1,num=10))
+     plt.grid(True)
+     #plt.title('RF, n_trees: '+str(rf_ntrees)+ ', normalization: '+norm_type+
+     #         '\n Min:'+', live = '+str(min_p_live)+', defo = '+
+     #          str(min_p_defo)+', trees = '+str(min_tree_live))
+     plt.ylabel('Mean accuracy %, '+str(crossval_split_k)+'-fold cross validation'); plt.ylim((0,pct_f*1))
+     #plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017', 'S2 26 July 2017'])
+    
+     plt.show()
