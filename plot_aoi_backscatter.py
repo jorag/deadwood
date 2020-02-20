@@ -26,7 +26,8 @@ datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on 
 
 # List of datasets to process
-dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219'] 
+#dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219']
+dataset_list = ['boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219'] 
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 add_ndvi = False
 
@@ -207,9 +208,11 @@ for dataset_id in id_list:
         print(defo_data.shape)
         print(live_data.shape)
         # Merge arrays with live and defoliated data
-        x = np.hstack((live_data, defo_data))
+        #x = np.hstack((live_data, defo_data))
+        x = np.hstack((defo_data, live_data))
         # Create labels
-        y = np.hstack((1*np.ones(length(live_data),dtype='int'), 0*np.ones(length(defo_data),dtype='int')))
+        #y = np.hstack((1*np.ones(length(live_data),dtype='int'), 0*np.ones(length(defo_data),dtype='int')))
+        y = np.hstack((0*np.ones(length(defo_data),dtype='int'), 1*np.ones(length(live_data),dtype='int')))
         
         labels_dict = None # dict((['live', 'defo'], ['live', 'defo']))
         
