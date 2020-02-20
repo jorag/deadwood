@@ -19,26 +19,23 @@ from visandtest import *
 from dataclass import *
 
 
-# Check if the new band list format, where everything is stored in a .xls, is used
-new_datalist_xls_file = '2020_C3_dataset_overview.xls' # '2019_reprocess_dataset_overview.xls'
+# File with list of datasets and band info  
+new_datalist_xls_file = '2020_proof_of_concept_datasets.xls' 
 # Prefix for output datamodalities object filename
 datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on 
 
 # List of datasets to process
-#dataset_list = ['iq', 'C3', 'cloude_3x3', 'genFD_3x3', 'vanZyl_3x3', 'yamaguchi_3x3', 'collocate_iq', 'collocate_C3', 'pgnlm_iq'] 
-dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3'] 
-#dataset_list = ['geo_opt']
-#dataset_list = ['IDAN_50_C3']
+dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219'] 
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
-add_ndvi = True
+add_ndvi = False
 
 # Datasets to add optical bands from
 opt_dataset_list = ['geo_opt']
 
 # Which Sentinel-2 bands to use
 #opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
-opt_bands_include = ['b02','b03','b04','b05','b08'] # b02, b03, b04, b08, all 10 m resolution
+opt_bands_include = ['b02','b03','b04','b05','b08'] # all 10 m resolution
     
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
