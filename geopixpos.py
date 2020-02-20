@@ -425,9 +425,7 @@ def read_wkt_csv(input_file, input_mode='z+m'):
                     coords = vertex_str.split()
                     lon = float(coords[0])
                     lat = float(coords[1])
-                    print(lat, lon)
                     aoi.add((lat, lon))
-                    #print(vertex_str)
                 
                 # Add to output list
                 output_areas.append(aoi)

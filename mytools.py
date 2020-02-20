@@ -379,7 +379,7 @@ def get_sar_features(input, x_list=None, y_list=None, feature_type='not set', in
             filtered[:,2] = np.real(temp[:,3]) # C33
             filtered[:,3] = np.abs(temp[:,1]) # C13 abs
             filtered[:,4] = np.angle(temp[:,1]) # C13 angle
-        elif feature_type.lower() in ['c3_snap_5feat', 'c3snap_filtered']:
+        elif feature_type.lower() in ['c3_snap_5feat', 'c3snap_filtered', 'c3snap5feat']:
             temp = filtered[:, [0,3,4,5,8]]
             filtered = np.zeros((filtered.shape[0],5))
             filtered[:,0] = temp[:,0] # C11
@@ -412,7 +412,7 @@ def get_sar_features(input, x_list=None, y_list=None, feature_type='not set', in
             filtered[:,:,2] = np.real(temp[:,:,3]) # C33
             filtered[:,:,3] = np.abs(temp[:,:,1]) # C13 abs
             filtered[:,:,4] = np.angle(temp[:,:,1]) # C13 angle
-        elif feature_type.lower() in ['c3_snap_5feat','c3snap_filtered']:
+        elif feature_type.lower() in ['c3_snap_5feat','c3snap_filtered', 'c3snap5feat']:
             temp = filtered[:,:, [0,3,4,5,8]]
             filtered = np.zeros((filtered.shape[0], filtered.shape[1], 5))
             filtered[:,:,0] = temp[:,:,0] # C11

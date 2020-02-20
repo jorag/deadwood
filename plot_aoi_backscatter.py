@@ -12,6 +12,13 @@ import gdal
 import pandas as pd
 import os # Necessary for relative paths
 import ast
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split # train/test set split
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import StratifiedKFold # is deafault in cross-val?
+from sklearn.metrics import confusion_matrix
 # My moduels
 from mytools import *
 from geopixpos import *
@@ -19,15 +26,15 @@ from visandtest import *
 from dataclass import *
 
 
-# File with list of datasets and band info  
+#%% File with list of datasets and band info  
 new_datalist_xls_file = '2020_proof_of_concept_datasets.xls' 
 # Prefix for output datamodalities object filename
 datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on 
 
 # List of datasets to process
-#dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219']
-dataset_list = ['boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219'] 
+dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219']
+#dataset_list = ['boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219'] 
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 add_ndvi = False
 
@@ -40,6 +47,13 @@ opt_bands_include = ['b02','b03','b04','b05','b08'] # all 10 m resolution
     
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'
+
+#%% Classification parameters
+crossval_split_k = 5
+crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
+knn_k = 5
+rf_ntrees = 200 # Number of trees in the Random Forest algorithm
+
 
 # %% Read defoliated AOI                          
 # Get full data path from specified by input-path file
@@ -97,7 +111,7 @@ for dataset_id in id_list:
         try:
             # Load data
             dataset = gdal.Open(sat_file)
-            gdalinfo_log(dataset, log_type='default')
+            #gdalinfo_log(dataset, log_type='default')
             
             # Read ALL bands - note that it will be zero indexed
             raster_data_array = dataset.ReadAsArray()
@@ -110,9 +124,11 @@ for dataset_id in id_list:
             if dataset_in.lower()[6:10] in ['2019', 'best']:
                 c3_feature_type = 'iq2c3'
             else:
-                c3_feature_type =  'c3_pgnlm2intensities'
+                #c3_feature_type =  'c3_pgnlm2intensities'
+                c3_feature_type = 'c3pgnlm5feat'
         elif dataset_in.lower()[-2:] in ['c3']:
-            c3_feature_type = 'c3_snap_intensities'
+            #c3_feature_type = 'c3_snap_intensities'
+            c3_feature_type = 'c3snap5feat'
         else:
             print('No feature type found for: '+dataset_type)
             c3_feature_type = 'NA'
@@ -160,7 +176,6 @@ for dataset_id in id_list:
     
             # Get SAR data from area
             sat_data = raster_data_array[sar_bands_use, x_min:x_max, y_min:y_max]
-            print(sat_data.shape)
             
             # Extract SAR covariance mat features, reshape to get channels last
             sat_data = np.transpose(sat_data, (1,2,0))
@@ -187,7 +202,6 @@ for dataset_id in id_list:
     
             # Get SAR data from area
             sat_data = raster_data_array[sar_bands_use, x_min:x_max, y_min:y_max]
-            print(sat_data.shape)
             
             # Extract SAR covariance mat features, reshape to get channels last
             sat_data = np.transpose(sat_data, (1,2,0))
@@ -205,11 +219,11 @@ for dataset_id in id_list:
                 live_data = np.hstack((live_data, sat_data))
         
         #%% Plot 3D backscatter values
-        print(defo_data.shape)
-        print(live_data.shape)
+
         # Merge arrays with live and defoliated data
         #x = np.hstack((live_data, defo_data))
         x = np.hstack((defo_data, live_data))
+        x = x.transpose((1,0))
         # Create labels
         #y = np.hstack((1*np.ones(length(live_data),dtype='int'), 0*np.ones(length(defo_data),dtype='int')))
         y = np.hstack((0*np.ones(length(defo_data),dtype='int'), 1*np.ones(length(live_data),dtype='int')))
@@ -217,8 +231,16 @@ for dataset_id in id_list:
         labels_dict = None # dict((['live', 'defo'], ['live', 'defo']))
         
         # Plot
-        modalitypoints3d('reciprocity', x.transpose((1,0)), y, labels_dict=labels_dict, title=dataset_use)
-    
+        #modalitypoints3d('reciprocity', x, y, labels_dict=labels_dict, title=dataset_use)
         
-    
-
+        #%% Classify
+        # Cross validate - kNN - All data
+        knn_all = KNeighborsClassifier(n_neighbors=knn_k)
+        knn_scores_all = cross_val_score(knn_all, x, y, cv=crossval_kfold)
+        #print('kNN - ' + dataset_use + ' :')
+        print(np.mean(knn_scores_all))
+        
+        rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
+        rf_scores_all = cross_val_score(rf_all, x, y, cv=crossval_kfold)
+        #print('Random Forest - ' + dataset_use + ' :')
+        print(np.mean(rf_scores_all)) 
