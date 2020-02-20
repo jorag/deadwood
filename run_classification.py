@@ -493,7 +493,7 @@ if plot_rf_dataset_comp:
             rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
     
      print(rf_accuracy)
-     plt.bar(x_bars[-2:]*2, rf_accuracy , align='center', color='g', alpha=alf)
+     plt.bar(x_bars[-n_opt:]*2, rf_accuracy , align='center', color='g', alpha=alf)
         
      # Get display names from dict
      xtick_list = sar_names_display+opt_names_dataset
