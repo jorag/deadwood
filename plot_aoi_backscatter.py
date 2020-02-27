@@ -33,7 +33,7 @@ datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on 
 
 # List of datasets to process
-dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219', 'geo_opt']
+dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200220', 'geo_opt']
 #dataset_list = ['boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219'] 
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 add_ndvi = False
@@ -49,7 +49,7 @@ opt_bands_include = ['b02','b03','b04','b05','b08'] # all 10 m resolution
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 #%% Classification parameters
-crossval_split_k = 5
+crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
 knn_k = 5
 rf_ntrees = 200 # Number of trees in the Random Forest algorithm
@@ -256,7 +256,7 @@ if True: #plot_rf_dataset_comp:
      #sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM-20191224-1814', 'NDVI', 'optical']
      #sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM', 'NDVI', 'optical']
      
-     sar_names_dataset = ['C3', 'IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM_20200219'] #
+     sar_names_dataset = ['C3', 'IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM_20200220'] #
      sar_names_display = ['nofilter', 'IDAN', 'boxcar', 'refined Lee', 'PGNLM']
      
      opt_names_dataset = ['geo_opt']
@@ -308,6 +308,6 @@ if True: #plot_rf_dataset_comp:
      #         '\n Min:'+', live = '+str(min_p_live)+', defo = '+
      #          str(min_p_defo)+', trees = '+str(min_tree_live))
      plt.ylabel('Mean accuracy %, '+str(crossval_split_k)+'-fold cross validation'); plt.ylim((0,pct_f*1))
-     plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017', 'S2 26 July 2017'])
+     plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017', 'S2 26 July 2017'], loc='lower right')
     
      plt.show()
