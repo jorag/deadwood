@@ -33,8 +33,8 @@ datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on 
 
 # List of datasets to process
-dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200220', 'geo_opt']
-#dataset_list = ['boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200219'] 
+dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200227', 'geo_opt']
+#dataset_list = ['PGNLM_20200219', 'PGNLM_20200220', 'PGNLM_20200221', 'PGNLM_20200222','PGNLM_20200223', 'PGNLM_20200224', 'PGNLM_20200225', 'geo_opt']
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 add_ndvi = False
 
@@ -49,7 +49,7 @@ opt_bands_include = ['b02','b03','b04','b05','b08'] # all 10 m resolution
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 #%% Classification parameters
-crossval_split_k = 3
+crossval_split_k = 5
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
 knn_k = 5
 rf_ntrees = 200 # Number of trees in the Random Forest algorithm
@@ -104,7 +104,7 @@ for dataset_id in id_list:
                 opt_bands_dict = dict()
                 opt_bands_dict[dataset_use] = dict(zip(opt_band_names , opt_bands_use))
                 
-            print(sat_file)
+            #print(sat_file)
         except:
             # Something went wrong
             continue
@@ -132,7 +132,7 @@ for dataset_id in id_list:
             #c3_feature_type = 'c3_snap_intensities'
             c3_feature_type = 'c3snap5feat'
         else:
-            print('No feature type found for: '+dataset_in)
+            #print('No feature type found for: '+dataset_in)
             c3_feature_type = 'NA'
                 
         # %% If SAR data should be added
@@ -229,12 +229,12 @@ for dataset_id in id_list:
         knn_all = KNeighborsClassifier(n_neighbors=knn_k)
         knn_scores_all = cross_val_score(knn_all, x, y, cv=crossval_kfold)
         #print('kNN - ' + dataset_use + ' :')
-        print(np.mean(knn_scores_all))
+        #print(np.mean(knn_scores_all))
         knn_mean_acc[dataset_use] = np.mean(knn_scores_all)
         
         rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
         rf_scores_all = cross_val_score(rf_all, x, y, cv=crossval_kfold)
-        #print('Random Forest - ' + dataset_use + ' :')
+        print('Random Forest - ' + dataset_use + ' :')
         print(np.mean(rf_scores_all))
         rf_mean_acc[dataset_use] = np.mean(rf_scores_all)
         
@@ -256,8 +256,11 @@ if True: #plot_rf_dataset_comp:
      #sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM-20191224-1814', 'NDVI', 'optical']
      #sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM', 'NDVI', 'optical']
      
-     sar_names_dataset = ['C3', 'IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM_20200220'] #
-     sar_names_display = ['nofilter', 'IDAN', 'boxcar', 'refined Lee', 'PGNLM']
+     #sar_names_dataset = ['C3', 'IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM_20200220'] #
+     #sar_names_display = ['nofilter', 'IDAN', 'boxcar', 'refined Lee', 'PGNLM']
+     
+     sar_names_dataset = ['PGNLM_20200219', 'PGNLM_20200220', 'PGNLM_20200221', 'PGNLM_20200222','PGNLM_20200223', 'PGNLM_20200224', 'PGNLM_20200225']
+     sar_names_display = ['19', '20', '21', '22','23', '24', '25']
      
      opt_names_dataset = ['geo_opt']
      opt_names_display = ['optical'] # 'geo_opt'
