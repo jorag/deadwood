@@ -10,6 +10,8 @@ Created on Mon Sep 10 16:17:30 2018
 
 import numpy as np
 from tkinter import Tk, Label, Button, Radiobutton, IntVar
+from scipy.ndimage.filters import uniform_filter
+from scipy.ndimage.measurements import variance
 
 
 def ask_multiple_choice_question(prompt, options, title=None, default_v=0):
@@ -443,6 +445,29 @@ def get_sar_features(input, x_list=None, y_list=None, feature_type='not set', in
     return filtered
 
 
+def lee_filter(img, size):
+    """ Lee filter for SAR despeckling.
+    
+    From Alex I.'s answer here:
+    https://stackoverflow.com/questions/39785970/speckle-lee-filter-in-python
+    """
+    img_mean = uniform_filter(img, (size, size))
+    img_sqr_mean = uniform_filter(img**2, (size, size))
+    img_variance = img_sqr_mean - img_mean**2
+
+    overall_variance = variance(img)
+
+    img_weights = img_variance / (img_variance + overall_variance)
+    img_output = img_mean + img_weights * (img - img_mean)
+    return img_outpu
+
+
+def boxcar_filter(img, size):
+    """ Boxcar filter."""
+    img_mean = uniform_filter(img, (size, size, 1), mode='reflect')
+    return img_mean
+
+
 def rsquare(y, y_hat):
     """Calculate the goodness of fit, R²
     
@@ -460,6 +485,7 @@ def rsquare(y, y_hat):
     # Coefficient Of Determination, R²
     Rsquare = 1 - Erse
     return Rsquare
+
 
 class empty_object:
     """Empty object for storing and organizing parameters etc."""
