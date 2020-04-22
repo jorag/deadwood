@@ -374,7 +374,6 @@ def get_sar_features(input, x_list=None, y_list=None, feature_type='not set', in
         # should be extracted, or if array should be returned as-is
         if feature_type.lower() in ['iq2c3']:
             temp = filtered[:, [0,2,4,8]]
-            # TODO 20191221 - Make this work for whole images aswell!!
             filtered = np.zeros((filtered.shape[0],5))
             filtered[:,0] = np.real(temp[:,0]) # C11
             filtered[:,1] = np.real(temp[:,2]) # C22
@@ -398,8 +397,7 @@ def get_sar_features(input, x_list=None, y_list=None, feature_type='not set', in
         elif feature_type.lower() in ['same', 'all']:
             pass 
         else:
-            # TODO 20191221 - Make this work for whole images aswell!!
-            print('Warning! Feature type '+feature_type+ ' not defined in get_sar_features!!')
+            print('WARNING! Feature type '+feature_type+ ' not defined in get_sar_features!!')
     
     # Image array of data vectors
     elif input_type.lower() in ['img', 'image', 'full']:
@@ -407,7 +405,6 @@ def get_sar_features(input, x_list=None, y_list=None, feature_type='not set', in
         # should be extracted, or if array should be returned as-is
         if feature_type.lower() in ['iq2c3']:
             temp = filtered[:,:, [0,2,4,8]]
-            # TODO 20191221 - Make this work for whole images aswell!!
             filtered = np.zeros((filtered.shape[0], filtered.shape[1], 5))
             filtered[:,:,0] = np.real(temp[:,:,0]) # C11
             filtered[:,:,1] = np.real(temp[:,:,2]) # C22
@@ -439,8 +436,7 @@ def get_sar_features(input, x_list=None, y_list=None, feature_type='not set', in
         elif feature_type.lower() in ['same', 'all']:
             pass 
         else:
-            # TODO 20191221 - Make this work for whole images aswell!!
-            print('Warning! Feature type '+feature_type+ ' not defined in get_sar_features!!')
+            print('WARNING! Feature type '+feature_type+ ' not defined in get_sar_features!!')
     
     return filtered
 
