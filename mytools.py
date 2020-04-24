@@ -75,6 +75,8 @@ def make_list(x):
         elif isinstance(x, tuple):
             # TODO: Should each tuple element be a list element?
             return [x]
+        elif isinstance(x, list):
+            return x
         else:
             raise NotImplementedError('Implement support for data type in mytools.makelist(x)!')
     else:
