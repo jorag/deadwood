@@ -33,7 +33,7 @@ datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on 
 
 # List of datasets to process
-dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200225', 'PGNLM_20200227', 'geo_opt', 'NDVI']
+dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200225', 'PGNLM_20200227', 'geo_opt', 'NDVI'] # C3', 
 #dataset_list = ['PGNLM_20200219', 'PGNLM_20200220', 'PGNLM_20200221', 'PGNLM_20200222','PGNLM_20200223', 'PGNLM_20200224', 'PGNLM_20200225', 'geo_opt']
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 
@@ -258,8 +258,8 @@ if True: #plot_rf_dataset_comp:
      #sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM-20191224-1814', 'NDVI', 'optical']
      #sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM', 'NDVI', 'optical']
      
-     sar_names_dataset = ['C3', 'IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM_20200227'] #
-     sar_names_display = ['no filter', 'IDAN', 'boxcar', 'r. Lee', 'PGNLM'] # 'refined Lee'
+     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM_20200227'] #
+     sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM'] # 'refined Lee'
      
      #sar_names_dataset = ['PGNLM_20200219', 'PGNLM_20200220', 'PGNLM_20200221', 'PGNLM_20200222','PGNLM_20200223', 'PGNLM_20200224', 'PGNLM_20200225']
      #sar_names_display = ['19', '20', '21', '22','23', '24', '25']
