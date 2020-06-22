@@ -524,6 +524,7 @@ def append_df_to_excel(filename, df, sheet_name='Sheet1', startrow=None,
     Returns: None
     """
     # From MaxU's answer here: https://stackoverflow.com/questions/20219254/
+    import pandas as pd
     from openpyxl import load_workbook
 
     # ignore [engine] parameter if it was passed
