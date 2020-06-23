@@ -498,6 +498,34 @@ class empty_object:
         for key in self.all_keys:
             print(key, ' : ', getattr(self, key))
             
+            
+class params_object:
+    """Object for storing and organizing parameters etc."""
+    def __init__(self, **kwargs):
+        #self.all_keys = []
+        #self.primary_keys = []
+        # Get keyword arguments
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+            #self.all_keys.append(key)
+            #self.primary_keys.append(key)
+            
+    def add(self, key, value, primary_keys = True):
+        setattr(self, key, value)
+#        self.all_keys.append(key)
+#        if primary_keys:
+#            self.primary_keys.append(key)
+    
+    def print_params(self, primary_keys = False):
+        # Print
+        pass
+#        if primary_keys:
+#            for key in self.primary_keys:
+#                print(key, ' : ', getattr(self, key))
+#        else:
+#            for key in self.all_keys:
+#                print(key, ' : ', getattr(self, key))
+            
 
 def append_df_to_excel(filename, df, sheet_name='Sheet1', startrow=None,
                        truncate_sheet=False, 
