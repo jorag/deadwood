@@ -31,18 +31,6 @@ from dataclass import *
 pgnlm_datadir = os.path.join(os.path.realpath('..'), 'gnlm34', 'data')
 pgnlm_dataset_list = os.path.join(pgnlm_datadir, 'processed_list_v1.xls')
 
-
-#%%
-new_datalist_xls_file = '2020_proof_of_concept_datasets.xls' 
-
-# List of datasets to process
-dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_20200225', 'PGNLM_20200227', 'geo_opt', 'NDVI'] # C3', 
-#dataset_list = ['PGNLM_20200219', 'PGNLM_20200220', 'PGNLM_20200221', 'PGNLM_20200222','PGNLM_20200223', 'PGNLM_20200224', 'PGNLM_20200225', 'geo_opt']
-id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
-
-# Datasets to add optical bands from
-opt_dataset_list = ['geo_opt', 'NDVI']
-
 # Which Sentinel-2 bands to use
 #opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
 opt_bands_include = ['b02','b03','b04','b05','b08'] # all 10 m resolution
@@ -51,10 +39,13 @@ opt_bands_include = ['b02','b03','b04','b05','b08'] # all 10 m resolution
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 #%% Classification parameters
-crossval_split_k = 5
-crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
 knn_k = 5
 rf_ntrees = 200 # Number of trees in the Random Forest algorithm
+# Type of split of training and test data
+split_type = 'crossval' # 'aoi_split'
+# Cross validation parameters
+crossval_split_k = 5
+crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
 
 knn_mean_acc = dict()
 rf_mean_acc = dict()
