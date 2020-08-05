@@ -91,14 +91,21 @@ df = pd.read_excel(datasets_xls)
 
 
 # %% LOOP THROUGH SATELLITE DATA
-for row in df.itertuples(index=True, name='Pandas'):
+#for row in df.itertuples(index=True, name='Pandas'):
+for row in df.to_dict(orient="records"):
     # Use path from Excel file
     try:
+        # Set name of output object for use as key in dicts
+        dataset_use = row.Time+'-'+row.Dataset_ID
         sat_file = row.Path
     except:
-        # Something went wrong
-        print('Error!')
-        continue
+        try:
+            dataset_use = row['Time']+'-'+row['Dataset_ID']
+            sat_file = row['Path']
+        except:
+            # Something went wrong
+            print('Error!')
+            continue
       
     # %% Try reading the dataset
     try:
@@ -113,9 +120,7 @@ for row in df.itertuples(index=True, name='Pandas'):
         continue
     
     # %% Store parameters in dict
-    dataset_dict = dict()
-    
-    params_dict[dataset_use] = dataset_dict
+    params_dict[dataset_use] = row
             
     # %% Get array with SAR data
     sat_data_temp = raster_data_array[sar_bands_use,:,:]   
