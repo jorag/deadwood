@@ -49,8 +49,18 @@ split_max_imbalance = 0.6
 crossval_split_k = 5
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
 
+#%% Output (dicts)
+params_dict = dict()
+
 knn_mean_acc = dict()
 rf_mean_acc = dict()
+
+knn_aoi_all = dict()
+knn_aoi_mean = dict()
+knn_aoi_min = dict()
+rf_aoi_all = dict()
+rf_aoi_mean = dict()
+rf_aoi_min = dict()
 
 # %% Read defoliated AOI                          
 # Get full data path from specified by input-path file
@@ -82,16 +92,9 @@ df = pd.read_excel(datasets_xls)
 
 # %% LOOP THROUGH SATELLITE DATA
 for row in df.itertuples(index=True, name='Pandas'):
-    print(row.Path, row.gamma)
-
-    dataset_use = row.Time+'-'+row.Dataset_ID 
-        
-    # Set name of output object
     # Use path from Excel file
-    try: 
+    try:
         sat_file = row.Path
-
-        #print(sat_file)
     except:
         # Something went wrong
         print('Error!')
@@ -109,6 +112,10 @@ for row in df.itertuples(index=True, name='Pandas'):
         # Something went wrong
         continue
     
+    # %% Store parameters in dict
+    dataset_dict = dict()
+    
+    params_dict[dataset_use] = dataset_dict
             
     # %% Get array with SAR data
     sat_data_temp = raster_data_array[sar_bands_use,:,:]   
@@ -208,8 +215,8 @@ for row in df.itertuples(index=True, name='Pandas'):
         
         rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
         rf_scores_all = cross_val_score(rf_all, x, y, cv=crossval_kfold)
-        print('Random Forest - ' + dataset_use + ' :')
-        print(np.mean(rf_scores_all))
+        #print('Random Forest - ' + dataset_use + ' :')
+        #print(np.mean(rf_scores_all))
         rf_mean_acc[dataset_use] = np.mean(rf_scores_all)
     if 'AOI-largest-others' in split_types:
         # Create training and test datasets
@@ -230,7 +237,6 @@ for row in df.itertuples(index=True, name='Pandas'):
                     live_others_aoi = np.hstack((live_others_aoi, np.squeeze(live_data[:, np.where(live_aoi_ind == key)]) ))
                 except:
                     live_others_aoi = np.squeeze(live_data[:, np.where(live_aoi_ind == key)])
-                    print(live_others_aoi.shape)
                     
         #%% DEFO
         # Find max number of samples in an AOI 
@@ -261,21 +267,52 @@ for row in df.itertuples(index=True, name='Pandas'):
         x_ll = np.hstack((defo_largest_aoi, live_largest_aoi)).transpose((1,0))
         y_ll = np.hstack((0*np.ones(length(defo_largest_aoi),dtype='int'), 1*np.ones(length(live_largest_aoi),dtype='int')))
         
-        # Create kNN classifier
+        # kNN classifier
         print('------ kNN - ' + dataset_use + ' --------')
         neigh = KNeighborsClassifier(n_neighbors=knn_k)
         neigh.fit(x_oo, y_oo) # Fit kNN
-        print('Accuracy, OO-LL: '+' = ', neigh.score(x_ll, y_ll)) # Score kNN
+        a_oo_ll = neigh.score(x_ll, y_ll)
+        print('Accuracy, OO-LL: '+' = ', a_oo_ll) # Score kNN
         #prediction_result = neigh.predict(x_ll) # Test kNN on test dataset
         neigh = KNeighborsClassifier(n_neighbors=knn_k)
         neigh.fit(x_ol, y_ol) # Fit kNN
-        print('Accuracy, OL-LO: '+' = ', neigh.score(x_lo, y_lo)) # Score kNN
+        a_ol_lo = neigh.score(x_lo, y_lo)
+        print('Accuracy, OL-LO: '+' = ', a_ol_lo) # Score kNN
         neigh = KNeighborsClassifier(n_neighbors=knn_k)
         neigh.fit(x_lo, y_lo) # Fit kNN
-        print('Accuracy, LO-OL: '+' = ', neigh.score(x_ol, y_ol)) # Score kNN
+        a_lo_ol = neigh.score(x_ol, y_ol)
+        print('Accuracy, LO-OL: '+' = ', a_lo_ol) # Score kNN
         neigh = KNeighborsClassifier(n_neighbors=knn_k)
         neigh.fit(x_ll, y_ll) # Fit kNN
-        print('Accuracy, LL-OO: '+' = ', neigh.score(x_oo, y_oo)) # Score kNN
+        a_ll_oo = neigh.score(x_oo, y_oo)
+        print('Accuracy, LL-OO: '+' = ', a_ll_oo) # Score kNN
+        print('Accuracy, cross: '+' = ', np.mean(knn_scores_all))
+        
+        # Add mean to output dict
+        knn_aoi_all[dataset_use] = [a_oo_ll, a_ol_lo, a_lo_ol, a_ll_oo]
+        knn_aoi_mean[dataset_use] = np.mean([a_oo_ll, a_ol_lo, a_lo_ol, a_ll_oo])
+        knn_aoi_min[dataset_use] = np.min([a_oo_ll, a_ol_lo, a_lo_ol, a_ll_oo])
+        
+        
+        # RF classifier
+        rf = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
+        rf.fit(x_oo, y_oo) # Fit kNN
+        a_oo_ll = rf.score(x_ll, y_ll)
+        #prediction_result_rf = rf.predict(x_ll) # Test RF on test dataset
+        rf = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
+        rf.fit(x_ol, y_ol) 
+        a_ol_lo = rf.score(x_lo, y_lo)
+        rf = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
+        rf.fit(x_lo, y_lo) 
+        a_lo_ol = rf.score(x_ol, y_ol)
+        rf = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
+        rf.fit(x_ll, y_ll) 
+        a_ll_oo = rf.score(x_oo, y_oo)
+        
+        # Add mean to output dict
+        rf_aoi_all[dataset_use] = [a_oo_ll, a_ol_lo, a_lo_ol, a_ll_oo]
+        rf_aoi_mean[dataset_use] = np.mean([a_oo_ll, a_ol_lo, a_lo_ol, a_ll_oo])
+        rf_aoi_min[dataset_use] = np.min([a_oo_ll, a_ol_lo, a_lo_ol, a_ll_oo])
 
 
 #%% Plot classification summary
@@ -285,3 +322,16 @@ n_datasets = length(rf_mean_acc)
 plt.figure()
 plt.plot(list(rf_mean_acc.values()), 'b')
 plt.plot(list(knn_mean_acc.values()), 'r')
+plt.title('RF and kNN - cross-val')
+
+plt.figure()
+plt.plot(list(knn_aoi_mean.values()), 'b')
+plt.plot(list(knn_mean_acc.values()), 'r')
+plt.plot(list(knn_aoi_min.values()), 'g')
+plt.title('kNN - AOI and cross-val')
+
+plt.figure()
+plt.plot(list(rf_aoi_mean.values()), 'b')
+plt.plot(list(rf_mean_acc.values()), 'r')
+plt.plot(list(rf_aoi_min.values()), 'g')
+plt.title('RF - AOI and cross-val')
