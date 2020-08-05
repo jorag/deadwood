@@ -42,7 +42,9 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 knn_k = 5
 rf_ntrees = 200 # Number of trees in the Random Forest algorithm
 # Type of split of training and test data
-split_type = 'crossval' # 'aoi_split'
+split_types = ['cross-val', 'AOI-largest-others'] # 'aoi_split'
+# Max training test split imbalance fraction
+split_max_imbalance = 0.6
 # Cross validation parameters
 crossval_split_k = 5
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
@@ -134,13 +136,18 @@ for row in df.itertuples(index=True, name='Pandas'):
         # Flatten, reshape to channels first due to ordering of reshape
         sat_data = np.transpose(sat_data, (2,0,1))
         c_first_shape = sat_data.shape
-        sat_data = np.reshape(sat_data, (c_first_shape[0],c_first_shape[1]*c_first_shape[2]), order='C')
+        n_samples = c_first_shape[1]*c_first_shape[2]
+        sat_data = np.reshape(sat_data, (c_first_shape[0], n_samples), order='C')
         
         # Create a new array or append to existing one
         if i_defo == 0:
             defo_data = np.copy(sat_data)
+            defo_aoi_ind = np.zeros(n_samples)
+            defo_aoi_samples = {i_defo : n_samples}
         else:
             defo_data = np.hstack((defo_data, sat_data))
+            defo_aoi_ind = np.append(defo_aoi_ind, i_defo*np.ones((n_samples, 1)) )
+            defo_aoi_samples[i_defo] = n_samples
             
     #%% Get live AOI pixels
     for i_live, live_aoi in enumerate(live_aoi_list):
@@ -160,13 +167,20 @@ for row in df.itertuples(index=True, name='Pandas'):
         # Flatten, reshape to channels first due to ordering of reshape
         sat_data = np.transpose(sat_data, (2,0,1))
         c_first_shape = sat_data.shape
-        sat_data = np.reshape(sat_data, (c_first_shape[0],c_first_shape[1]*c_first_shape[2]), order='C')
+        n_samples = c_first_shape[1]*c_first_shape[2]
+        sat_data = np.reshape(sat_data, (c_first_shape[0], n_samples), order='C')
         
-        # Create a new array or append to existing one
-        if i_live == 0:
-            live_data = np.copy(sat_data)
-        else:
-            live_data = np.hstack((live_data, sat_data))
+        # But this loop has to be run several times if AOI split unless constant AOI split of training and test...
+        if 'AOI-largest-others' in split_types:
+            # Create a new array or append to existing one
+            if i_live == 0:
+                live_data = np.copy(sat_data)
+                live_aoi_ind = np.zeros(n_samples)
+                live_aoi_samples = {i_live : n_samples}
+            else:
+                live_data = np.hstack((live_data, sat_data))
+                live_aoi_ind = np.append(live_aoi_ind, i_live*np.ones((n_samples, 1)) )
+                live_aoi_samples[i_live] = n_samples
     
     #%% Plot 3D backscatter values
 
@@ -184,19 +198,84 @@ for row in df.itertuples(index=True, name='Pandas'):
     #modalitypoints3d('reciprocity', x, y, labels_dict=labels_dict, title=dataset_use)
     
     #%% Classify
-    # Cross validate - kNN - All data
-    knn_all = KNeighborsClassifier(n_neighbors=knn_k)
-    knn_scores_all = cross_val_score(knn_all, x, y, cv=crossval_kfold)
-    #print('kNN - ' + dataset_use + ' :')
-    #print(np.mean(knn_scores_all))
-    knn_mean_acc[dataset_use] = np.mean(knn_scores_all)
-    
-    rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
-    rf_scores_all = cross_val_score(rf_all, x, y, cv=crossval_kfold)
-    print('Random Forest - ' + dataset_use + ' :')
-    print(np.mean(rf_scores_all))
-    rf_mean_acc[dataset_use] = np.mean(rf_scores_all)
+    if 'cross-val' in split_types:
+        # Cross validate - kNN - All data
+        knn_all = KNeighborsClassifier(n_neighbors=knn_k)
+        knn_scores_all = cross_val_score(knn_all, x, y, cv=crossval_kfold)
+        #print('kNN - ' + dataset_use + ' :')
+        #print(np.mean(knn_scores_all))
+        knn_mean_acc[dataset_use] = np.mean(knn_scores_all)
         
+        rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
+        rf_scores_all = cross_val_score(rf_all, x, y, cv=crossval_kfold)
+        print('Random Forest - ' + dataset_use + ' :')
+        print(np.mean(rf_scores_all))
+        rf_mean_acc[dataset_use] = np.mean(rf_scores_all)
+    if 'AOI-largest-others' in split_types:
+        # Create training and test datasets
+        
+        #%% LIVE
+        # Find max number of samples in an AOI 
+        live_samples_n = list(live_aoi_samples.values())
+        max_live_samples = np.max(live_samples_n)
+        # Split so that largest AOI is in one array and the rest in another
+        live_others_aoi = []
+        for key, value in live_aoi_samples.items():
+            if value == max_live_samples:
+                # Largest AOI
+                live_largest_aoi = np.squeeze(live_data[:, np.where(live_aoi_ind == key)])
+            else:
+                # Add to other combination
+                try:
+                    live_others_aoi = np.hstack((live_others_aoi, np.squeeze(live_data[:, np.where(live_aoi_ind == key)]) ))
+                except:
+                    live_others_aoi = np.squeeze(live_data[:, np.where(live_aoi_ind == key)])
+                    print(live_others_aoi.shape)
+                    
+        #%% DEFO
+        # Find max number of samples in an AOI 
+        defo_samples_n = list(defo_aoi_samples.values())
+        max_defo_samples = np.max(defo_samples_n)
+        # Split so that largest AOI is in one array and the rest in another
+        defo_others_aoi = []
+        for key, value in defo_aoi_samples.items():
+            if value == max_defo_samples:
+                # Largest AOI
+                defo_largest_aoi = np.squeeze(defo_data[:, np.where(defo_aoi_ind == key)])
+            else:
+                # Add to other combination
+                try:
+                    defo_others_aoi = np.hstack((defo_others_aoi, np.squeeze(defo_data[:, np.where(defo_aoi_ind == key)]) ))
+                except:
+                    defo_others_aoi = np.squeeze(defo_data[:, np.where(defo_aoi_ind == key)])
+                    print(defo_others_aoi.shape)
+        
+        #%% Classify
+        # Create combinations
+        x_oo = np.hstack((defo_others_aoi, live_others_aoi)).transpose((1,0))
+        y_oo = np.hstack((0*np.ones(length(defo_others_aoi),dtype='int'), 1*np.ones(length(live_others_aoi),dtype='int')))
+        x_lo = np.hstack((defo_largest_aoi, live_others_aoi)).transpose((1,0))
+        y_lo = np.hstack((0*np.ones(length(defo_largest_aoi),dtype='int'), 1*np.ones(length(live_others_aoi),dtype='int')))
+        x_ol = np.hstack((defo_others_aoi, live_largest_aoi)).transpose((1,0))
+        y_ol = np.hstack((0*np.ones(length(defo_others_aoi),dtype='int'), 1*np.ones(length(live_largest_aoi),dtype='int')))
+        x_ll = np.hstack((defo_largest_aoi, live_largest_aoi)).transpose((1,0))
+        y_ll = np.hstack((0*np.ones(length(defo_largest_aoi),dtype='int'), 1*np.ones(length(live_largest_aoi),dtype='int')))
+        
+        # Create kNN classifier
+        print('------ kNN - ' + dataset_use + ' --------')
+        neigh = KNeighborsClassifier(n_neighbors=knn_k)
+        neigh.fit(x_oo, y_oo) # Fit kNN
+        print('Accuracy, OO-LL: '+' = ', neigh.score(x_ll, y_ll)) # Score kNN
+        #prediction_result = neigh.predict(x_ll) # Test kNN on test dataset
+        neigh = KNeighborsClassifier(n_neighbors=knn_k)
+        neigh.fit(x_ol, y_ol) # Fit kNN
+        print('Accuracy, OL-LO: '+' = ', neigh.score(x_lo, y_lo)) # Score kNN
+        neigh = KNeighborsClassifier(n_neighbors=knn_k)
+        neigh.fit(x_lo, y_lo) # Fit kNN
+        print('Accuracy, LO-OL: '+' = ', neigh.score(x_ol, y_ol)) # Score kNN
+        neigh = KNeighborsClassifier(n_neighbors=knn_k)
+        neigh.fit(x_ll, y_ll) # Fit kNN
+        print('Accuracy, LL-OO: '+' = ', neigh.score(x_oo, y_oo)) # Score kNN
 
 
 #%% Plot classification summary
