@@ -88,24 +88,16 @@ datasets_xls = pd.ExcelFile(pgnlm_dataset_list)
 df = pd.read_excel(datasets_xls)
 
 
-
-
 # %% LOOP THROUGH SATELLITE DATA
-#for row in df.itertuples(index=True, name='Pandas'):
 for row in df.to_dict(orient="records"):
-    # Use path from Excel file
     try:
         # Set name of output object for use as key in dicts
-        dataset_use = row.Time+'-'+row.Dataset_ID
-        sat_file = row.Path
+        dataset_use = row['Time']+'-'+row['Dataset_ID']
+        sat_file = row['Path']
     except:
-        try:
-            dataset_use = row['Time']+'-'+row['Dataset_ID']
-            sat_file = row['Path']
-        except:
-            # Something went wrong
-            print('Error!')
-            continue
+        # Something went wrong
+        print('Error!')
+        continue
       
     # %% Try reading the dataset
     try:
@@ -340,3 +332,23 @@ plt.plot(list(rf_aoi_mean.values()), 'b')
 plt.plot(list(rf_mean_acc.values()), 'r')
 plt.plot(list(rf_aoi_min.values()), 'g')
 plt.title('RF - AOI and cross-val')
+
+#%% Plot for different parameters
+# Initialize output lists
+plot_dict = dict()
+for dataset_use, params in params_dict.items():
+    plot_dict[params['n_small']] = []
+    plot_dict[params['opt_percentile']] = []
+    
+# Populate output lists
+for dataset_use, params in params_dict.items():
+    plot_dict[params['n_small']].append(rf_aoi_min[dataset_use])
+    
+# Plot output lists
+cvec = mycolourvec()
+c_iter = 0
+plt.figure()
+for key, value in plot_dict.items():
+    print(key)
+    plt.plot(value, 'x-'+cvec[c_iter])
+    c_iter += 1
