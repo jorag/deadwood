@@ -87,7 +87,6 @@ c3_feature_type = 'c3pgnlm5feat'
 datasets_xls = pd.ExcelFile(pgnlm_dataset_list)
 df = pd.read_excel(datasets_xls)
 
-
 # %% LOOP THROUGH SATELLITE DATA
 for row in df.to_dict(orient="records"):
     try:
@@ -334,15 +333,22 @@ plt.plot(list(rf_aoi_min.values()), 'g')
 plt.title('RF - AOI and cross-val')
 
 #%% Plot for different parameters
+
+# Key to use for sorting (lines/points in plot)
+sort_key = 'n_small'
+x_axis = 'opt_percentile'
+acc_measure = rf_aoi_min
+
 # Initialize output lists
 plot_dict = dict()
 for dataset_use, params in params_dict.items():
-    plot_dict[params['n_small']] = []
-    plot_dict[params['opt_percentile']] = []
+    plot_dict[params[sort_key]] = {'acc': [] , 'x_axis' : []}
+
     
 # Populate output lists
 for dataset_use, params in params_dict.items():
-    plot_dict[params['n_small']].append(rf_aoi_min[dataset_use])
+    plot_dict[params[sort_key]]['acc'].append(acc_measure[dataset_use])
+    plot_dict[params[sort_key]]['x_axis'].append(params[x_axis])
     
 # Plot output lists
 cvec = mycolourvec()
@@ -350,5 +356,30 @@ c_iter = 0
 plt.figure()
 for key, value in plot_dict.items():
     print(key)
-    plt.plot(value, 'x-'+cvec[c_iter])
+    plt.plot(value['x_axis'], value['acc'], 'x'+cvec[c_iter])
     c_iter += 1
+    
+    
+#%% Plot for different parameters
+#
+## Key to use for sorting (lines/points in plot)
+#sort_key = 'n_small'
+#
+## Initialize output lists
+#plot_dict = dict()
+#for dataset_use, params in params_dict.items():
+#    plot_dict[params[sort_key]] = []
+#
+#    
+## Populate output lists
+#for dataset_use, params in params_dict.items():
+#    plot_dict[params[sort_key]].append(rf_aoi_min[dataset_use])
+#    
+## Plot output lists
+#cvec = mycolourvec()
+#c_iter = 0
+#plt.figure()
+#for key, value in plot_dict.items():
+#    print(key)
+#    plt.plot(value, 'x-'+cvec[c_iter])
+#    c_iter += 1
