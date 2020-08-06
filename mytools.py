@@ -211,11 +211,12 @@ def norm01(input_array, norm_type='global', min_cap=None, max_cap=None, min_cap_
     return output_array
 
 
-def mycolourvec(shuffle=False):
+def mycolourvec(shuffle=False, markers=False):
     """Get a standardized colour vector (list) for plotting.
     
     Shorthand to avoid defining it for every plot that needs different colours 
     to distinguish between classes etc.
+    Can also return markers.
     """
     # Define vector with colours
     colour_vec = ['r', 'g', 'b', 'm', 'c', 'y', 'k']
@@ -224,7 +225,15 @@ def mycolourvec(shuffle=False):
     if shuffle:
         np.random.shuffle(colour_vec)
         
-    return colour_vec
+    if not markers:
+        return colour_vec
+    else:
+        marker_vec = ['x', 'o', '+', 'D', '*', 'v', '^', 'p']
+         # Randomize order?
+        if shuffle:
+            np.random.shuffle(marker_vec)
+        
+        return colour_vec, marker_vec
 
 
 def dB(x, ref=1, input_type='power'):
