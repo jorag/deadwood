@@ -12,6 +12,7 @@ import gdal
 import pandas as pd
 import os # Necessary for relative paths
 import ast
+import copy 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
@@ -346,40 +347,46 @@ for dataset_use, params in params_dict.items():
 
     
 # Populate output lists
+prev_dict = dict()
+avg_counter = -1 # Ensure results are accumulated from first iter
+temp_acc = []
 for dataset_use, params in params_dict.items():
-    plot_dict[params[sort_key]]['acc'].append(acc_measure[dataset_use])
-    plot_dict[params[sort_key]]['x_axis'].append(params[x_axis])
+    # Delete dataset key to enable averaging over datasets with the same params
+    curr_dict = copy.deepcopy(params)
+    curr_dict.pop('Dataset_ID')
+    curr_dict.pop('Path')
+    curr_dict.pop('Time')
+    curr_dict.pop('opt_thresh')
+    curr_dict.pop('thresh')
+    temp_acc.append(acc_measure[dataset_use])
+    # for p_comp in params_compare_list:
+        # if params[p_comp] ...
+    
+    if curr_dict == prev_dict or avg_counter == -1:
+        # Average elements
+        avg_counter += 1
+        print(avg_counter)
+    else:
+        print(prev_dict)
+        print(curr_dict)
+        # Populate elements
+        plot_dict[params[sort_key]]['acc'].append(np.mean(temp_acc))
+        plot_dict[params[sort_key]]['x_axis'].append(params[x_axis])
+        avg_counter = 0
+        temp_acc = []
+    # For comparison and averaging
+    prev_dict = copy.deepcopy(curr_dict)
+
+# Ensure that final datasets are included
+plot_dict[params[sort_key]]['acc'].append(np.mean(temp_acc))
+plot_dict[params[sort_key]]['x_axis'].append(params[x_axis])
     
 # Plot output lists
-cvec = mycolourvec()
+cvec, mvec = mycolourvec(markers=True)
 c_iter = 0
 plt.figure()
 for key, value in plot_dict.items():
     print(key)
-    plt.plot(value['x_axis'], value['acc'], 'x'+cvec[c_iter])
+    print(length(value['acc']))
+    plt.plot(value['x_axis'], value['acc'], cvec[c_iter]+mvec[c_iter])
     c_iter += 1
-    
-    
-#%% Plot for different parameters
-#
-## Key to use for sorting (lines/points in plot)
-#sort_key = 'n_small'
-#
-## Initialize output lists
-#plot_dict = dict()
-#for dataset_use, params in params_dict.items():
-#    plot_dict[params[sort_key]] = []
-#
-#    
-## Populate output lists
-#for dataset_use, params in params_dict.items():
-#    plot_dict[params[sort_key]].append(rf_aoi_min[dataset_use])
-#    
-## Plot output lists
-#cvec = mycolourvec()
-#c_iter = 0
-#plt.figure()
-#for key, value in plot_dict.items():
-#    print(key)
-#    plt.plot(value, 'x-'+cvec[c_iter])
-#    c_iter += 1
