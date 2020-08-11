@@ -338,6 +338,73 @@ plt.title('RF - AOI and cross-val')
 # Key to use for sorting (lines/points in plot)
 sort_key = 'n_small'
 x_axis = 'opt_percentile'
+x_lim = (0,100) # Limit for a_axis
+acc_measure = rf_aoi_min
+
+
+# Two dicts, but use same key (numbers) - one dict for params and one for average values
+# Also a list of dicts, for finding index? - No, use list(dict.values)
+# 
+params_plot = dict() # replace with a list
+values_plot = dict()
+paramset_counter = 0 
+# Output a list of values_plot dicts??
+for dataset_use, params in params_dict.items():
+    # Delete dataset key to enable averaging over datasets with the same params
+    curr_dict = copy.deepcopy(params)
+    # Remove identifying fields
+    curr_dict.pop('Dataset_ID')
+    curr_dict.pop('Path')
+    curr_dict.pop('Time')
+    curr_dict.pop('opt_thresh')
+    curr_dict.pop('thresh')
+    # for p_comp in params_compare_list:
+        # if params[p_comp] ...
+    
+    # Check if parameter set has been used before    
+    if curr_dict in list(params_plot.values()):
+        # Find matching dict
+        match_ind = list(params_plot.values()).index(curr_dict)
+        match_ind = str(match_ind)
+        print(match_ind)
+        # Get corresponding key (to allow keys other than integers matching list index)
+        # - or use assume integer indice and use match_ind diretly? -Easiest, start with this
+        prev_acc = values_plot[match_ind]['acc']
+        n_sets = values_plot[match_ind]['n_sets']
+        values_plot[match_ind]['acc'] = n_sets*prev_acc/(n_sets+1) + acc_measure[dataset_use]/(n_sets+1)
+        # Update number of sets used 
+        values_plot[match_ind]['n_sets'] = n_sets+1
+    else:
+        # Key
+        key_use = str(paramset_counter)
+        # New parameter set, populate it
+        values_plot[key_use] = dict()
+        values_plot[key_use]['acc'] = acc_measure[dataset_use]
+        values_plot[key_use]['x_axis'] = params[x_axis]
+        values_plot[key_use]['n_sets'] = 1
+        # Add to dict of parameter set
+        params_plot[key_use] = curr_dict
+        # Update counter used as keys
+        paramset_counter += 1 
+        
+    
+# Plot output lists
+# TODO: Map x_axis values to colour and marker
+cvec, mvec = mycolourvec(markers=True)
+#c_iter = 0
+plt.figure()
+for value in values_plot.values():
+    # value = res_dict # loop over for res_dict in avg_list:
+    plt.plot(value['x_axis'], value['acc'], 'kx')
+    #c_iter += 1
+plt.xlim(x_lim)
+    
+#%% Plot for different parameters
+
+# Key to use for sorting (lines/points in plot)
+sort_key = 'n_small'
+x_axis = 'opt_percentile'
+x_lim = (0,100) # Limit for a_axis
 acc_measure = rf_aoi_min
 
 # Initialize output lists
@@ -348,11 +415,18 @@ for dataset_use, params in params_dict.items():
     
 # Populate output lists
 prev_dict = dict()
-avg_counter = -1 # Ensure results are accumulated from first iter
+#avg_counter = -1 # Ensure results are accumulated from first iter
+avg_counter = dict() # count number of datasets for a given parameter
 temp_acc = []
+avg_list = [] # or dict instead since adding an average value to dict will ruin comparison..?
+# Two dicts, but use same key (numbers) - one dict for params and one for average values
+# Also a list of dicts, for finding index? - No, use list(dict.values)
+params_plot = dict()
+values_plot = dict()
 for dataset_use, params in params_dict.items():
     # Delete dataset key to enable averaging over datasets with the same params
     curr_dict = copy.deepcopy(params)
+    # Remove identifying fields
     curr_dict.pop('Dataset_ID')
     curr_dict.pop('Path')
     curr_dict.pop('Time')
@@ -387,6 +461,8 @@ c_iter = 0
 plt.figure()
 for key, value in plot_dict.items():
     print(key)
+    # value = res_dict # loop over for res_dict in avg_list:
     print(length(value['acc']))
     plt.plot(value['x_axis'], value['acc'], cvec[c_iter]+mvec[c_iter])
     c_iter += 1
+plt.xlim(x_lim)
