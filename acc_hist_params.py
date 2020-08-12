@@ -335,17 +335,15 @@ plt.title('RF - AOI and cross-val')
 
 #%% Plot for different parameters
 
-# Key to use for sorting (lines/points in plot)
-sort_key = 'n_small'
 x_axis = 'opt_percentile'
-x_lim = (0,100) # Limit for a_axis
+x_lim = (0,100) # Limit for x-axis
+c_axis = 'n_small' # 'sar_percentile' #   # Colour axis
+c_list = [] # Collect all c_axis values to map to unique colour indices
 acc_measure = rf_aoi_min
 
 
 # Two dicts, but use same key (numbers) - one dict for params and one for average values
-# Also a list of dicts, for finding index? - No, use list(dict.values)
-# 
-params_plot = dict() # replace with a list
+params_plot = dict() # replace with a list??
 values_plot = dict()
 paramset_counter = 0 
 # Output a list of values_plot dicts??
@@ -358,8 +356,6 @@ for dataset_use, params in params_dict.items():
     curr_dict.pop('Time')
     curr_dict.pop('opt_thresh')
     curr_dict.pop('thresh')
-    # for p_comp in params_compare_list:
-        # if params[p_comp] ...
     
     # Check if parameter set has been used before    
     if curr_dict in list(params_plot.values()):
@@ -379,9 +375,12 @@ for dataset_use, params in params_dict.items():
         key_use = str(paramset_counter)
         # New parameter set, populate it
         values_plot[key_use] = dict()
+        values_plot[key_use]['n_sets'] = 1
         values_plot[key_use]['acc'] = acc_measure[dataset_use]
         values_plot[key_use]['x_axis'] = params[x_axis]
-        values_plot[key_use]['n_sets'] = 1
+        values_plot[key_use]['c_axis'] = params[c_axis]
+        # Add to list to index unique elements
+        c_list.append(params[c_axis])
         # Add to dict of parameter set
         params_plot[key_use] = curr_dict
         # Update counter used as keys
@@ -393,9 +392,12 @@ for dataset_use, params in params_dict.items():
 cvec, mvec = mycolourvec(markers=True)
 #c_iter = 0
 plt.figure()
+# Colour index
+uc_list = list(np.unique(c_list))
 for value in values_plot.values():
-    # value = res_dict # loop over for res_dict in avg_list:
-    plt.plot(value['x_axis'], value['acc'], 'kx')
+    # Find unique colour index
+    c_iter = uc_list.index(value['c_axis']) 
+    plt.plot(value['x_axis'], value['acc'], cvec[c_iter]+mvec[c_iter])
     #c_iter += 1
 plt.xlim(x_lim)
     
