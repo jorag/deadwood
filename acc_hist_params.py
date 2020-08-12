@@ -342,11 +342,11 @@ c_list = [] # Collect all c_axis values to map to unique colour indices
 acc_measure = rf_aoi_min
 
 
-# Two dicts, but use same key (numbers) - one dict for params and one for average values
+# Two dicts, but use same key (numbers), one dict for params and one for average values
 params_plot = dict() # replace with a list??
 values_plot = dict()
 paramset_counter = 0 
-# Output a list of values_plot dicts??
+# Loop over datasets
 for dataset_use, params in params_dict.items():
     # Delete dataset key to enable averaging over datasets with the same params
     curr_dict = copy.deepcopy(params)
@@ -363,8 +363,7 @@ for dataset_use, params in params_dict.items():
         match_ind = list(params_plot.values()).index(curr_dict)
         match_ind = str(match_ind)
         print(match_ind)
-        # Get corresponding key (to allow keys other than integers matching list index)
-        # - or use assume integer indice and use match_ind diretly? -Easiest, start with this
+        # Update average accuracy
         prev_acc = values_plot[match_ind]['acc']
         n_sets = values_plot[match_ind]['n_sets']
         values_plot[match_ind]['acc'] = n_sets*prev_acc/(n_sets+1) + acc_measure[dataset_use]/(n_sets+1)
@@ -387,18 +386,16 @@ for dataset_use, params in params_dict.items():
         paramset_counter += 1 
         
     
-# Plot output lists
-# TODO: Map x_axis values to colour and marker
-cvec, mvec = mycolourvec(markers=True)
-#c_iter = 0
-plt.figure()
 # Colour index
 uc_list = list(np.unique(c_list))
+cvec, mvec = mycolourvec(markers=True)
+# Plot output 
+plt.figure()
 for value in values_plot.values():
     # Find unique colour index
     c_iter = uc_list.index(value['c_axis']) 
     plt.plot(value['x_axis'], value['acc'], cvec[c_iter]+mvec[c_iter])
-    #c_iter += 1
+
 plt.xlim(x_lim)
     
 #%% Plot for different parameters
