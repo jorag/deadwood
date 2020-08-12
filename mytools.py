@@ -466,7 +466,7 @@ def lee_filter(img, size):
 
     img_weights = img_variance / (img_variance + overall_variance)
     img_output = img_mean + img_weights * (img - img_mean)
-    return img_outpu
+    return img_output
 
 
 def estimate_enl(patch, estimation_type='CV'):
