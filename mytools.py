@@ -472,32 +472,22 @@ def lee_filter(img, size):
 def estimate_enl(patch, estimation_type='CV'):
     """Estimate the Equivalent Number of Looks (ENL) based on a SAR patch.
     
-    Input intensity data.
+    Input intensity data with dimensions row, col, channels
     
     By default use the Coeffient of Variation (CV) estimator.
     """
-    # Assume that the dimension is row, col, channels
-     # Get shape of input
-    input_shape = patch.shape
-    if length(input_shape) == 2:
-        n_channels = 1
-    elif length(input_shape) == 3:
-        n_channels = input_shape[2]
     if estimation_type.lower() in ['cv', 'coeffient of variation', 'conventional']:
-        # 
-        if n_channels == 1:
-            enl = np.mean(patch)**2 / np.var(patch)
-        else:
-            # PolSAR - average over channels
-            enl = np.mean(patch, axis=(0,1))**2 / np.var(patch, axis=(0,1))
-            enl = np.mean(enl)
+        # Calculate ENL (for each channel)
+        enl = np.mean(patch, axis=(0,1))**2 / np.var(patch, axis=(0,1))
+        # Average over channels if PolSAR
+        enl = np.mean(enl)
     
     return enl
 
 
 
 def boxcar_filter(img, size):
-    """ Boxcar filter."""
+    """Boxcar filter."""
     img_mean = uniform_filter(img, (size, size, 1), mode='reflect')
     return img_mean
 
