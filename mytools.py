@@ -136,6 +136,37 @@ def logit(txt_in, log_type='print'):
     return
 
 
+def rand_coord(x_range, y_range, n_coords, unique_only = True):
+    """Create a list of random coordinates from specified x and y range.
+    
+    Can be used for sampling random pixels from images.
+    By default the draw is without replacement, but that can be changed by 
+    setting unique_only = False
+    """
+    # Create inital list of coordinates
+    x = np.random.randint(x_range[0], high=x_range[1], size=n_coords)
+    y = np.random.randint(y_range[0], high=y_range[1], size=n_coords)
+    
+    # Initialize output
+    coord_list = []
+    if unique_only:
+        # Combine and check
+        for i_coord in range(0, length(x)):
+            coord_candidate = (x[i_coord], y[i_coord])
+            # Regenerate in case coordinate has been generated before
+            while coord_candidate in coord_list:
+                coord_candidate=(np.random.randint(x_range[0], high=x_range[1]),  
+                                 np.random.randint(y_range[0], high=y_range[1]))
+            # Add unique coordinate to list
+            coord_list.append(coord_candidate)
+    else:
+        # Combine coordinates
+        for i_coord in range(0, length(x)):
+            coord_list.append((x[i_coord], y[i_coord]))
+    
+    return coord_list
+
+
 def imtensor2array(input_im):
     """Convert 3D image array on the form channel, x, y to 2D array with 
     channels as columns.
