@@ -25,7 +25,7 @@ from dataclass import *
 new_datalist_format = True
 new_datalist_xls_file = '2020_C3_dataset_overview.xls' # '2019_reprocess_dataset_overview.xls'
 # Prefix for output datamodalities object filename
-datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113'
+datamod_fprefix = 'PGNLM-SNAP_C3_20200929' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on 
 
 # List of datasets to process

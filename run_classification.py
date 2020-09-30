@@ -30,7 +30,7 @@ from dataclass import *
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Prefix for object filename
-datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113' #'20191220_PGNLM-paramsearch' #'cov_mat-20200108' # 'New-data-20191203-' #'New-data-20191203-.pkl'
+datamod_fprefix = 'PGNLM-SNAP_C3_20200929' #'PGNLM-SNAP_C3_geo_OPT_20200113' #'20191220_PGNLM-paramsearch' #'cov_mat-20200108' # 'New-data-20191203-' #'New-data-20191203-.pkl'
           
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix  + '.pkl'
@@ -453,10 +453,8 @@ if plot_rf_dataset_comp:
      # Percent factor
      pct_f = 100
      
-     #sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM-20191224-1814', 'NDVI', 'optical']
-     #sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM', 'NDVI', 'optical']
-     
-     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM-wex9'] #
+     # 'parallel_256' # 'parallel_im_test' # im_test = 64 patches
+     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'parallel_im_test'] # 'parallel_im_test' # 'parallel_256' # 
      sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM']
      
      opt_names_dataset = ['NDVI', 'optical']
