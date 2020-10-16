@@ -469,12 +469,20 @@ def get_sar_features(input, x_list=None, y_list=None, feature_type='not set', in
             filtered[:,:,0] = temp[:,:,0] # C11
             filtered[:,:,1] = temp[:,:,3] # C22
             filtered[:,:,2] = temp[:,:,4] # C33
-        elif feature_type.lower() in ['c3_pgnlm2intensities','c3pgnlm5feat2intensities']:
+        elif feature_type.lower() in ['c3_pgnlm2intensities','c3pgnlm5feat2intensities', 'c3_nlsar2intensities']:
             filtered = filtered[:,:, [0,1,2]]
         elif feature_type.lower() in ['c3_pgnlm','c3pgnlm5feat', 'c3pgnlm5feat25feat']:
             pass 
         elif feature_type.lower() in ['abs']:
-            filtered = np.abs(filtered, dtype='double') 
+            filtered = np.abs(filtered, dtype='double')
+        elif feature_type.lower() in ['c3full25feat', 'c3full-2-5feat']:
+            temp = np.copy(filtered)
+            filtered = np.zeros((filtered.shape[0], filtered.shape[1], 5))
+            filtered[:,:,0] = np.real(temp[:,:,0,0]) # C11
+            filtered[:,:,1] = np.real(temp[:,:,1,1]) # C22
+            filtered[:,:,2] = np.real(temp[:,:,2,2]) # C33
+            filtered[:,:,3] = np.abs(temp[:,:,0,2]) # C13 abs
+            filtered[:,:,4] = np.angle(temp[:,:,0,2]) # C13 angle
         elif feature_type.lower() in ['same', 'all']:
             pass 
         else:
