@@ -9,6 +9,7 @@ from mytools import *
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET # For reading .gpx files
 from math import radians, cos, sin, asin, sqrt # for Haversine function - TODO, rewrite using numpy!
+# Lazy import inside functions: csv, osgeo, ast
 
 
 def pos2pix(geotransform, lat='default', lon='default', pixels_out = 'single', verbose=True):
@@ -431,6 +432,37 @@ def read_wkt_csv(input_file, input_mode='z+m'):
                 output_areas.append(aoi)
                     
     return output_areas
+
+
+def read_shp_layer(input_file, layer_read = 0, max_feats_read = 10000):
+    """Read a single layer from a shape file.
+    
+    Return list of dicts.
+    """
+    import ast
+    from osgeo import ogr
+    
+    output_list = []
+    input_data = ogr.Open(input_file)
+    layer = input_data.GetLayer(layer_read)
+    # Try to read first feature of layer, and throw error if not possible
+    feature = layer.GetFeature(0)
+    print(feature)
+    
+    # Loop through features
+    for i_feat in range(max_feats_read):
+        try:
+            # Read feature
+            feature = layer.GetFeature(i_feat)
+            # Export to dict string
+            dict_str = feature.ExportToJson()
+            # Append to output
+            output_list.append(ast.literal_eval(dict_str))
+        except:
+            # Last feature read, break loop
+            break
+                
+    return output_list
 
 
 class roipoly:
