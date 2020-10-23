@@ -5,6 +5,7 @@
 """
 
 import numpy as np
+import csv
 from mytools import *
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET # For reading .gpx files
@@ -398,7 +399,6 @@ def geobox(lat_bounds, lon_bounds, lat_band, lon_band, margin=(0,0), log_type='d
 
 
 def read_wkt_csv(input_file, input_mode='z+m'):
-    import csv
     output_areas = []
     # Open and read .csv file
     with open(input_file, newline='') as csvfile:
@@ -434,7 +434,7 @@ def read_wkt_csv(input_file, input_mode='z+m'):
     return output_areas
 
 
-def read_shp_layer(input_file, layer_read = 0, max_feats_read = 10000):
+def read_shp_layer(input_file, layer_read = 0, max_feats_read = 100000):
     """Read a single layer from a shape file.
     
     Return list of dicts.
@@ -463,6 +463,97 @@ def read_shp_layer(input_file, layer_read = 0, max_feats_read = 10000):
             break
                 
     return output_list
+
+def read_class_csv(input_file):
+    """Read text file with classes.
+    
+    Return dict with states.
+    """    
+    # States seen
+    states_seen = []
+    output_dict = dict()
+    # Open and read .csv file
+    with open(input_file, newline='') as csvfile:
+        wktreader = csv.reader(csvfile, delimiter=';', quotechar='"')
+        
+        for i_row, row in enumerate(wktreader):
+            # Read each row and ignore header row 
+            if i_row == 0:
+                print(row)
+                state_i = row.index('State')
+                id_i = row.index('FID')
+                continue
+            
+            # Get class
+            point_state = row[state_i]
+            if point_state in states_seen:
+                # Add to an already seen state
+                output_dict[point_state].append(row[id_i])
+            else:
+                # New state, create new entry
+                output_dict[point_state] = [row[id_i]]
+                # State is seen now
+                states_seen.append(point_state)
+            
+            #print(row)
+            
+                
+    return output_dict
+
+
+def layer2roipoly_state(input_list, state_use):
+    """Get list of ROIs.
+    
+    Read list of dicts with grid points for a certain state and return list 
+    with ROIs.
+    """
+    
+    output_areas = []
+
+    # Loop over list
+    for i_row, grid_point in enumerate(input_list):
+        
+        # Skip if grid point is not in desired state
+        point_state = grid_point['properties']['State']
+        if not point_state == state_use:
+            continue
+        
+        # Get ID
+        point_id = grid_point['id']
+
+        # Create output object
+        aoi = roipoly(str(point_id))
+        for coords in grid_point['geometry']['coordinates'][0]:
+            lon = float(coords[0])
+            lat = float(coords[1])
+            aoi.add((lat, lon))
+        
+        # Add to output 
+        output_areas.append(aoi)
+                    
+    return output_areas
+
+
+def layer2roipoly_file(input_list, entries_use):
+    output_areas = []
+    # Loop over list 
+    for i_row, grid_point in enumerate(input_list):
+        # Skip if grid point is not in list
+        point_id = grid_point['id']
+        if not point_id in entries_use:
+            continue
+        else:
+            # Create output object
+            aoi = roipoly(str(point_id))
+            for coords in grid_point['geometry']['coordinates'][0]:
+                lon = float(coords[0])
+                lat = float(coords[1])
+                aoi.add((lat, lon))
+            
+            # Add to output list
+            output_areas.append(aoi)
+                    
+    return output_areas
 
 
 class roipoly:
