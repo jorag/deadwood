@@ -30,18 +30,19 @@ from dataclass import *
 new_datalist_xls_file = '2020_proof_of_concept_datasets.xls' 
 # Prefix for output datamodalities object filename
 datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113'
-base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on 
+base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on
+
+# Run on grid data or homogeneous AOI
+use_test_aois = False
 
 # List of datasets to process
 dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_19-2_v4', 'geo_opt', 'NDVI'] # C3', 
-#dataset_list = ['PGNLM_20200219', 'PGNLM_20200220', 'PGNLM_20200221', 'PGNLM_20200222','PGNLM_20200223', 'PGNLM_20200224', 'PGNLM_20200225', 'geo_opt']
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 
 # Datasets to add optical bands from
 opt_dataset_list = ['geo_opt', 'NDVI']
 
 # Which Sentinel-2 bands to use
-#opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
 opt_bands_include = ['b02','b03','b04','b05','b08'] # all 10 m resolution
     
 # Path to working directory 
@@ -56,19 +57,32 @@ rf_ntrees = 200 # Number of trees in the Random Forest algorithm
 knn_mean_acc = dict()
 rf_mean_acc = dict()
 
-# %% Read defoliated AOI                          
-# Get full data path from specified by input-path file
-with open(os.path.join(dirname, 'input-paths', 'defo1-aoi-path')) as infile:
-    defo_file = infile.readline().strip()
-# Reading polygons into list
-defo_aoi_list = read_wkt_csv(defo_file)
 
-# %% Read live AOI                          
-# Get full data path from specified by input-path file
-with open(os.path.join(dirname, 'input-paths', 'live1-aoi-path')) as infile:
-    live_file = infile.readline().strip()
-# Reading polygons into list
-live_aoi_list = read_wkt_csv(live_file)
+
+# %% AOIs or grid data?
+if use_test_aois:                        
+    # Get full data path from specified by input-path files
+    with open(os.path.join(dirname, 'input-paths', 'defo1-aoi-path')) as infile:
+        defo_file = infile.readline().strip()
+    with open(os.path.join(dirname, 'input-paths', 'live1-aoi-path')) as infile:
+        live_file = infile.readline().strip()
+    # Read AOI polygons into lists
+    defo_aoi_list = read_wkt_csv(defo_file)                          
+    live_aoi_list = read_wkt_csv(live_file)
+else:
+    # Get full data path from specified by input-path files
+    with open(os.path.join(dirname, 'input-paths', 'mixed_30m_latlon')) as infile:
+        grid_file = infile.readline().strip()
+    with open(os.path.join(dirname, 'input-paths', 'mixed_30m_classes')) as infile:
+        class_file = infile.readline().strip()
+    # Read layer
+    grid_list = read_shp_layer(grid_file)
+    # Read list of class IDs
+    class_dict = read_class_csv(class_file)
+    
+    # Create lists for each class
+    live_aoi_list = layer2roipoly_state(grid_list, 'live')
+    defo_aoi_list = layer2roipoly_state(grid_list, 'dead')
                    
 # %% Load band lists from Excel file
 xls_fullpath = os.path.join(dirname, 'input-paths', new_datalist_xls_file)
