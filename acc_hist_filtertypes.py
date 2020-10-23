@@ -27,7 +27,7 @@ from dataclass import *
 
 
 #%% File with list of datasets and band info  
-new_datalist_xls_file = '2020_proof_of_concept_datasets.xls' 
+new_datalist_xls_file = 'SF_forest_subsets.xls' 
 # Prefix for output datamodalities object filename
 datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on
@@ -36,7 +36,9 @@ base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data obje
 use_test_aois = False
 
 # List of datasets to process
-dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'PGNLM_19-2_v4', 'geo_opt', 'NDVI'] # C3', 
+dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', 'PGNLM_19-2_v4', 'geo_opt'] # 'C3', 'NDVI'
+#dataset_list = [pgnlm_set, 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set]
+#dataset_keys = ['optical', 'boxcar',  'refined Lee', 'IDAN', 'NL-SAR', 'PGNLM']
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 
 # Datasets to add optical bands from
@@ -139,8 +141,9 @@ for dataset_id in id_list:
             if dataset_in.lower()[6:10] in ['2019', 'best']:
                 c3_feature_type = 'iq2c3'
             else:
-                #c3_feature_type =  'c3_pgnlm2intensities'
                 c3_feature_type = 'c3pgnlm5feat'
+        elif dataset_in.lower()[0:5] in ['nlsar']:
+            c3_feature_type = 'all' # 5 features
         elif dataset_in.lower()[-2:] in ['c3']:
             #c3_feature_type = 'c3_snap_intensities'
             c3_feature_type = 'c3snap5feat'
@@ -272,14 +275,14 @@ if True: #plot_rf_dataset_comp:
      #sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM-20191224-1814', 'NDVI', 'optical']
      #sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM', 'NDVI', 'optical']
      
-     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM_19-2_v4'] #
-     sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM'] # 'refined Lee'
+     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'NLSAR_1_1', 'PGNLM_19-2_v4'] #
+     sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'NL-SAR', 'PGNLM'] # 'refined Lee'
      
      #sar_names_dataset = ['PGNLM_20200219', 'PGNLM_20200220', 'PGNLM_20200221', 'PGNLM_20200222','PGNLM_20200223', 'PGNLM_20200224', 'PGNLM_20200225']
      #sar_names_display = ['19', '20', '21', '22','23', '24', '25']
      
-     opt_names_dataset = ['geo_opt', 'NDVI']
-     opt_names_display = ['optical', 'NDVI'] # 'geo_opt'
+     opt_names_dataset = ['geo_opt'] # opt_names_dataset = ['geo_opt', 'NDVI']
+     opt_names_display = ['optical'] # opt_names_display = ['optical', 'NDVI']
      n_opt = length(opt_names_dataset)
      
      sar_data_dict = dict(zip(sar_names_dataset, sar_names_display)) 
