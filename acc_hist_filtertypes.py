@@ -59,6 +59,7 @@ rf_ntrees = 200 # Number of trees in the Random Forest algorithm
 knn_mean_acc = dict()
 rf_mean_acc = dict()
 
+data_dict = dict()
 
 
 # %% AOIs or grid data?
@@ -71,6 +72,8 @@ if use_test_aois:
     # Read AOI polygons into lists
     defo_aoi_list = read_wkt_csv(defo_file)                          
     live_aoi_list = read_wkt_csv(live_file)
+    data_dict['dead'] = defo_aoi_list
+    data_dict['live'] = live_aoi_list
 else:
     # Get full data path from specified by input-path files
     with open(os.path.join(dirname, 'input-paths', 'mixed_30m_latlon')) as infile:
@@ -85,6 +88,11 @@ else:
     # Create lists for each class
     live_aoi_list = layer2roipoly_state(grid_list, 'live')
     defo_aoi_list = layer2roipoly_state(grid_list, 'dead')
+    #states_use = ['live', 'dead', 'damaged', 'other']
+    states_use = ['live', 'dead', 'damaged']
+    for state_collect in states_use:
+        data_dict[state_collect] = layer2roipoly_state(grid_list, state_collect)
+    
                    
 # %% Load band lists from Excel file
 xls_fullpath = os.path.join(dirname, 'input-paths', new_datalist_xls_file)
@@ -177,70 +185,123 @@ for dataset_id in id_list:
         lon = raster_data_array[lon_band,:,:]
         
         #%% Get defo AOI pixels
-        for i_defo, defo_aoi in enumerate(defo_aoi_list):
-            # Get LAT and LONG for bounding rectangle and get pixel coordinates 
-            lat_bounds, lon_bounds = defo_aoi.bounding_coords()
-            row_ind, col_ind = geobox(lat_bounds, lon_bounds, lat, lon, margin=(0,0), log_type='default')
-            x_min = row_ind[0]; x_max = row_ind[1]
-            y_min = col_ind[0]; y_max = col_ind[1]
-    
-            # Get SAR data from area
-            sat_data = sat_data_temp[:, x_min:x_max, y_min:y_max]
-            
-            # Extract SAR covariance mat features, reshape to get channels last
-            sat_data = np.transpose(sat_data, (1,2,0))
-            sat_data = get_sar_features(sat_data, feature_type=c3_feature_type, input_type='img')
-            
-            # Flatten, reshape to channels first due to ordering of reshape
-            sat_data = np.transpose(sat_data, (2,0,1))
-            c_first_shape = sat_data.shape
-            sat_data = np.reshape(sat_data, (c_first_shape[0],c_first_shape[1]*c_first_shape[2]), order='C')
-            
-            # Create a new array or append to existing one
-            if i_defo == 0:
-                defo_data = np.copy(sat_data)
-            else:
-                defo_data = np.hstack((defo_data, sat_data))
+
+        # Create labels
+        #y = np.hstack((1*np.ones(length(live_data),dtype='int'), 0*np.ones(length(defo_data),dtype='int')))
+        
+        
+        # Initialise 
+        x = None
+        y = None
+        i_class_label = int(0)
+        
+        # Go through all classes
+        for aoi_state, aoi_list in data_dict.items():
+            # Loop through all AOIs for each class
+            for i_aoi, aoi in enumerate(aoi_list):
+                # Get LAT and LONG for bounding rectangle and get pixel coordinates 
+                lat_bounds, lon_bounds = aoi.bounding_coords()
+                row_ind, col_ind = geobox(lat_bounds, lon_bounds, lat, lon, margin=(0,0), log_type='default')
+                x_min = row_ind[0]; x_max = row_ind[1]
+                y_min = col_ind[0]; y_max = col_ind[1]
+        
+                # Get SAR data from area
+                sat_data = sat_data_temp[:, x_min:x_max, y_min:y_max]
                 
-        #%% Get live AOI pixels
-        for i_live, live_aoi in enumerate(live_aoi_list):
-            # Get LAT and LONG for bounding rectangle and get pixel coordinates 
-            lat_bounds, lon_bounds = live_aoi.bounding_coords()
-            row_ind, col_ind = geobox(lat_bounds, lon_bounds, lat, lon, margin=(0,0), log_type='default')
-            x_min = row_ind[0]; x_max = row_ind[1]
-            y_min = col_ind[0]; y_max = col_ind[1]
-    
-            # Get SAR data from area
-            sat_data = sat_data_temp[:, x_min:x_max, y_min:y_max]
+                # Extract SAR covariance mat features, reshape to get channels last
+                sat_data = np.transpose(sat_data, (1,2,0))
+                sat_data = get_sar_features(sat_data, feature_type=c3_feature_type, input_type='img')
+                
+                # Flatten, reshape to channels first due to ordering of reshape
+                sat_data = np.transpose(sat_data, (2,0,1))
+                c_first_shape = sat_data.shape
+                sat_data = np.reshape(sat_data, (c_first_shape[0],c_first_shape[1]*c_first_shape[2]), order='C')
+                
+                # Create a new array or append to existing one
+                if i_aoi == 0:
+                    state_data = np.copy(sat_data)
+                else:
+                    state_data = np.hstack((state_data, sat_data))
             
-            # Extract SAR covariance mat features, reshape to get channels last
-            sat_data = np.transpose(sat_data, (1,2,0))
-            sat_data = get_sar_features(sat_data, feature_type=c3_feature_type, input_type='img')
-            
-            # Flatten, reshape to channels first due to ordering of reshape
-            sat_data = np.transpose(sat_data, (2,0,1))
-            c_first_shape = sat_data.shape
-            sat_data = np.reshape(sat_data, (c_first_shape[0],c_first_shape[1]*c_first_shape[2]), order='C')
-            
-            # Create a new array or append to existing one
-            if i_live == 0:
-                live_data = np.copy(sat_data)
+            # Add to merged data array
+            if i_class_label == 0:
+                x = np.copy(state_data)
+                y = i_class_label*np.ones( (length(state_data), ) ,dtype='int')
             else:
-                live_data = np.hstack((live_data, sat_data))
+                x = np.hstack((x, state_data))
+                y = np.hstack((y, i_class_label*np.ones( (length(state_data), ) ,dtype='int')))
+            # Update class label
+            i_class_label += int(1)
+            
+            
+        # Transpose
+        x = x.transpose((1,0))
+        
+#        #%% Get defo AOI pixels
+#        for i_defo, defo_aoi in enumerate(defo_aoi_list):
+#            # Get LAT and LONG for bounding rectangle and get pixel coordinates 
+#            lat_bounds, lon_bounds = defo_aoi.bounding_coords()
+#            row_ind, col_ind = geobox(lat_bounds, lon_bounds, lat, lon, margin=(0,0), log_type='default')
+#            x_min = row_ind[0]; x_max = row_ind[1]
+#            y_min = col_ind[0]; y_max = col_ind[1]
+#    
+#            # Get SAR data from area
+#            sat_data = sat_data_temp[:, x_min:x_max, y_min:y_max]
+#            
+#            # Extract SAR covariance mat features, reshape to get channels last
+#            sat_data = np.transpose(sat_data, (1,2,0))
+#            sat_data = get_sar_features(sat_data, feature_type=c3_feature_type, input_type='img')
+#            
+#            # Flatten, reshape to channels first due to ordering of reshape
+#            sat_data = np.transpose(sat_data, (2,0,1))
+#            c_first_shape = sat_data.shape
+#            sat_data = np.reshape(sat_data, (c_first_shape[0],c_first_shape[1]*c_first_shape[2]), order='C')
+#            
+#            # Create a new array or append to existing one
+#            if i_defo == 0:
+#                defo_data = np.copy(sat_data)
+#            else:
+#                defo_data = np.hstack((defo_data, sat_data))
+#                
+#        #%% Get live AOI pixels
+#        for i_live, live_aoi in enumerate(live_aoi_list):
+#            # Get LAT and LONG for bounding rectangle and get pixel coordinates 
+#            lat_bounds, lon_bounds = live_aoi.bounding_coords()
+#            row_ind, col_ind = geobox(lat_bounds, lon_bounds, lat, lon, margin=(0,0), log_type='default')
+#            x_min = row_ind[0]; x_max = row_ind[1]
+#            y_min = col_ind[0]; y_max = col_ind[1]
+#    
+#            # Get SAR data from area
+#            sat_data = sat_data_temp[:, x_min:x_max, y_min:y_max]
+#            
+#            # Extract SAR covariance mat features, reshape to get channels last
+#            sat_data = np.transpose(sat_data, (1,2,0))
+#            sat_data = get_sar_features(sat_data, feature_type=c3_feature_type, input_type='img')
+#            
+#            # Flatten, reshape to channels first due to ordering of reshape
+#            sat_data = np.transpose(sat_data, (2,0,1))
+#            c_first_shape = sat_data.shape
+#            sat_data = np.reshape(sat_data, (c_first_shape[0],c_first_shape[1]*c_first_shape[2]), order='C')
+#            
+#            # Create a new array or append to existing one
+#            if i_live == 0:
+#                live_data = np.copy(sat_data)
+#            else:
+#                live_data = np.hstack((live_data, sat_data))
         
         #%% Plot 3D backscatter values
 
-        # Merge arrays with live and defoliated data
-        #x = np.hstack((live_data, defo_data))
-        x = np.hstack((defo_data, live_data))
-        x = x.transpose((1,0))
-        # Create labels
-        #y = np.hstack((1*np.ones(length(live_data),dtype='int'), 0*np.ones(length(defo_data),dtype='int')))
-        y = np.hstack((0*np.ones(length(defo_data),dtype='int'), 1*np.ones(length(live_data),dtype='int')))
+#        # Merge arrays with live and defoliated data
+#        #x = np.hstack((live_data, defo_data))
+#        x = np.hstack((defo_data, live_data))
+#        x = x.transpose((1,0))
+#        # Create labels
+#        #y = np.hstack((1*np.ones(length(live_data),dtype='int'), 0*np.ones(length(defo_data),dtype='int')))
+#        y = np.hstack((0*np.ones(length(defo_data),dtype='int'), 1*np.ones(length(live_data),dtype='int')))
         
-        labels_dict = None # dict((['live', 'defo'], ['live', 'defo']))
         
         # Plot
+        #labels_dict = None # dict((['live', 'defo'], ['live', 'defo']))
         #modalitypoints3d('reciprocity', x, y, labels_dict=labels_dict, title=dataset_use)
         
         #%% Classify
