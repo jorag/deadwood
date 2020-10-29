@@ -39,7 +39,7 @@ use_test_aois = False
 dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', 'PGNLM_19-2_v4', 'geo_opt'] # 'C3', 'NDVI'
 #dataset_list = [pgnlm_set, 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set]
 #dataset_keys = ['optical', 'boxcar',  'refined Lee', 'IDAN', 'NL-SAR', 'PGNLM']
-id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
+id_list = ['A', 'C'] 
 
 # Datasets to add optical bands from
 opt_dataset_list = ['geo_opt', 'NDVI']
@@ -51,7 +51,7 @@ opt_bands_include = ['b02','b03','b04','b05','b08'] # all 10 m resolution
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 #%% Classification parameters
-crossval_split_k = 5
+crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
 knn_k = 5
 rf_ntrees = 200 # Number of trees in the Random Forest algorithm
@@ -70,10 +70,8 @@ if use_test_aois:
     with open(os.path.join(dirname, 'input-paths', 'live1-aoi-path')) as infile:
         live_file = infile.readline().strip()
     # Read AOI polygons into lists
-    defo_aoi_list = read_wkt_csv(defo_file)                          
-    live_aoi_list = read_wkt_csv(live_file)
-    data_dict['dead'] = defo_aoi_list
-    data_dict['live'] = live_aoi_list
+    data_dict['dead'] = read_wkt_csv(defo_file)  
+    data_dict['live'] = read_wkt_csv(live_file)
 else:
     # Get full data path from specified by input-path files
     with open(os.path.join(dirname, 'input-paths', 'mixed_30m_latlon')) as infile:
@@ -86,10 +84,8 @@ else:
     class_dict = read_class_csv(class_file)
     
     # Create lists for each class
-    live_aoi_list = layer2roipoly_state(grid_list, 'live')
-    defo_aoi_list = layer2roipoly_state(grid_list, 'dead')
-    #states_use = ['live', 'dead', 'damaged', 'other']
-    states_use = ['live', 'dead', 'damaged']
+    states_use = ['live', 'dead', 'damaged', 'other']
+    #states_use = ['live', 'dead']
     for state_collect in states_use:
         data_dict[state_collect] = layer2roipoly_state(grid_list, state_collect)
     
@@ -153,11 +149,9 @@ for dataset_id in id_list:
         elif dataset_in.lower()[0:5] in ['nlsar']:
             c3_feature_type = 'all' # 5 features
         elif dataset_in.lower()[-2:] in ['c3']:
-            #c3_feature_type = 'c3_snap_intensities'
             c3_feature_type = 'c3snap5feat'
         else:
-            #print('No feature type found for: '+dataset_in)
-            c3_feature_type = 'NA'
+            c3_feature_type = 'all'
                 
         # %% If SAR data should be added
         if sar_bands_use:
@@ -184,12 +178,8 @@ for dataset_id in id_list:
         lat = raster_data_array[lat_band,:,:]
         lon = raster_data_array[lon_band,:,:]
         
-        #%% Get defo AOI pixels
+        #%% Get AOI pixels
 
-        # Create labels
-        #y = np.hstack((1*np.ones(length(live_data),dtype='int'), 0*np.ones(length(defo_data),dtype='int')))
-        
-        
         # Initialise 
         x = None
         y = None
@@ -236,70 +226,9 @@ for dataset_id in id_list:
             
         # Transpose
         x = x.transpose((1,0))
-        
-#        #%% Get defo AOI pixels
-#        for i_defo, defo_aoi in enumerate(defo_aoi_list):
-#            # Get LAT and LONG for bounding rectangle and get pixel coordinates 
-#            lat_bounds, lon_bounds = defo_aoi.bounding_coords()
-#            row_ind, col_ind = geobox(lat_bounds, lon_bounds, lat, lon, margin=(0,0), log_type='default')
-#            x_min = row_ind[0]; x_max = row_ind[1]
-#            y_min = col_ind[0]; y_max = col_ind[1]
-#    
-#            # Get SAR data from area
-#            sat_data = sat_data_temp[:, x_min:x_max, y_min:y_max]
-#            
-#            # Extract SAR covariance mat features, reshape to get channels last
-#            sat_data = np.transpose(sat_data, (1,2,0))
-#            sat_data = get_sar_features(sat_data, feature_type=c3_feature_type, input_type='img')
-#            
-#            # Flatten, reshape to channels first due to ordering of reshape
-#            sat_data = np.transpose(sat_data, (2,0,1))
-#            c_first_shape = sat_data.shape
-#            sat_data = np.reshape(sat_data, (c_first_shape[0],c_first_shape[1]*c_first_shape[2]), order='C')
-#            
-#            # Create a new array or append to existing one
-#            if i_defo == 0:
-#                defo_data = np.copy(sat_data)
-#            else:
-#                defo_data = np.hstack((defo_data, sat_data))
-#                
-#        #%% Get live AOI pixels
-#        for i_live, live_aoi in enumerate(live_aoi_list):
-#            # Get LAT and LONG for bounding rectangle and get pixel coordinates 
-#            lat_bounds, lon_bounds = live_aoi.bounding_coords()
-#            row_ind, col_ind = geobox(lat_bounds, lon_bounds, lat, lon, margin=(0,0), log_type='default')
-#            x_min = row_ind[0]; x_max = row_ind[1]
-#            y_min = col_ind[0]; y_max = col_ind[1]
-#    
-#            # Get SAR data from area
-#            sat_data = sat_data_temp[:, x_min:x_max, y_min:y_max]
-#            
-#            # Extract SAR covariance mat features, reshape to get channels last
-#            sat_data = np.transpose(sat_data, (1,2,0))
-#            sat_data = get_sar_features(sat_data, feature_type=c3_feature_type, input_type='img')
-#            
-#            # Flatten, reshape to channels first due to ordering of reshape
-#            sat_data = np.transpose(sat_data, (2,0,1))
-#            c_first_shape = sat_data.shape
-#            sat_data = np.reshape(sat_data, (c_first_shape[0],c_first_shape[1]*c_first_shape[2]), order='C')
-#            
-#            # Create a new array or append to existing one
-#            if i_live == 0:
-#                live_data = np.copy(sat_data)
-#            else:
-#                live_data = np.hstack((live_data, sat_data))
-        
+
         #%% Plot 3D backscatter values
 
-#        # Merge arrays with live and defoliated data
-#        #x = np.hstack((live_data, defo_data))
-#        x = np.hstack((defo_data, live_data))
-#        x = x.transpose((1,0))
-#        # Create labels
-#        #y = np.hstack((1*np.ones(length(live_data),dtype='int'), 0*np.ones(length(defo_data),dtype='int')))
-#        y = np.hstack((0*np.ones(length(defo_data),dtype='int'), 1*np.ones(length(live_data),dtype='int')))
-        
-        
         # Plot
         #labels_dict = None # dict((['live', 'defo'], ['live', 'defo']))
         #modalitypoints3d('reciprocity', x, y, labels_dict=labels_dict, title=dataset_use)
@@ -325,6 +254,7 @@ x_bars = np.arange(n_datasets) # range(n_datasets)
 ofs = 0.25 # offset
 alf = 0.7 # alpha
 
+
 if True: #plot_rf_dataset_comp:
      # Disp
      id_list_use = ['A', 'C']
@@ -338,9 +268,7 @@ if True: #plot_rf_dataset_comp:
      
      sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'NLSAR_1_1', 'PGNLM_19-2_v4'] #
      sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'NL-SAR', 'PGNLM'] # 'refined Lee'
-     
-     #sar_names_dataset = ['PGNLM_20200219', 'PGNLM_20200220', 'PGNLM_20200221', 'PGNLM_20200222','PGNLM_20200223', 'PGNLM_20200224', 'PGNLM_20200225']
-     #sar_names_display = ['19', '20', '21', '22','23', '24', '25']
+
      
      opt_names_dataset = ['geo_opt'] # opt_names_dataset = ['geo_opt', 'NDVI']
      opt_names_display = ['optical'] # opt_names_display = ['optical', 'NDVI']
