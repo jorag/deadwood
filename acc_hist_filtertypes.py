@@ -15,9 +15,10 @@ import ast
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split # train/test set split
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import StratifiedKFold # is deafault in cross-val?
+from sklearn.model_selection import (train_test_split, 
+                                     cross_val_score, 
+                                     StratifiedKFold,
+                                     GroupKFold)
 from sklearn.metrics import confusion_matrix
 # My moduels
 from mytools import *
@@ -52,7 +53,9 @@ dirname = os.path.realpath('.') # For parent directory use '..'
 
 #%% Classification parameters
 crossval_split_k = 3
-crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
+crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, 
+                                 shuffle=True, random_state=crossval_split_k)
+group_kfold = GroupKFold(n_splits=crossval_split_k)
 knn_k = 5
 rf_ntrees = 200 # Number of trees in the Random Forest algorithm
 
@@ -60,6 +63,7 @@ knn_mean_acc = dict()
 rf_mean_acc = dict()
 
 data_dict = dict()
+groups = []
 
 
 # %% AOIs or grid data?
@@ -183,7 +187,9 @@ for dataset_id in id_list:
         # Initialise 
         x = None
         y = None
+        #groups = np.array(())
         i_class_label = int(0)
+        i_group = 0
         
         # Go through all classes
         for aoi_state, aoi_list in data_dict.items():
@@ -207,15 +213,26 @@ for dataset_id in id_list:
                 c_first_shape = sat_data.shape
                 sat_data = np.reshape(sat_data, (c_first_shape[0],c_first_shape[1]*c_first_shape[2]), order='C')
                 
+                #groups.append(i_group*np.ones(sat_data.shape[1],))
+                
                 # Create a new array or append to existing one
                 if i_aoi == 0:
                     state_data = np.copy(sat_data)
+                    # Check if groups array should initialized
+                    if i_group == 0:
+                        groups = i_group*np.ones(sat_data.shape[1],)
+                    else:
+                        groups = np.hstack((groups, i_group*np.ones(sat_data.shape[1],)))
                 else:
                     state_data = np.hstack((state_data, sat_data))
+                    groups = np.hstack((groups, i_group*np.ones(sat_data.shape[1],)))
+                    
+                i_group += 1
             
             # Add to merged data array
             if i_class_label == 0:
                 x = np.copy(state_data)
+                # TODO: 20201029 change to use x.shape instead of length
                 y = i_class_label*np.ones( (length(state_data), ) ,dtype='int')
             else:
                 x = np.hstack((x, state_data))
@@ -234,15 +251,18 @@ for dataset_id in id_list:
         #modalitypoints3d('reciprocity', x, y, labels_dict=labels_dict, title=dataset_use)
         
         #%% Classify
+        group_kfold.get_n_splits(X=x, y=y, groups=groups)
         # Cross validate - kNN - All data
         knn_all = KNeighborsClassifier(n_neighbors=knn_k)
-        knn_scores_all = cross_val_score(knn_all, x, y, cv=crossval_kfold)
-        #print('kNN - ' + dataset_use + ' :')
-        #print(np.mean(knn_scores_all))
+        knn_scores_all = cross_val_score(knn_all, x, y, groups=groups, cv=group_kfold)
+        #knn_scores_all = cross_val_score(knn_all, x, y, cv=crossval_kfold)
+        print('kNN - ' + dataset_use + ' :')
+        print(np.mean(knn_scores_all))
         knn_mean_acc[dataset_use] = np.mean(knn_scores_all)
         
         rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
-        rf_scores_all = cross_val_score(rf_all, x, y, cv=crossval_kfold)
+        rf_scores_all = cross_val_score(rf_all, x, y, groups=groups, cv=group_kfold)
+        #rf_scores_all = cross_val_score(rf_all, x, y, cv=crossval_kfold)
         print('Random Forest - ' + dataset_use + ' :')
         print(np.mean(rf_scores_all))
         rf_mean_acc[dataset_use] = np.mean(rf_scores_all)
@@ -254,6 +274,7 @@ x_bars = np.arange(n_datasets) # range(n_datasets)
 ofs = 0.25 # offset
 alf = 0.7 # alpha
 
+class_n, class_counts = np.unique(y, return_counts = True)
 
 if True: #plot_rf_dataset_comp:
      # Disp
