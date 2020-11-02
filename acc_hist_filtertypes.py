@@ -34,7 +34,7 @@ datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on
 
 # Run on grid data or homogeneous AOI
-use_test_aois = False
+use_test_aois = True
 
 # List of datasets to process
 dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', 'PGNLM_19-2_v4', 'geo_opt'] # 'C3', 'NDVI'
@@ -52,18 +52,23 @@ opt_bands_include = ['b02','b03','b04','b05','b08'] # all 10 m resolution
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 #%% Classification parameters
+knn_k = 5
+rf_ntrees = 200 # Number of trees in the Random Forest algorithm
+# Cross validation parameters
 crossval_split_k = 3
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, 
                                  shuffle=True, random_state=crossval_split_k)
 group_kfold = GroupKFold(n_splits=crossval_split_k)
-knn_k = 5
-rf_ntrees = 200 # Number of trees in the Random Forest algorithm
 
+
+# Output dicts
 knn_mean_acc = dict()
+knn_all_acc = dict()
 rf_mean_acc = dict()
+rf_all_acc = dict()
 
 data_dict = dict()
-groups = []
+
 
 
 # %% AOIs or grid data?
@@ -76,6 +81,9 @@ if use_test_aois:
     # Read AOI polygons into lists
     data_dict['dead'] = read_wkt_csv(defo_file)  
     data_dict['live'] = read_wkt_csv(live_file)
+    # Set cross validator to use and groups param
+    crossval_use = crossval_kfold
+    groups = None
 else:
     # Get full data path from specified by input-path files
     with open(os.path.join(dirname, 'input-paths', 'mixed_30m_latlon')) as infile:
@@ -92,6 +100,10 @@ else:
     #states_use = ['live', 'dead']
     for state_collect in states_use:
         data_dict[state_collect] = layer2roipoly_state(grid_list, state_collect)
+        
+    # Set cross validator to use and groups param
+    crossval_use = group_kfold
+    groups = []
     
                    
 # %% Load band lists from Excel file
@@ -254,18 +266,22 @@ for dataset_id in id_list:
         group_kfold.get_n_splits(X=x, y=y, groups=groups)
         # Cross validate - kNN - All data
         knn_all = KNeighborsClassifier(n_neighbors=knn_k)
-        knn_scores_all = cross_val_score(knn_all, x, y, groups=groups, cv=group_kfold)
+        knn_scores_all = cross_val_score(knn_all, x, y, groups=groups, 
+                                         cv=crossval_use)
         #knn_scores_all = cross_val_score(knn_all, x, y, cv=crossval_kfold)
         print('kNN - ' + dataset_use + ' :')
         print(np.mean(knn_scores_all))
         knn_mean_acc[dataset_use] = np.mean(knn_scores_all)
+        knn_all_acc[dataset_use] = knn_scores_all
         
         rf_all = RandomForestClassifier(n_estimators=rf_ntrees, random_state=0)
-        rf_scores_all = cross_val_score(rf_all, x, y, groups=groups, cv=group_kfold)
+        rf_scores_all = cross_val_score(rf_all, x, y, groups=groups, 
+                                        cv=crossval_use)
         #rf_scores_all = cross_val_score(rf_all, x, y, cv=crossval_kfold)
         print('Random Forest - ' + dataset_use + ' :')
         print(np.mean(rf_scores_all))
         rf_mean_acc[dataset_use] = np.mean(rf_scores_all)
+        rf_all_acc[dataset_use] = rf_scores_all
         
 #%% Plot classification summary
 # Plot summary statistics
@@ -306,27 +322,45 @@ if True: #plot_rf_dataset_comp:
      for i_dataset, dataset_id in enumerate(id_list_use):
         key_list = []
         rf_accuracy = []
+        yerr = [[],[]]
         
         for dataset_key in sar_names_dataset:
             key_list.append(dataset_key+'-'+dataset_id)
             rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
+            yerr[0].append(pct_f *(min(rf_all_acc[dataset_key+'-'+dataset_id])- 
+                rf_mean_acc[dataset_key+'-'+dataset_id]))
+            yerr[1].append(pct_f* (max(rf_all_acc[dataset_key+'-'+dataset_id])-
+                rf_mean_acc[dataset_key+'-'+dataset_id]))
             
         print(rf_accuracy)
+        print(yerr)
+        yerr = np.abs(yerr)
         if key_list:
             ofs_use = ofs_use * -1
             # Plot
-            plt.bar(x_bars[:-n_opt]*2+ofs_use, rf_accuracy , align='center', color=c_vec2[i_dataset], alpha=alf)
+            plt.bar(x_bars[:-n_opt]*2+ofs_use, rf_accuracy, yerr=yerr, 
+                    align='center', color=c_vec2[i_dataset], alpha=alf, 
+                    error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2))
             #plt.bar(x_bars*2+ofs_use, rf_accuracy , align='center', color=c_vec[i_dataset], alpha=alf)
             #plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*length(rf_accuracy))
      
      key_list = []
      rf_accuracy = []
+     yerr = [[],[]]
      for dataset_key in opt_names_dataset:
             key_list.append(dataset_key+'-A')
             rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
+            yerr[0].append(pct_f *(min(rf_all_acc[dataset_key+'-'+dataset_id])- 
+                rf_mean_acc[dataset_key+'-'+dataset_id]))
+            yerr[1].append(pct_f* (max(rf_all_acc[dataset_key+'-'+dataset_id])-
+                rf_mean_acc[dataset_key+'-'+dataset_id]))
     
      print(rf_accuracy)
-     plt.bar(x_bars[-n_opt:]*2, rf_accuracy , align='center', color='g', alpha=alf)
+     print(yerr)
+     yerr = np.abs(yerr)
+     plt.bar(x_bars[-n_opt:]*2, rf_accuracy, yerr=yerr, align='center', 
+             color='g', alpha=alf, 
+             error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2))
         
      # Get display names from dict
      xtick_list = sar_names_display + opt_names_display
