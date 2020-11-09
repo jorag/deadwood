@@ -6,6 +6,7 @@ Created on Mon Feb 17 20:49:32 2020
 @author: jorag
 """
 
+import matplotlib # For setting font size
 import matplotlib.pyplot as plt
 import numpy as np
 import gdal
@@ -34,10 +35,11 @@ datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on
 
 # Run on grid data or homogeneous AOI
-use_test_aois = True
+use_test_aois = False
 
+pgnlm_set = 'PGNLM_19-2_v4'
 # List of datasets to process
-dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', 'PGNLM_19-2_v4', 'geo_opt'] # 'C3', 'NDVI'
+dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set, 'geo_opt'] # 'C3', 'NDVI'
 #dataset_list = [pgnlm_set, 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set]
 #dataset_keys = ['optical', 'boxcar',  'refined Lee', 'IDAN', 'NL-SAR', 'PGNLM']
 id_list = ['A', 'C'] 
@@ -49,26 +51,38 @@ opt_dataset_list = ['geo_opt', 'NDVI']
 opt_bands_include = ['b02','b03','b04','b05','b08'] # all 10 m resolution
     
 # Path to working directory 
-dirname = os.path.realpath('.') # For parent directory use '..'
+dirname = os.path.realpath('.') 
+parent_dir = os.path.realpath('..') # For parent directory 
 
 #%% Classification parameters
 knn_k = 5
 rf_ntrees = 200 # Number of trees in the Random Forest algorithm
 # Cross validation parameters
-crossval_split_k = 3
+crossval_split_k = 5
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, 
                                  shuffle=True, random_state=crossval_split_k)
 group_kfold = GroupKFold(n_splits=crossval_split_k)
 
+#%% Plotting and figure options
 
-# Output dicts
+# Version ID, changes to these options should change version number 
+# changes should also be commited to Github to store exact settings
+version_id = 'v2' # LAST UPDATE 20201108 - initial autosave
+
+# Figure options
+plt_fontsize = 12
+plt_height = 6.0 # inches
+plt_width = 7.8 # inches
+plt_dpi = 200 # Dots Per Inch (DPI)
+
+
+#%% Output dicts
 knn_mean_acc = dict()
 knn_all_acc = dict()
 rf_mean_acc = dict()
 rf_all_acc = dict()
 
 data_dict = dict()
-
 
 
 # %% AOIs or grid data?
@@ -97,6 +111,8 @@ else:
     
     # Create lists for each class
     states_use = ['live', 'dead', 'damaged', 'other']
+    #states_use = ['live', 'dead', 'other']
+    #states_use = ['live', 'dead', 'damaged']
     #states_use = ['live', 'dead']
     for state_collect in states_use:
         data_dict[state_collect] = layer2roipoly_state(grid_list, state_collect)
@@ -292,88 +308,110 @@ alf = 0.7 # alpha
 
 class_n, class_counts = np.unique(y, return_counts = True)
 
-if True: #plot_rf_dataset_comp:
-     # Disp
-     id_list_use = ['A', 'C']
-     c_vec2 = ['r', 'b', 'g']
-     
-     # Percent factor
-     pct_f = 100
-     
-     #sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM-20191224-1814', 'NDVI', 'optical']
-     #sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM', 'NDVI', 'optical']
-     
-     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'NLSAR_1_1', 'PGNLM_19-2_v4'] #
-     sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'NL-SAR', 'PGNLM'] # 'refined Lee'
 
+ # Disp
+id_list_use = ['A', 'C']
+c_vec2 = ['r', 'b', 'g']
+
+# Percent factor
+pct_f = 100
+
+#sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'PGNLM-20191224-1814', 'NDVI', 'optical']
+#sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM', 'NDVI', 'optical']
+
+sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'NLSAR_1_1', 'PGNLM_19-2_v4'] #
+sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'NL-SAR', 'PGNLM'] # 'refined Lee'
+
+opt_names_dataset = ['geo_opt'] # opt_names_dataset = ['geo_opt', 'NDVI']
+opt_names_display = ['optical'] # opt_names_display = ['optical', 'NDVI']
+n_opt = length(opt_names_dataset)
+
+sar_data_dict = dict(zip(sar_names_dataset, sar_names_display)) 
+ofs_use = np.copy(ofs)
+plt.figure()
+x_bars = np.arange(length(sar_names_dataset)+ n_opt)
+#x_bars = np.arange(length(sar_names_dataset))
+#datakey_list = list(rf_mean_acc.keys())
+#datakey_list.sort()
+for i_dataset, dataset_id in enumerate(id_list_use):
+   key_list = []
+   rf_accuracy = []
+   yerr = [[],[]]
+   
+   for dataset_key in sar_names_dataset:
+       key_list.append(dataset_key+'-'+dataset_id)
+       rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
+       yerr[0].append(pct_f *(min(rf_all_acc[dataset_key+'-'+dataset_id])- 
+           rf_mean_acc[dataset_key+'-'+dataset_id]))
+       yerr[1].append(pct_f* (max(rf_all_acc[dataset_key+'-'+dataset_id])-
+           rf_mean_acc[dataset_key+'-'+dataset_id]))
+       
+   print(rf_accuracy)
+   print(yerr)
+   yerr = np.abs(yerr)
+   if key_list:
+       ofs_use = ofs_use * -1
+       # Plot
+       plt.bar(x_bars[:-n_opt]*2+ofs_use, rf_accuracy, yerr=yerr, 
+               align='center', color=c_vec2[i_dataset], alpha=alf, 
+               error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2))
+       #plt.bar(x_bars*2+ofs_use, rf_accuracy , align='center', color=c_vec[i_dataset], alpha=alf)
+       #plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*length(rf_accuracy))
+
+key_list = []
+rf_accuracy = []
+yerr = [[],[]]
+for dataset_key in opt_names_dataset:
+       key_list.append(dataset_key+'-A')
+       rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
+       yerr[0].append(pct_f *(min(rf_all_acc[dataset_key+'-'+dataset_id])- 
+           rf_mean_acc[dataset_key+'-'+dataset_id]))
+       yerr[1].append(pct_f* (max(rf_all_acc[dataset_key+'-'+dataset_id])-
+           rf_mean_acc[dataset_key+'-'+dataset_id]))
+
+print(rf_accuracy)
+print(yerr)
+yerr = np.abs(yerr)
+plt.bar(x_bars[-n_opt:]*2, rf_accuracy, yerr=yerr, align='center', 
+        color='g', alpha=alf, 
+        error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2))
+    
+# Get display names from dict
+xtick_list = sar_names_display + opt_names_display
+#for i_dataset, dataset_id in enumerate(id_list):
      
-     opt_names_dataset = ['geo_opt'] # opt_names_dataset = ['geo_opt', 'NDVI']
-     opt_names_display = ['optical'] # opt_names_display = ['optical', 'NDVI']
-     n_opt = length(opt_names_dataset)
-     
-     sar_data_dict = dict(zip(sar_names_dataset, sar_names_display)) 
-    
-     ofs_use = np.copy(ofs)
-     plt.figure()
-     x_bars = np.arange(length(sar_names_dataset)+ n_opt)
-     #x_bars = np.arange(length(sar_names_dataset))
-     #datakey_list = list(rf_mean_acc.keys())
-     #datakey_list.sort()
-     for i_dataset, dataset_id in enumerate(id_list_use):
-        key_list = []
-        rf_accuracy = []
-        yerr = [[],[]]
-        
-        for dataset_key in sar_names_dataset:
-            key_list.append(dataset_key+'-'+dataset_id)
-            rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
-            yerr[0].append(pct_f *(min(rf_all_acc[dataset_key+'-'+dataset_id])- 
-                rf_mean_acc[dataset_key+'-'+dataset_id]))
-            yerr[1].append(pct_f* (max(rf_all_acc[dataset_key+'-'+dataset_id])-
-                rf_mean_acc[dataset_key+'-'+dataset_id]))
-            
-        print(rf_accuracy)
-        print(yerr)
-        yerr = np.abs(yerr)
-        if key_list:
-            ofs_use = ofs_use * -1
-            # Plot
-            plt.bar(x_bars[:-n_opt]*2+ofs_use, rf_accuracy, yerr=yerr, 
-                    align='center', color=c_vec2[i_dataset], alpha=alf, 
-                    error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2))
-            #plt.bar(x_bars*2+ofs_use, rf_accuracy , align='center', color=c_vec[i_dataset], alpha=alf)
-            #plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*length(rf_accuracy))
-     
-     key_list = []
-     rf_accuracy = []
-     yerr = [[],[]]
-     for dataset_key in opt_names_dataset:
-            key_list.append(dataset_key+'-A')
-            rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
-            yerr[0].append(pct_f *(min(rf_all_acc[dataset_key+'-'+dataset_id])- 
-                rf_mean_acc[dataset_key+'-'+dataset_id]))
-            yerr[1].append(pct_f* (max(rf_all_acc[dataset_key+'-'+dataset_id])-
-                rf_mean_acc[dataset_key+'-'+dataset_id]))
-    
-     print(rf_accuracy)
-     print(yerr)
-     yerr = np.abs(yerr)
-     plt.bar(x_bars[-n_opt:]*2, rf_accuracy, yerr=yerr, align='center', 
-             color='g', alpha=alf, 
-             error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2))
-        
-     # Get display names from dict
-     xtick_list = sar_names_display + opt_names_display
-     #for i_dataset, dataset_id in enumerate(id_list):
-         
-    
-     plt.xticks(x_bars*2, xtick_list )
-     plt.yticks(pct_f*np.linspace(0.1,1,num=10))
-     plt.grid(True)
-     #plt.title('RF, n_trees: '+str(rf_ntrees)+ ', normalization: '+norm_type+
-     #         '\n Min:'+', live = '+str(min_p_live)+', defo = '+
-     #          str(min_p_defo)+', trees = '+str(min_tree_live))
-     plt.ylabel('Mean accuracy %, '+str(crossval_split_k)+'-fold cross validation'); plt.ylim((0,pct_f*1))
-     plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017', 'S2 26 July 2017'], loc='lower right')
-    
-     plt.show()
+plt.xticks(x_bars*2, xtick_list )
+plt.yticks(pct_f*np.linspace(0.1,1,num=10))
+plt.grid(True)
+#plt.title('RF, n_trees: '+str(rf_ntrees)+ ', normalization: '+norm_type+
+#         '\n Min:'+', live = '+str(min_p_live)+', defo = '+
+#          str(min_p_defo)+', trees = '+str(min_tree_live))
+plt.ylabel('Mean accuracy %, '+str(crossval_split_k)+'-fold cross validation'); plt.ylim((0,pct_f*1))
+plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017', 'S2 26 July 2017'], loc='lower right')
+
+plt.show()
+ 
+
+#%% Save figure
+
+# Set font size
+matplotlib.rc('font', size=plt_fontsize)
+# Set output directory
+fig_dir = os.path.join(parent_dir, 'tempresults')
+# Create filename
+if use_test_aois:
+    fname_out = 'AOI-accbar_'+pgnlm_set+'_RF-'+str(rf_ntrees)+'_k'+str(crossval_split_k)
+else:
+    fname_out = 'GRID-accbar_'+pgnlm_set+'_RF-'+str(rf_ntrees)+'_k'+str(crossval_split_k)
+
+# Add classes to filename
+for cname in data_dict.keys():
+    fname_out += '_' + cname
+# Add version and file type
+fname_out += '_' + version_id+'.png'
+   
+# now, before saving to file:
+figure = plt.gcf() # get current figure
+figure.set_size_inches(plt_width, plt_height) 
+# when saving, specify the DPI
+plt.savefig(os.path.join(fig_dir, fname_out), dpi = plt_dpi) 
