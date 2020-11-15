@@ -30,7 +30,7 @@ from dataclass import *
 dirname = os.path.realpath('.') # For parent directory use '..'
 
 # Prefix for object filename
-datamod_fprefix = 'PGNLM-SNAP_C3_20200929' #'PGNLM-SNAP_C3_geo_OPT_20200113' #'20191220_PGNLM-paramsearch' #'cov_mat-20200108' # 'New-data-20191203-' #'New-data-20191203-.pkl'
+datamod_fprefix = 'PGNLM-NLSAR_C3_20201115' #'PGNLM-SNAP_C3_20200929' #'PGNLM-SNAP_C3_geo_OPT_20200113' 
           
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix  + '.pkl'
@@ -47,7 +47,7 @@ min_tree_live = 0 # 0 #
 diff_live_defo = 0 # 0.075 # 
 
 #%% PROCESSING PARAMETERS
-crossval_split_k = 3
+crossval_split_k = 4
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, shuffle=True, random_state=crossval_split_k)
 knn_k = 5
 rf_ntrees = 200 # Number of trees in the Random Forest algorithm
@@ -454,10 +454,13 @@ if plot_rf_dataset_comp:
      pct_f = 100
      
      # 'parallel_256' # 'parallel_im_test' # im_test = 64 patches
-     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'parallel_im_test'] # 'parallel_im_test' # 'parallel_256' # 
-     sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM']
+     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'NLSAR_1_1', 'PGNLM_19-2_v4'] #
+     sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'NL-SAR', 'PGNLM'] # 'refined Lee'
+     #sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'parallel_im_test'] # 'parallel_im_test' # 'parallel_256' # 
+     #sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM']
      
-     opt_names_dataset = ['NDVI', 'optical']
+     opt_names_dataset = ['optical']
+     #opt_names_dataset = ['NDVI', 'optical']
      n_opt = length(opt_names_dataset)
      
      sar_data_dict = dict(zip(sar_names_dataset, sar_names_display)) 
