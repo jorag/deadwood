@@ -3,6 +3,7 @@
 @author: jorag
 """
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import gdal
@@ -27,8 +28,9 @@ from visandtest import *
 from dataclass import *
 
 # Path to working directory 
-dirname = os.path.realpath('.') # For parent directory use '..'
-
+dirname = os.path.realpath('.')
+parent_dir = os.path.realpath('..')
+                          
 # Prefix for object filename
 datamod_fprefix = 'PGNLM-NLSAR_C3_20201115' #'PGNLM-SNAP_C3_20200929' #'PGNLM-SNAP_C3_geo_OPT_20200113' 
           
@@ -60,11 +62,22 @@ plot_class_boundaries = False
 plot_kappa = False
 plot_image_result = False
 plot_rf_dataset_comp = True 
-plot_rf_pgnlm_comp = True
 print_result = True
 
 # Prefix for output cross validation object filename
 crossval_fprefix = 'new-kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
+
+#%% Plotting and figure options
+
+# Version ID, changes to these options should change version number 
+# changes should also be commited to Github to store exact settings
+version_id = 'v2' # LAST UPDATE 20201108 - match autosave of other plots 151120
+
+# Figure options
+plt_fontsize = 12
+plt_height = 6.0 # inches
+plt_width = 7.8 # inches
+plt_dpi = 200 # Dots Per Inch (DPI)
 
 #%% Read DataModalities object with ground in situ vegetation data
 with open(os.path.join(dirname, 'data', obj_in_name), 'rb') as input:
@@ -107,6 +120,7 @@ for i_point in range(length(data_labels)):
 
 #Number of classes
 n_classes = length(class_dict)
+
 
 # %% Output files
 knn_file =  datamod_fprefix + crossval_fprefix + 'cross_validation_knn.pkl'
@@ -173,6 +187,7 @@ for key in class_dict.keys():
 
 #%% Collect performance measures in dict
 rf_mean_acc = dict()
+rf_all_acc = dict()
 knn_mean_acc = dict()
 rf_mean_kappa = dict()
 knn_mean_kappa = dict()
@@ -240,12 +255,8 @@ for dataset_type in all_data.all_modalities:
         sat_data = get_sar_features(sat_data, feature_type=c3_feature_type)
         print(sat_data.shape)
         
-        if print_result:
-            print(np.max(sat_data,axis=0))
         # Do normalization
         sat_data = norm01(sat_data, norm_type=norm_type)
-        if print_result:
-            print(np.max(sat_data,axis=0))
         
         # Split into training and test datasets
         data_train, data_test, labels_train, labels_test = train_test_split(sat_data, data_labels, test_size=0.2, random_state=0)  
@@ -308,6 +319,7 @@ for dataset_type in all_data.all_modalities:
             print('Random Forest - ' + dataset_use + ' :')
             print(np.mean(rf_scores_all)) 
         rf_mean_acc[dataset_use] = np.mean(rf_scores_all)
+        rf_all_acc[dataset_use] = rf_scores_all
         
         # Get split for cofusion matrix calculation
         skf = StratifiedKFold(n_splits=crossval_split_k)
@@ -452,15 +464,11 @@ if plot_rf_dataset_comp:
      
      # Percent factor
      pct_f = 100
-     
-     # 'parallel_256' # 'parallel_im_test' # im_test = 64 patches
-     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'NLSAR_1_1', 'PGNLM_19-2_v4'] #
+     pgnlm_set = 'PGNLM_19-2_v4'
+     sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'NLSAR_1_1', pgnlm_set] #
      sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'NL-SAR', 'PGNLM'] # 'refined Lee'
-     #sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'parallel_im_test'] # 'parallel_im_test' # 'parallel_256' # 
-     #sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'PGNLM']
      
      opt_names_dataset = ['optical']
-     #opt_names_dataset = ['NDVI', 'optical']
      n_opt = length(opt_names_dataset)
      
      sar_data_dict = dict(zip(sar_names_dataset, sar_names_display)) 
@@ -468,91 +476,89 @@ if plot_rf_dataset_comp:
      ofs_use = np.copy(ofs)
      plt.figure()
      x_bars = np.arange(length(sar_names_dataset)+ n_opt)
-     #x_bars = np.arange(length(sar_names_dataset))
-     #datakey_list = list(rf_mean_acc.keys())
-     #datakey_list.sort()
+
      for i_dataset, dataset_id in enumerate(id_list_use):
         key_list = []
         rf_accuracy = []
+        yerr = [[],[]]
         
         for dataset_key in sar_names_dataset:
             key_list.append(dataset_key+'-'+dataset_id)
             rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
+            yerr[0].append(pct_f *(min(rf_all_acc[dataset_key+'-'+dataset_id])- 
+                rf_mean_acc[dataset_key+'-'+dataset_id]))
+            yerr[1].append(pct_f* (max(rf_all_acc[dataset_key+'-'+dataset_id])-
+                rf_mean_acc[dataset_key+'-'+dataset_id]))
             
+        yerr = np.abs(yerr)
         print(rf_accuracy)
         if key_list:
             ofs_use = ofs_use * -1
             # Plot
-            plt.bar(x_bars[:-n_opt]*2+ofs_use, rf_accuracy , align='center', color=c_vec2[i_dataset], alpha=alf)
-            #plt.bar(x_bars*2+ofs_use, rf_accuracy , align='center', color=c_vec[i_dataset], alpha=alf)
-            #plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*length(rf_accuracy))
+            #plt.bar(x_bars[:-n_opt]*2+ofs_use, rf_accuracy , align='center', color=c_vec2[i_dataset], alpha=alf)
+            plt.bar(x_bars[:-n_opt]*2+ofs_use, rf_accuracy, yerr=yerr, align='center', 
+                    color=c_vec2[i_dataset], alpha=alf, 
+                    error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2))
      
      key_list = []
      rf_accuracy = []
+     yerr = [[],[]]
      for dataset_key in opt_names_dataset:
             key_list.append(dataset_key+'-A')
             rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
+            #rf_accuracy.append(pct_f*rf_mean_acc[dataset_key+'-'+dataset_id])
+            yerr[0].append(pct_f *(min(rf_all_acc[dataset_key+'-'+dataset_id])- 
+                rf_mean_acc[dataset_key+'-'+dataset_id]))
+            yerr[1].append(pct_f* (max(rf_all_acc[dataset_key+'-'+dataset_id])-
+                rf_mean_acc[dataset_key+'-'+dataset_id]))
     
+     yerr = np.abs(yerr)
      print(rf_accuracy)
-     plt.bar(x_bars[-n_opt:]*2, rf_accuracy , align='center', color='g', alpha=alf)
+     #plt.bar(x_bars[-n_opt:]*2, rf_accuracy , align='center', color='g', alpha=alf)
+     plt.bar(x_bars[-n_opt:]*2, rf_accuracy, yerr=yerr, align='center', 
+        color='g', alpha=alf, 
+        error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2))
         
      # Get display names from dict
-     xtick_list = sar_names_display+opt_names_dataset
-     #for i_dataset, dataset_id in enumerate(id_list):
-         
+     xtick_list = sar_names_display+opt_names_dataset         
     
      plt.xticks(x_bars*2, xtick_list )
      plt.yticks(pct_f*np.linspace(0.1,1,num=10))
      plt.grid(True)
-     #plt.title('RF, n_trees: '+str(rf_ntrees)+ ', normalization: '+norm_type+
-     #         '\n Min:'+', live = '+str(min_p_live)+', defo = '+
-     #          str(min_p_defo)+', trees = '+str(min_tree_live))
+     title_str = 'RF, n_trees: '+str(rf_ntrees)+ ', normalization: ' 
+     title_str += norm_type+'\n Min:'+', live = '+str(min_p_live)+', defo = '
+     title_str += str(min_p_defo)+', trees = '+str(min_tree_live)
+     #plt.title(title_str)
      plt.ylabel('Mean accuracy %, '+str(crossval_split_k)+'-fold cross validation'); plt.ylim((0,pct_f*1))
-     plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017', 'S2 26 July 2017'])
+     plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017', 'S2 26 July 2017'], loc='lower right')
     
      plt.show()
-
-#%% PGNLM compare
-if plot_rf_pgnlm_comp:
-     # Disp
-     id_list_use = ['A', 'C']
-     c_vec2 = ['r', 'b', 'g']
-    
-     ofs_use = np.copy(ofs)
      
-     #x_bars = np.arange(length(sar_names_dataset))
-     #datakey_list = list(rf_mean_acc.keys())
-     #datakey_list.sort()
-     for i_dataset, dataset_id in enumerate(id_list_use):
-        plt.figure()
-        key_list = []
-        rf_accuracy = []
-        
-        for dataset_key in list(rf_mean_acc.keys()):
-            if dataset_key.lower()[0:5] in ['pgnlm'] and dataset_key[-1] == dataset_id:
-                key_list.append(dataset_key)
-                rf_accuracy.append(pct_f*rf_mean_acc[dataset_key])
-    
-        if key_list:
-            x_bars = np.arange(length(rf_accuracy))
-            ofs_use = ofs_use * -1
-            # Plot
-            plt.bar(x_bars*2+ofs_use, rf_accuracy , align='center', color=c_vec2[i_dataset], alpha=alf)
-            #plt.bar(x_bars*2+ofs_use, rf_accuracy , align='center', color=c_vec[i_dataset], alpha=alf)
-            #plt.hlines(np.max(n_class_samples)/np.sum(n_class_samples), -1, 2*length(rf_accuracy))
+     #%% Save figure
 
-        
-            # Get display names from dict
-            xtick_list = key_list
-            plt.xticks(x_bars*2, xtick_list )
-            plt.yticks(pct_f*np.linspace(0.1,1,num=10))
-            plt.grid(True)
-             #plt.title('RF, n_trees: '+str(rf_ntrees)+ ', normalization: '+norm_type+
-             #         '\n Min:'+', live = '+str(min_p_live)+', defo = '+
-             #          str(min_p_defo)+', trees = '+str(min_tree_live))
-            plt.ylabel('Mean accuracy %, '+str(crossval_split_k)+'-fold cross validation'); plt.ylim((0,pct_f*1))
-            plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017'])
-            plt.show()
+     # Set font size
+     matplotlib.rc('font', size=plt_fontsize)
+     # Set output directory
+     fig_dir = os.path.join(parent_dir, 'tempresults')
+     # Create filename
+     fname_out = 'TRANSECT-accbar_'+pgnlm_set+'_RF-'+str(rf_ntrees)+'_k'+str(crossval_split_k)
+     
+     # Add classes to filename
+     if twoclass_only:
+         fname_out += '_dead_live'
+     else:
+         # All classes in class dict
+         for cname in class_dict.keys():
+             fname_out += '_' + cname
+     
+     # Add version and file type
+     fname_out += '_' + version_id+'.png'
+       
+     # now, before saving to file:
+     figure = plt.gcf() # get current figure
+     figure.set_size_inches(plt_width, plt_height) 
+     # when saving, specify the DPI
+     plt.savefig(os.path.join(fig_dir, fname_out), dpi = plt_dpi) 
 
 
 #%% TEST ON COMPLETE IMAGE
