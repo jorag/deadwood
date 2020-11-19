@@ -32,7 +32,7 @@ dirname = os.path.realpath('.')
 parent_dir = os.path.realpath('..')
                           
 # Prefix for object filename
-datamod_fprefix = 'PGNLM-NLSAR_C3_20201115' #'PGNLM-SNAP_C3_20200929' #'PGNLM-SNAP_C3_geo_OPT_20200113' 
+datamod_fprefix = 'PGNLM-NLSAR_C3_20201117' #'PGNLM-SNAP_C3_20200929' #'PGNLM-SNAP_C3_geo_OPT_20200113' 
           
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix  + '.pkl'
@@ -71,7 +71,7 @@ crossval_fprefix = 'new-kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
 
 # Version ID, changes to these options should change version number 
 # changes should also be commited to Github to store exact settings
-version_id = 'v2' # LAST UPDATE 20201108 - match autosave of other plots 151120
+version_id = 'v3' # LAST UPDATE 20201117 - only use 10m optical bands, use coregistered optical image
 
 # Figure options
 plt_fontsize = 12

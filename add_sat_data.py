@@ -25,7 +25,7 @@ from dataclass import *
 new_datalist_format = True
 new_datalist_xls_file = 'SF_forest_subsets.xls' # '2020_C3_dataset_overview.xls' # '2019_reprocess_dataset_overview.xls'
 # Prefix for output datamodalities object filename
-datamod_fprefix = 'PGNLM-NLSAR_C3_20201115' #'PGNLM-SNAP_C3_geo_OPT_20200113'
+datamod_fprefix = 'PGNLM-NLSAR_C3_20201117' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on 
 
 # List of datasets to process
@@ -40,7 +40,7 @@ opt_dataset_list = ['geo_opt']
 
 # Which Sentinel-2 bands to use
 #opt_bands_include = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
-opt_bands_include = ['b02','b03','b04','b05','b08'] # b02, b03, b04, b08, all 10 m resolution
+opt_bands_include = ['b02','b03','b04','b08'] # b02, b03, b04, b08, all 10 m resolution
     
 # Path to working directory 
 dirname = os.path.realpath('.') # For parent directory use '..'

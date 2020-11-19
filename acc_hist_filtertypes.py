@@ -35,20 +35,20 @@ datamod_fprefix = 'PGNLM-SNAP_C3_20200116' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on
 
 # Run on grid data or homogeneous AOI
-use_test_aois = False
+use_test_aois = True
 
 pgnlm_set = 'PGNLM_19-2_v4'
 # List of datasets to process
-dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set, 'geo_opt'] # 'C3', 'NDVI'
+dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set, 'PGNLM_19-2_v256'] # 'C3', 'NDVI'
 #dataset_list = [pgnlm_set, 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set]
 #dataset_keys = ['optical', 'boxcar',  'refined Lee', 'IDAN', 'NL-SAR', 'PGNLM']
 id_list = ['A', 'C'] 
 
 # Datasets to add optical bands from
-opt_dataset_list = ['geo_opt', 'NDVI']
+opt_dataset_list = ['PGNLM_19-2_v256']
 
 # Which Sentinel-2 bands to use
-opt_bands_include = ['b02','b03','b04','b05','b08'] # all 10 m resolution
+opt_bands_include = ['b02','b03','b04','b08'] # all 10 m resolution
     
 # Path to working directory 
 dirname = os.path.realpath('.') 
@@ -58,7 +58,7 @@ parent_dir = os.path.realpath('..') # For parent directory
 knn_k = 5
 rf_ntrees = 200 # Number of trees in the Random Forest algorithm
 # Cross validation parameters
-crossval_split_k = 5
+crossval_split_k = 4
 crossval_kfold = StratifiedKFold(n_splits=crossval_split_k, 
                                  shuffle=True, random_state=crossval_split_k)
 group_kfold = GroupKFold(n_splits=crossval_split_k)
@@ -67,7 +67,7 @@ group_kfold = GroupKFold(n_splits=crossval_split_k)
 
 # Version ID, changes to these options should change version number 
 # changes should also be commited to Github to store exact settings
-version_id = 'v2' # LAST UPDATE 20201108 - initial autosave
+version_id = 'v3' # LAST UPDATE 20201117 - only use 10m optical bands, use coregistered optical image
 
 # Figure options
 plt_fontsize = 12
@@ -110,10 +110,10 @@ else:
     class_dict = read_class_csv(class_file)
     
     # Create lists for each class
-    states_use = ['live', 'dead', 'damaged', 'other']
+    #states_use = ['live', 'dead', 'damaged', 'other']
     #states_use = ['live', 'dead', 'other']
     #states_use = ['live', 'dead', 'damaged']
-    #states_use = ['live', 'dead']
+    states_use = ['live', 'dead']
     for state_collect in states_use:
         data_dict[state_collect] = layer2roipoly_state(grid_list, state_collect)
         
@@ -149,7 +149,7 @@ for dataset_id in id_list:
             # TODO 20200113 - Fix this assumption
             if opt_bands_use:
                 # List of optical band names (added zero for correct alphabetical sorting)
-                opt_band_names = ['b02','b03','b04','b05','b06','b07','b08','b08a','b11','b12']
+                opt_band_names = ['b02','b03','b04','b08']
                 
                 # Add OPT bands
                 opt_bands_dict = dict()
@@ -322,7 +322,7 @@ pct_f = 100
 sar_names_dataset = ['IDAN_50_C3', 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'NLSAR_1_1', 'PGNLM_19-2_v4'] #
 sar_names_display = ['IDAN', 'boxcar', 'refined Lee', 'NL-SAR', 'PGNLM'] # 'refined Lee'
 
-opt_names_dataset = ['geo_opt'] # opt_names_dataset = ['geo_opt', 'NDVI']
+opt_names_dataset = ['PGNLM_19-2_v256'] # opt_names_dataset = ['geo_opt', 'NDVI']
 opt_names_display = ['optical'] # opt_names_display = ['optical', 'NDVI']
 n_opt = length(opt_names_dataset)
 
