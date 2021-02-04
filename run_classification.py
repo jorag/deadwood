@@ -32,7 +32,7 @@ dirname = os.path.realpath('.')
 parent_dir = os.path.realpath('..')
                           
 # Prefix for object filename
-datamod_fprefix = 'PGNLM-NLSAR_C3_20201117' #'PGNLM-SNAP_C3_20200929' #'PGNLM-SNAP_C3_geo_OPT_20200113' 
+datamod_fprefix = 'ABLATION-STUDY' #'PGNLM-NLSAR_C3_20201117' #'PGNLM-SNAP_C3_20200929' #'PGNLM-SNAP_C3_geo_OPT_20200113' 
           
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix  + '.pkl'
@@ -212,11 +212,12 @@ if plot_class_boundaries:
 #%% TRAIN AND CROSS-VALIDATE
 for dataset_type in all_data.all_modalities: 
     # Check if PGNLM filtered or C3 matrix and select feature type
-    if dataset_type.lower()[0:5] in ['pgnlm']:
+    if dataset_type.lower()[0:5] in ['pgnlm', 'noopt']:
         if dataset_type.lower()[6:10] in ['2019', 'best']:
             c3_feature_type = 'iq2c3'
         else:
-            c3_feature_type =  'c3_pgnlm5feat'
+            #c3_feature_type =  'c3_pgnlm5feat'
+            c3_feature_type =  'c3pgnlm5feat'
     elif dataset_type.lower()[-2:] in ['c3']:
         c3_feature_type = 'c3snap_filtered'
     else:

@@ -25,13 +25,13 @@ from dataclass import *
 new_datalist_format = True
 new_datalist_xls_file = 'SF_forest_subsets.xls' # '2020_C3_dataset_overview.xls' # '2019_reprocess_dataset_overview.xls'
 # Prefix for output datamodalities object filename
-datamod_fprefix = 'PGNLM-NLSAR_C3_20201117' #'PGNLM-SNAP_C3_geo_OPT_20200113'
+datamod_fprefix = 'ABLATION-STUDY' #'PGNLM-NLSAR_C3_20201117' #'PGNLM-SNAP_C3_geo_OPT_20200113'
 base_obj_name = 'DiffGPS_FIELD_DATA'+'.pkl' # Name of the (pure) field data object everything is based on 
 
 # List of datasets to process
 #dataset_list = ['iq', 'C3', 'cloude_3x3', 'genFD_3x3', 'vanZyl_3x3', 'yamaguchi_3x3', 'collocate_iq', 'collocate_C3', 'pgnlm_iq'] 
 #dataset_list = ['C3', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'geo_opt'] 
-dataset_list = ['PGNLM_19-2_v4', 'NLSAR_1_1', 'refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'geo_opt']
+dataset_list = ['NOOPT_SARsort_64patch', 'NOOPT_1521patch']
 id_list = ['A', 'C'] #['A', 'B', 'C'] # TODO: 20190909 Consider changing this a date string
 add_ndvi = True
 
