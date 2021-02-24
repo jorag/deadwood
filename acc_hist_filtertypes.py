@@ -39,7 +39,8 @@ use_test_aois = True
 
 pgnlm_set = 'PGNLM_19-2_v4'
 # List of datasets to process
-dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set, 'PGNLM_19-2_v256'] # 'C3', 'NDVI'
+#dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set, 'PGNLM_19-2_v256'] # 'C3', 'NDVI'
+dataset_list = ['iq', pgnlm_set, 'NOOPT_1521patch', 'NOOPT_SARsort_64patch']
 #dataset_list = [pgnlm_set, 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set]
 #dataset_keys = ['optical', 'boxcar',  'refined Lee', 'IDAN', 'NL-SAR', 'PGNLM']
 id_list = ['A', 'C'] 
@@ -67,7 +68,7 @@ group_kfold = GroupKFold(n_splits=crossval_split_k)
 
 # Version ID, changes to these options should change version number 
 # changes should also be commited to Github to store exact settings
-version_id = 'v3' # LAST UPDATE 20201117 - only use 10m optical bands, use coregistered optical image
+version_id = 'v4' # LAST UPDATE 20210224 - ablation test, avoid overwriting previous results
 
 # Figure options
 plt_fontsize = 12
@@ -110,10 +111,10 @@ else:
     class_dict = read_class_csv(class_file)
     
     # Create lists for each class
-    #states_use = ['live', 'dead', 'damaged', 'other']
+    states_use = ['live', 'dead', 'damaged', 'other']
     #states_use = ['live', 'dead', 'other']
     #states_use = ['live', 'dead', 'damaged']
-    states_use = ['live', 'dead']
+    #states_use = ['live', 'dead']
     for state_collect in states_use:
         data_dict[state_collect] = layer2roipoly_state(grid_list, state_collect)
         
@@ -173,7 +174,7 @@ for dataset_id in id_list:
             continue
         
         # %% Check input data type for feature extraction
-        if dataset_in.lower()[0:5] in ['pgnlm']:
+        if dataset_in.lower()[0:5] in ['pgnlm', 'noopt']:
             if dataset_in.lower()[6:10] in ['2019', 'best']:
                 c3_feature_type = 'iq2c3'
             else:
@@ -234,7 +235,14 @@ for dataset_id in id_list:
                 
                 # Extract SAR covariance mat features, reshape to get channels last
                 sat_data = np.transpose(sat_data, (1,2,0))
-                sat_data = get_sar_features(sat_data, feature_type=c3_feature_type, input_type='img')
+                if dataset_in == 'iq':
+                    # Read IQ data
+                    #print(dataset_use)
+                    #print(sat_data.shape)
+                    sat_data = lexi_rgb(sat_data)
+                    #print(sat_data.shape)
+                else:
+                    sat_data = get_sar_features(sat_data, feature_type=c3_feature_type, input_type='img')
                 
                 # Flatten, reshape to channels first due to ordering of reshape
                 sat_data = np.transpose(sat_data, (2,0,1))
@@ -285,8 +293,8 @@ for dataset_id in id_list:
         knn_scores_all = cross_val_score(knn_all, x, y, groups=groups, 
                                          cv=crossval_use)
         #knn_scores_all = cross_val_score(knn_all, x, y, cv=crossval_kfold)
-        print('kNN - ' + dataset_use + ' :')
-        print(np.mean(knn_scores_all))
+        #print('kNN - ' + dataset_use + ' :')
+        #print(np.mean(knn_scores_all))
         knn_mean_acc[dataset_use] = np.mean(knn_scores_all)
         knn_all_acc[dataset_use] = knn_scores_all
         

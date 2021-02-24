@@ -40,7 +40,8 @@ use_test_aois = False
 pgnlm_set = 'PGNLM_19-2_v4'
 # List of datasets to process
 #dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set] 
-dataset_list = [pgnlm_set]
+#dataset_list = [pgnlm_set]
+dataset_list = [pgnlm_set, 'NOOPT_1521patch', 'NOOPT_SARsort_64patch']
 #dataset_keys = ['optical', 'boxcar',  'refined Lee', 'IDAN', 'NL-SAR', 'PGNLM']
 id_list = ['A', 'C'] 
 
@@ -181,7 +182,7 @@ for dataset_id in id_list:
             continue
         
         # %% Check input data type for feature extraction
-        if dataset_in.lower()[0:5] in ['pgnlm']:
+        if dataset_in.lower()[0:5] in ['pgnlm', 'noopt']:
             if dataset_in.lower()[6:10] in ['2019', 'best']:
                 c3_feature_type = 'iq2c3'
             else:
