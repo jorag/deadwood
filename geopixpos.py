@@ -400,6 +400,14 @@ def geobox(lat_bounds, lon_bounds, lat_band, lon_band, margin=(0,0), log_type='d
 
 def read_wkt_csv(input_file, input_mode='z+m'):
     output_areas = []
+    
+    if input_mode == 'multipolygon1':
+        skip_count = 2
+        debug_print = True
+    else:
+        skip_count = 1
+        debug_print = False
+        
     # Open and read .csv file
     with open(input_file, newline='') as csvfile:
         wktreader = csv.reader(csvfile, delimiter=',', quotechar='"')
@@ -416,8 +424,18 @@ def read_wkt_csv(input_file, input_mode='z+m'):
                 # Find index of (outer) enclosing double parantheses
                 l_ind = row_str.find('(')
                 r_ind = row_str.rfind(')')
+            
+                
+                if debug_print:
+                    print(l_ind, r_ind)
+                    print(row_str[l_ind+skip_count+1:r_ind-skip_count])
+                    
+                # Check if parantheses are found
+                if l_ind == -1 or r_ind == -1:
+                    continue
+                
                 # Skip double paranteses
-                polygon_str = row_str[l_ind+2:r_ind-1] 
+                polygon_str = row_str[l_ind+skip_count+1:r_ind-skip_count] 
 
                 # Split string for each vertex (comma separated) in the polygon
                 vertex_list = polygon_str.split(',')
