@@ -39,8 +39,8 @@ use_test_aois = True
 
 pgnlm_set = 'PGNLM_19-2_v4'
 # List of datasets to process
-#dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set, 'PGNLM_19-2_v256'] # 'C3', 'NDVI'
-dataset_list = ['iq', pgnlm_set, 'NOOPT_1521patch', 'NOOPT_SARsort_64patch']
+dataset_list = ['refined_Lee_5x5_C3', 'boxcar_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set, 'PGNLM_19-2_v256'] # 'C3', 'NDVI'
+#dataset_list = ['iq', pgnlm_set, 'NOOPT_1521patch', 'NOOPT_SARsort_64patch']
 #dataset_list = [pgnlm_set, 'boxcar_5x5_C3', 'refined_Lee_5x5_C3', 'IDAN_50_C3', 'NLSAR_1_1', pgnlm_set]
 #dataset_keys = ['optical', 'boxcar',  'refined Lee', 'IDAN', 'NL-SAR', 'PGNLM']
 id_list = ['A', 'C'] 
@@ -111,10 +111,10 @@ else:
     class_dict = read_class_csv(class_file)
     
     # Create lists for each class
-    states_use = ['live', 'dead', 'damaged', 'other']
+    #states_use = ['live', 'dead', 'damaged', 'other']
     #states_use = ['live', 'dead', 'other']
     #states_use = ['live', 'dead', 'damaged']
-    #states_use = ['live', 'dead']
+    states_use = ['live', 'dead']
     for state_collect in states_use:
         data_dict[state_collect] = layer2roipoly_state(grid_list, state_collect)
         
@@ -394,7 +394,8 @@ plt.grid(True)
 #plt.title('RF, n_trees: '+str(rf_ntrees)+ ', normalization: '+norm_type+
 #         '\n Min:'+', live = '+str(min_p_live)+', defo = '+
 #          str(min_p_defo)+', trees = '+str(min_tree_live))
-plt.ylabel('Mean accuracy %, '+str(crossval_split_k)+'-fold cross validation'); plt.ylim((0,pct_f*1))
+plt.ylabel('Mean accuracy %, '+str(crossval_split_k)+'-fold cross validation')
+plt.ylim((35,pct_f*1))
 plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017', 'S2 26 July 2017'], loc='lower right')
 
 plt.show()

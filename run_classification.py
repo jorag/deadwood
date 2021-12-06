@@ -32,7 +32,7 @@ dirname = os.path.realpath('.')
 parent_dir = os.path.realpath('..')
                           
 # Prefix for object filename
-datamod_fprefix = 'ABLATION-STUDY' #'PGNLM-NLSAR_C3_20201117' #'PGNLM-SNAP_C3_20200929' #'PGNLM-SNAP_C3_geo_OPT_20200113' 
+datamod_fprefix = 'PGNLM-NLSAR_C3_20201117' # 'ABLATION-STUDY' # 'PGNLM-SNAP_C3_20200929' #'PGNLM-SNAP_C3_geo_OPT_20200113' 
           
 # Name of input object and file with satellite data path string
 obj_in_name = datamod_fprefix  + '.pkl'
@@ -71,7 +71,7 @@ crossval_fprefix = 'new-kNN' + str(knn_k) + 'trees' + str(rf_ntrees)
 
 # Version ID, changes to these options should change version number 
 # changes should also be commited to Github to store exact settings
-version_id = 'v3' # LAST UPDATE 20201117 - only use 10m optical bands, use coregistered optical image
+version_id = 'v4' # LAST UPDATE 20210225 - change baseline
 
 # Figure options
 plt_fontsize = 12
@@ -530,8 +530,9 @@ if plot_rf_dataset_comp:
      title_str += norm_type+'\n Min:'+', live = '+str(min_p_live)+', defo = '
      title_str += str(min_p_defo)+', trees = '+str(min_tree_live)
      #plt.title(title_str)
-     plt.ylabel('Mean accuracy %, '+str(crossval_split_k)+'-fold cross validation'); plt.ylim((0,pct_f*1))
-     plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017', 'S2 26 July 2017'], loc='lower right')
+     plt.ylabel('Mean accuracy %, '+str(crossval_split_k)+'-fold cross validation')
+     plt.ylim((35,pct_f*1))
+     plt.legend(['RS2 25 July 2017', 'RS2 1 August 2017', 'S2 26 July 2017'], loc='upper left')
     
      plt.show()
      
