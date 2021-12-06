@@ -384,7 +384,24 @@ def iq2complex(x, reciprocity=False):
         array_out[:,:,1] = x[:,:,2] + 1j * x[:,:,3] # HV (=VH)
         array_out[:,:,2] = x[:,:,4] + 1j * x[:,:,5] # VH
                
-    return array_out 
+    return array_out
+
+
+def complex2real(c):
+    """Divide complex array elements into Re and Im.
+
+    Return real valued array.
+    """
+    shape_in = c.shape
+    # Number of bands determines form of expression
+    array_out = np.zeros((shape_in[0], shape_in[1], 2*shape_in[2]), dtype=np.float64)
+
+    # Get real values of bands
+    for i_element in range(shape_in[2]):
+        array_out[:,:,2*i_element] = np.real(c[:,:,i_element])
+        array_out[:,:,2*i_element+1] = np.imag(c[:,:,i_element])
+               
+    return array_out
 
 
 def polar2complex(amp_in, ang_in):
